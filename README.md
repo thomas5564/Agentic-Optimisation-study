@@ -19,3 +19,10 @@ python -m uvicorn app.main:app --reload
 ```bash
 python -m pytest tests/ -q
 ```
+
+## Get result
+
+```
+.venv/bin/python -m benchmarks.run --config configs/pilot.yaml --output benchmark-output
+```
+
