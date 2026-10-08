@@ -1,0 +1,33 @@
+Metadata-Version: 2.4
+Name: comp-690-notes
+Version: 0.1.0
+Summary: Baseline notes API for the COMP 690 research project
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi<1.0,>=0.115
+Requires-Dist: uvicorn<1.0,>=0.30
+Requires-Dist: httpx<1.0,>=0.27
+Requires-Dist: pytest<9,>=8
+Requires-Dist: PyYAML<7.0,>=6.0
+
+# COMP 690 Notes Baseline
+
+This project implements the Milestone 1 baseline for the notes application.
+
+## Setup
+
+```bash
+python -m pip install -e .
+```
+
+## Run the API
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+## Run tests
+
+```bash
+python -m pytest tests/ -q
+```

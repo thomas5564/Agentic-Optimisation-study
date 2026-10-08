@@ -1,0 +1,187 @@
+{
+  "aggregate": {
+    "max": 30.31258302507922,
+    "mean": 3.531744336942211,
+    "median": 1.619791000848636,
+    "min": 1.1798329942394048,
+    "p95": 30.31258302507922
+  },
+  "config": {
+    "note_count": 20,
+    "output_dir": "tmp",
+    "repetitions": 3,
+    "seed": 7,
+    "timeout_seconds": 5,
+    "warmups": 1
+  },
+  "runs": [
+    {
+      "note_count": 20,
+      "per_operation": [
+        {
+          "elapsed_ms": 30.31258302507922,
+          "name": "list_initial",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 2.2197910002432764,
+          "name": "create_note",
+          "ok": true,
+          "status_code": 201,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.9655409851111472,
+          "name": "search_notes",
+          "ok": true,
+          "status_code": 200,
+          "valid": false
+        },
+        {
+          "elapsed_ms": 1.68995899730362,
+          "name": "update_note",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.410583994584158,
+          "name": "delete_note",
+          "ok": true,
+          "status_code": 204,
+          "valid": true
+        }
+      ],
+      "run_index": 0,
+      "samples": [
+        30.31258302507922,
+        2.2197910002432764,
+        1.9655409851111472,
+        1.68995899730362,
+        1.410583994584158
+      ],
+      "seed": 7,
+      "summary": {
+        "max": 30.31258302507922,
+        "mean": 7.519691600464284,
+        "median": 1.9655409851111472,
+        "min": 1.410583994584158,
+        "p95": 30.31258302507922
+      }
+    },
+    {
+      "note_count": 20,
+      "per_operation": [
+        {
+          "elapsed_ms": 1.9138750212732702,
+          "name": "list_initial",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.7827500123530626,
+          "name": "create_note",
+          "ok": true,
+          "status_code": 201,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.5830000047571957,
+          "name": "search_notes",
+          "ok": true,
+          "status_code": 200,
+          "valid": false
+        },
+        {
+          "elapsed_ms": 1.4160830178298056,
+          "name": "update_note",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.1798329942394048,
+          "name": "delete_note",
+          "ok": true,
+          "status_code": 204,
+          "valid": true
+        }
+      ],
+      "run_index": 1,
+      "samples": [
+        1.9138750212732702,
+        1.7827500123530626,
+        1.5830000047571957,
+        1.4160830178298056,
+        1.1798329942394048
+      ],
+      "seed": 7,
+      "summary": {
+        "max": 1.9138750212732702,
+        "mean": 1.5751082100905478,
+        "median": 1.5830000047571957,
+        "min": 1.1798329942394048,
+        "p95": 1.9138750212732702
+      }
+    },
+    {
+      "note_count": 20,
+      "per_operation": [
+        {
+          "elapsed_ms": 1.7548750038258731,
+          "name": "list_initial",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.619791000848636,
+          "name": "create_note",
+          "ok": true,
+          "status_code": 201,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.5240829961840063,
+          "name": "search_notes",
+          "ok": true,
+          "status_code": 200,
+          "valid": false
+        },
+        {
+          "elapsed_ms": 1.4189590001478791,
+          "name": "update_note",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.1844580003526062,
+          "name": "delete_note",
+          "ok": true,
+          "status_code": 204,
+          "valid": true
+        }
+      ],
+      "run_index": 2,
+      "samples": [
+        1.7548750038258731,
+        1.619791000848636,
+        1.5240829961840063,
+        1.4189590001478791,
+        1.1844580003526062
+      ],
+      "seed": 7,
+      "summary": {
+        "max": 1.7548750038258731,
+        "mean": 1.5004332002718002,
+        "median": 1.5240829961840063,
+        "min": 1.1844580003526062,
+        "p95": 1.7548750038258731
+      }
+    }
+  ]
+}

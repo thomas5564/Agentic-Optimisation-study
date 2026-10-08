@@ -1,0 +1,187 @@
+{
+  "aggregate": {
+    "max": 20.386582997161895,
+    "mean": 2.7580751358376197,
+    "median": 1.5096250281203538,
+    "min": 1.2213340087328106,
+    "p95": 20.386582997161895
+  },
+  "config": {
+    "note_count": 20,
+    "output_dir": "tmp",
+    "repetitions": 3,
+    "seed": 7,
+    "timeout_seconds": 5,
+    "warmups": 1
+  },
+  "runs": [
+    {
+      "note_count": 20,
+      "per_operation": [
+        {
+          "elapsed_ms": 20.386582997161895,
+          "name": "list_initial",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 2.010208001593128,
+          "name": "create_note",
+          "ok": true,
+          "status_code": 201,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.6586670244578272,
+          "name": "search_notes",
+          "ok": true,
+          "status_code": 200,
+          "valid": false
+        },
+        {
+          "elapsed_ms": 1.7155419918708503,
+          "name": "update_note",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.3597089855466038,
+          "name": "delete_note",
+          "ok": true,
+          "status_code": 204,
+          "valid": true
+        }
+      ],
+      "run_index": 0,
+      "samples": [
+        20.386582997161895,
+        2.010208001593128,
+        1.6586670244578272,
+        1.7155419918708503,
+        1.3597089855466038
+      ],
+      "seed": 7,
+      "summary": {
+        "max": 20.386582997161895,
+        "mean": 5.426141800126061,
+        "median": 1.7155419918708503,
+        "min": 1.3597089855466038,
+        "p95": 20.386582997161895
+      }
+    },
+    {
+      "note_count": 20,
+      "per_operation": [
+        {
+          "elapsed_ms": 1.5096250281203538,
+          "name": "list_initial",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.5130839892663062,
+          "name": "create_note",
+          "ok": true,
+          "status_code": 201,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.5694999892730266,
+          "name": "search_notes",
+          "ok": true,
+          "status_code": 200,
+          "valid": false
+        },
+        {
+          "elapsed_ms": 1.5536659921053797,
+          "name": "update_note",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.2847920006606728,
+          "name": "delete_note",
+          "ok": true,
+          "status_code": 204,
+          "valid": true
+        }
+      ],
+      "run_index": 1,
+      "samples": [
+        1.5096250281203538,
+        1.5130839892663062,
+        1.5694999892730266,
+        1.5536659921053797,
+        1.2847920006606728
+      ],
+      "seed": 7,
+      "summary": {
+        "max": 1.5694999892730266,
+        "mean": 1.4861333998851478,
+        "median": 1.5130839892663062,
+        "min": 1.2847920006606728,
+        "p95": 1.5694999892730266
+      }
+    },
+    {
+      "note_count": 20,
+      "per_operation": [
+        {
+          "elapsed_ms": 1.4374580059666187,
+          "name": "list_initial",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.396084000589326,
+          "name": "create_note",
+          "ok": true,
+          "status_code": 201,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.350500009721145,
+          "name": "search_notes",
+          "ok": true,
+          "status_code": 200,
+          "valid": false
+        },
+        {
+          "elapsed_ms": 1.404375012498349,
+          "name": "update_note",
+          "ok": true,
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.2213340087328106,
+          "name": "delete_note",
+          "ok": true,
+          "status_code": 204,
+          "valid": true
+        }
+      ],
+      "run_index": 2,
+      "samples": [
+        1.4374580059666187,
+        1.396084000589326,
+        1.350500009721145,
+        1.404375012498349,
+        1.2213340087328106
+      ],
+      "seed": 7,
+      "summary": {
+        "max": 1.4374580059666187,
+        "mean": 1.3619502075016499,
+        "median": 1.396084000589326,
+        "min": 1.2213340087328106,
+        "p95": 1.4374580059666187
+      }
+    }
+  ]
+}

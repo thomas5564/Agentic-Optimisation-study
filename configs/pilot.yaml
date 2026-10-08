@@ -1,0 +1,6 @@
+seed: 7
+note_count: 20
+repetitions: 3
+warmups: 1
+timeout_seconds: 5
+output_dir: tmp

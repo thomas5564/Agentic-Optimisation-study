@@ -1,0 +1,28 @@
+         53686 function calls (52330 primitive calls) in 0.047 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1429 to 20 due to restriction <20>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    84/64    0.000    0.000    0.069    0.001 {built-in method builtins.next}
+        1    0.000    0.000    0.047    0.047 /Users/thomaschoo/Downloads/comp-690/benchmarks/run.py:26(run_once)
+        5    0.000    0.000    0.044    0.009 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/starlette/testclient.py:438(request)
+        5    0.000    0.000    0.044    0.009 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/httpx/_client.py:771(request)
+        5    0.000    0.000    0.043    0.009 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/httpx/_client.py:879(send)
+        5    0.000    0.000    0.043    0.009 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/httpx/_client.py:930(_send_handling_auth)
+        5    0.000    0.000    0.043    0.009 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/httpx/_client.py:964(_send_handling_redirects)
+        5    0.000    0.000    0.043    0.009 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/httpx/_client.py:1001(_send_single_request)
+       10    0.000    0.000    0.043    0.004 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/starlette/testclient.py:430(_portal_factory)
+       10    0.000    0.000    0.042    0.004 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/anyio/from_thread.py:505(start_blocking_portal)
+        5    0.000    0.000    0.042    0.008 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/starlette/testclient.py:223(handle_request)
+    35/25    0.000    0.000    0.042    0.002 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/contextlib.py:145(__exit__)
+        5    0.000    0.000    0.041    0.008 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1097(join)
+        5    0.000    0.000    0.041    0.008 {method 'join' of '_thread._ThreadHandle' objects}
+     10/5    0.000    0.000    0.041    0.008 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1030(_bootstrap)
+     10/5    0.000    0.000    0.041    0.008 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1065(_bootstrap_inner)
+    183/5    0.000    0.000    0.041    0.008 {method 'run' of '_contextvars.Context' objects}
+        5    0.000    0.000    0.041    0.008 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/threading.py:1013(run)
+        5    0.000    0.000    0.041    0.008 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/anyio/from_thread.py:535(run_blocking_portal)
+        2    0.000    0.000    0.035    0.017 /Users/thomaschoo/Downloads/comp-690/.venv/lib/python3.14/site-packages/httpx/_client.py:1036(get)
+
+
