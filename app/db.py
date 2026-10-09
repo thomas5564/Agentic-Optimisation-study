@@ -94,11 +94,11 @@ def list_notes(
 
         matches_tags = True
         if tags_filter:
-            tag_values = {tag.lower() for tag in tags_filter if tag}
+            tag_values = {tag for tag in tags_filter if tag}
             if not tag_values:
                 matches_tags = True
             else:
-                matches_tags = all(tag.lower() in {item.lower() for item in note.tags} for tag in tag_values)
+                matches_tags = all(tag in set(note.tags) for tag in tag_values)
 
         if matches_search and matches_tags:
             filtered.append(note)

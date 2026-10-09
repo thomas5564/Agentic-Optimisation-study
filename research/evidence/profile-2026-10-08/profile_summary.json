@@ -1,0 +1,2316 @@
+{
+  "config": {
+    "concurrency": 1,
+    "cycles": 20,
+    "note_count": 100,
+    "repetitions": 5,
+    "seed": 7,
+    "startup_timeout_seconds": 15,
+    "timeout_seconds": 5,
+    "warmups": 2
+  },
+  "environment": {
+    "dependencies": {
+      "PyYAML": "6.0.3",
+      "fastapi": "0.143.0",
+      "httpx": "0.28.1",
+      "pydantic": "2.14.0",
+      "pytest": "8.4.2",
+      "starlette": "1.7.0",
+      "uvicorn": "0.54.0"
+    },
+    "machine": "arm64",
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+    "python": "3.13.2",
+    "sqlite": "3.49.1"
+  },
+  "kind": "profile_only",
+  "run": {
+    "counts": {
+      "completed": 240,
+      "failed": 0,
+      "latency_ms": {
+        "max": 4.257790977135301,
+        "mean": 1.479123222331206,
+        "median": 1.6277916729450226,
+        "min": 0.7995839696377516,
+        "p95": 1.9266251474618912
+      },
+      "semantic_mismatches": 0,
+      "success_rate": 1.0,
+      "successful": 240,
+      "timed_out": 0,
+      "total": 240
+    },
+    "error": null,
+    "fixture_status": "passed",
+    "logical_fixture_hash": "b07680c9a65412daa8e41a307996173fbb53b2a7759435b710d5a8bd19fbc6bd",
+    "official_tests": null,
+    "per_operation": {
+      "add": {
+        "completed": 20,
+        "failed": 0,
+        "latency_ms": {
+          "max": 3.887958126142621,
+          "mean": 1.5853167627938092,
+          "median": 1.4220629818737507,
+          "min": 1.2600841000676155,
+          "p95": 1.8577920272946358
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 20,
+        "timed_out": 0,
+        "total": 20
+      },
+      "delete": {
+        "completed": 20,
+        "failed": 0,
+        "latency_ms": {
+          "max": 1.5360410325229168,
+          "mean": 1.141877134796232,
+          "median": 1.1192499659955502,
+          "min": 0.9942909236997366,
+          "p95": 1.3881251215934753
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 20,
+        "timed_out": 0,
+        "total": 20
+      },
+      "get": {
+        "completed": 60,
+        "failed": 0,
+        "latency_ms": {
+          "max": 4.257790977135301,
+          "mean": 0.9917471751881143,
+          "median": 0.8897914085537195,
+          "min": 0.7995839696377516,
+          "p95": 1.2435419484972954
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 60,
+        "timed_out": 0,
+        "total": 60
+      },
+      "list_search": {
+        "completed": 120,
+        "failed": 0,
+        "latency_ms": {
+          "max": 4.169249907135963,
+          "mean": 1.775787427322939,
+          "median": 1.7121875425800681,
+          "min": 1.5776660293340683,
+          "p95": 1.9548330456018448
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 120,
+        "timed_out": 0,
+        "total": 120
+      },
+      "update": {
+        "completed": 20,
+        "failed": 0,
+        "latency_ms": {
+          "max": 1.7546250019222498,
+          "mean": 1.392318680882454,
+          "median": 1.3652710476890206,
+          "min": 1.230624970048666,
+          "p95": 1.7405410762876272
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 20,
+        "timed_out": 0,
+        "total": 20
+      }
+    },
+    "requests": [
+      {
+        "elapsed_ms": 0.988583080470562,
+        "error": null,
+        "name": "cycle_0_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 2.027458045631647,
+        "error": null,
+        "name": "cycle_0_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8262499943375587,
+        "error": null,
+        "name": "cycle_0_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3708749320358038,
+        "error": null,
+        "name": "cycle_0_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8718750905245543,
+        "error": null,
+        "name": "cycle_0_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6691670753061771,
+        "error": null,
+        "name": "cycle_0_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.553208101540804,
+        "error": null,
+        "name": "cycle_0_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9469590149819851,
+        "error": null,
+        "name": "cycle_0_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7300420440733433,
+        "error": null,
+        "name": "cycle_0_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6553329769521952,
+        "error": null,
+        "name": "cycle_0_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1979578994214535,
+        "error": null,
+        "name": "cycle_0_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6636659856885672,
+        "error": null,
+        "name": "cycle_0_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9322499390691519,
+        "error": null,
+        "name": "cycle_1_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8314998596906662,
+        "error": null,
+        "name": "cycle_1_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6912079881876707,
+        "error": null,
+        "name": "cycle_1_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.2656250037252903,
+        "error": null,
+        "name": "cycle_1_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8289169054478407,
+        "error": null,
+        "name": "cycle_1_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.62762519903481,
+        "error": null,
+        "name": "cycle_1_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.2849580962210894,
+        "error": null,
+        "name": "cycle_1_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8588330820202827,
+        "error": null,
+        "name": "cycle_1_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.829707995057106,
+        "error": null,
+        "name": "cycle_1_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6680830158293247,
+        "error": null,
+        "name": "cycle_1_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1231249663978815,
+        "error": null,
+        "name": "cycle_1_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.62958400323987,
+        "error": null,
+        "name": "cycle_1_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.827958807349205,
+        "error": null,
+        "name": "cycle_2_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.818208023905754,
+        "error": null,
+        "name": "cycle_2_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.722124870866537,
+        "error": null,
+        "name": "cycle_2_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.2600841000676155,
+        "error": null,
+        "name": "cycle_2_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.86041702888906,
+        "error": null,
+        "name": "cycle_2_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.663916977122426,
+        "error": null,
+        "name": "cycle_2_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.243875129148364,
+        "error": null,
+        "name": "cycle_2_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8755829185247421,
+        "error": null,
+        "name": "cycle_2_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6365409828722477,
+        "error": null,
+        "name": "cycle_2_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6337500419467688,
+        "error": null,
+        "name": "cycle_2_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.0661669075489044,
+        "error": null,
+        "name": "cycle_2_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6828328371047974,
+        "error": null,
+        "name": "cycle_2_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8676249999552965,
+        "error": null,
+        "name": "cycle_3_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7581251449882984,
+        "error": null,
+        "name": "cycle_3_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6780421137809753,
+        "error": null,
+        "name": "cycle_3_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3870419934391975,
+        "error": null,
+        "name": "cycle_3_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.882292166352272,
+        "error": null,
+        "name": "cycle_3_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.625166041776538,
+        "error": null,
+        "name": "cycle_3_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3832910917699337,
+        "error": null,
+        "name": "cycle_3_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8214588742703199,
+        "error": null,
+        "name": "cycle_3_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6637081280350685,
+        "error": null,
+        "name": "cycle_3_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6450411640107632,
+        "error": null,
+        "name": "cycle_3_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.0944579262286425,
+        "error": null,
+        "name": "cycle_3_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6500409692525864,
+        "error": null,
+        "name": "cycle_3_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8397500496357679,
+        "error": null,
+        "name": "cycle_4_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.799082849174738,
+        "error": null,
+        "name": "cycle_4_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6890410333871841,
+        "error": null,
+        "name": "cycle_4_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3835001736879349,
+        "error": null,
+        "name": "cycle_4_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8274170104414225,
+        "error": null,
+        "name": "cycle_4_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.5776660293340683,
+        "error": null,
+        "name": "cycle_4_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.330000115558505,
+        "error": null,
+        "name": "cycle_4_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8454578928649426,
+        "error": null,
+        "name": "cycle_4_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6049169935286045,
+        "error": null,
+        "name": "cycle_4_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6254999209195375,
+        "error": null,
+        "name": "cycle_4_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.0359170846641064,
+        "error": null,
+        "name": "cycle_4_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.658458961173892,
+        "error": null,
+        "name": "cycle_4_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8435831405222416,
+        "error": null,
+        "name": "cycle_5_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.797167118638754,
+        "error": null,
+        "name": "cycle_5_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7562499269843102,
+        "error": null,
+        "name": "cycle_5_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.633334206417203,
+        "error": null,
+        "name": "cycle_5_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9039998985826969,
+        "error": null,
+        "name": "cycle_5_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7139171250164509,
+        "error": null,
+        "name": "cycle_5_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.4312909916043282,
+        "error": null,
+        "name": "cycle_5_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9665410034358501,
+        "error": null,
+        "name": "cycle_5_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.723750028759241,
+        "error": null,
+        "name": "cycle_5_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6837918665260077,
+        "error": null,
+        "name": "cycle_5_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1989169288426638,
+        "error": null,
+        "name": "cycle_5_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7021249514073133,
+        "error": null,
+        "name": "cycle_5_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8841250091791153,
+        "error": null,
+        "name": "cycle_6_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.9266251474618912,
+        "error": null,
+        "name": "cycle_6_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7598329577594995,
+        "error": null,
+        "name": "cycle_6_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.56512507237494,
+        "error": null,
+        "name": "cycle_6_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8865001145750284,
+        "error": null,
+        "name": "cycle_6_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7021249514073133,
+        "error": null,
+        "name": "cycle_6_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3419580645859241,
+        "error": null,
+        "name": "cycle_6_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8818749338388443,
+        "error": null,
+        "name": "cycle_6_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6596661880612373,
+        "error": null,
+        "name": "cycle_6_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.709457952529192,
+        "error": null,
+        "name": "cycle_6_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1184997856616974,
+        "error": null,
+        "name": "cycle_6_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7400409560650587,
+        "error": null,
+        "name": "cycle_6_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9174160659313202,
+        "error": null,
+        "name": "cycle_7_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8872078508138657,
+        "error": null,
+        "name": "cycle_7_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.80470896884799,
+        "error": null,
+        "name": "cycle_7_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.543290913105011,
+        "error": null,
+        "name": "cycle_7_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8918328676372766,
+        "error": null,
+        "name": "cycle_7_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6971668228507042,
+        "error": null,
+        "name": "cycle_7_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.410334138199687,
+        "error": null,
+        "name": "cycle_7_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9212919976562262,
+        "error": null,
+        "name": "cycle_7_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7537910025566816,
+        "error": null,
+        "name": "cycle_7_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7389999702572823,
+        "error": null,
+        "name": "cycle_7_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.120000146329403,
+        "error": null,
+        "name": "cycle_7_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6858328599482775,
+        "error": null,
+        "name": "cycle_7_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9164169896394014,
+        "error": null,
+        "name": "cycle_8_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8599999602884054,
+        "error": null,
+        "name": "cycle_8_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7640830483287573,
+        "error": null,
+        "name": "cycle_8_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8577920272946358,
+        "error": null,
+        "name": "cycle_8_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9296250063925982,
+        "error": null,
+        "name": "cycle_8_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7356250900775194,
+        "error": null,
+        "name": "cycle_8_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.370999962091446,
+        "error": null,
+        "name": "cycle_8_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9335419163107872,
+        "error": null,
+        "name": "cycle_8_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6995829064399004,
+        "error": null,
+        "name": "cycle_8_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6833329573273659,
+        "error": null,
+        "name": "cycle_8_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1163749732077122,
+        "error": null,
+        "name": "cycle_8_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.733875134959817,
+        "error": null,
+        "name": "cycle_8_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9137911256402731,
+        "error": null,
+        "name": "cycle_9_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.9478751346468925,
+        "error": null,
+        "name": "cycle_9_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.794333104044199,
+        "error": null,
+        "name": "cycle_9_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.438833074644208,
+        "error": null,
+        "name": "cycle_9_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9941249154508114,
+        "error": null,
+        "name": "cycle_9_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7176249530166388,
+        "error": null,
+        "name": "cycle_9_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3806249480694532,
+        "error": null,
+        "name": "cycle_9_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.97287492826581,
+        "error": null,
+        "name": "cycle_9_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.692832913249731,
+        "error": null,
+        "name": "cycle_9_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7491658218204975,
+        "error": null,
+        "name": "cycle_9_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1206669732928276,
+        "error": null,
+        "name": "cycle_9_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6933330334722996,
+        "error": null,
+        "name": "cycle_9_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8824579417705536,
+        "error": null,
+        "name": "cycle_10_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8131670076400042,
+        "error": null,
+        "name": "cycle_10_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6987079288810492,
+        "error": null,
+        "name": "cycle_10_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.4128340408205986,
+        "error": null,
+        "name": "cycle_10_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8680000901222229,
+        "error": null,
+        "name": "cycle_10_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6807499341666698,
+        "error": null,
+        "name": "cycle_10_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7405410762876272,
+        "error": null,
+        "name": "cycle_10_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8920829277485609,
+        "error": null,
+        "name": "cycle_10_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6832919791340828,
+        "error": null,
+        "name": "cycle_10_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7182091251015663,
+        "error": null,
+        "name": "cycle_10_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1760001070797443,
+        "error": null,
+        "name": "cycle_10_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7231658566743135,
+        "error": null,
+        "name": "cycle_10_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8877499494701624,
+        "error": null,
+        "name": "cycle_11_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.901749987155199,
+        "error": null,
+        "name": "cycle_11_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.706874929368496,
+        "error": null,
+        "name": "cycle_11_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.69412512332201,
+        "error": null,
+        "name": "cycle_11_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9313749615103006,
+        "error": null,
+        "name": "cycle_11_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8318328075110912,
+        "error": null,
+        "name": "cycle_11_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.5400408301502466,
+        "error": null,
+        "name": "cycle_11_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.2435419484972954,
+        "error": null,
+        "name": "cycle_11_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.9487079698592424,
+        "error": null,
+        "name": "cycle_11_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7972919158637524,
+        "error": null,
+        "name": "cycle_11_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1222499888390303,
+        "error": null,
+        "name": "cycle_11_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6656669322401285,
+        "error": null,
+        "name": "cycle_11_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9457920677959919,
+        "error": null,
+        "name": "cycle_12_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.804084051400423,
+        "error": null,
+        "name": "cycle_12_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6937500331550837,
+        "error": null,
+        "name": "cycle_12_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3799169100821018,
+        "error": null,
+        "name": "cycle_12_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9490421507507563,
+        "error": null,
+        "name": "cycle_12_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.756375189870596,
+        "error": null,
+        "name": "cycle_12_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3595421332865953,
+        "error": null,
+        "name": "cycle_12_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8865839336067438,
+        "error": null,
+        "name": "cycle_12_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6504998784512281,
+        "error": null,
+        "name": "cycle_12_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7474580090492964,
+        "error": null,
+        "name": "cycle_12_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.0793749243021011,
+        "error": null,
+        "name": "cycle_12_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8562080804258585,
+        "error": null,
+        "name": "cycle_12_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 4.257790977135301,
+        "error": null,
+        "name": "cycle_13_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 4.169249907135963,
+        "error": null,
+        "name": "cycle_13_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 3.932874882593751,
+        "error": null,
+        "name": "cycle_13_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 3.887958126142621,
+        "error": null,
+        "name": "cycle_13_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6747498884797096,
+        "error": null,
+        "name": "cycle_13_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 2.0554170478135347,
+        "error": null,
+        "name": "cycle_13_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7546250019222498,
+        "error": null,
+        "name": "cycle_13_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8761251121759415,
+        "error": null,
+        "name": "cycle_13_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.937583088874817,
+        "error": null,
+        "name": "cycle_13_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 2.1061659790575504,
+        "error": null,
+        "name": "cycle_13_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.5360410325229168,
+        "error": null,
+        "name": "cycle_13_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8260001670569181,
+        "error": null,
+        "name": "cycle_13_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.044207951053977,
+        "error": null,
+        "name": "cycle_14_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.9587499555200338,
+        "error": null,
+        "name": "cycle_14_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7930418252944946,
+        "error": null,
+        "name": "cycle_14_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.4943748246878386,
+        "error": null,
+        "name": "cycle_14_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.182665815576911,
+        "error": null,
+        "name": "cycle_14_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.741291955113411,
+        "error": null,
+        "name": "cycle_14_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.4005000703036785,
+        "error": null,
+        "name": "cycle_14_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8807920385152102,
+        "error": null,
+        "name": "cycle_14_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6792500391602516,
+        "error": null,
+        "name": "cycle_14_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7231670208275318,
+        "error": null,
+        "name": "cycle_14_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1448340956121683,
+        "error": null,
+        "name": "cycle_14_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7088339664041996,
+        "error": null,
+        "name": "cycle_14_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9387081954628229,
+        "error": null,
+        "name": "cycle_15_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.9548330456018448,
+        "error": null,
+        "name": "cycle_15_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7854578327387571,
+        "error": null,
+        "name": "cycle_15_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.4312919229269028,
+        "error": null,
+        "name": "cycle_15_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9507909417152405,
+        "error": null,
+        "name": "cycle_15_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7104579601436853,
+        "error": null,
+        "name": "cycle_15_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.2629169505089521,
+        "error": null,
+        "name": "cycle_15_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9792500641196966,
+        "error": null,
+        "name": "cycle_15_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6675000078976154,
+        "error": null,
+        "name": "cycle_15_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.64462486281991,
+        "error": null,
+        "name": "cycle_15_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3881251215934753,
+        "error": null,
+        "name": "cycle_15_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.715291989967227,
+        "error": null,
+        "name": "cycle_15_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9019579738378525,
+        "error": null,
+        "name": "cycle_16_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.9097079057246447,
+        "error": null,
+        "name": "cycle_16_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.9122499506920576,
+        "error": null,
+        "name": "cycle_16_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.5704159159213305,
+        "error": null,
+        "name": "cycle_16_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9856659453362226,
+        "error": null,
+        "name": "cycle_16_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7017091158777475,
+        "error": null,
+        "name": "cycle_16_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.2998748570680618,
+        "error": null,
+        "name": "cycle_16_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8697500452399254,
+        "error": null,
+        "name": "cycle_16_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6822500620037317,
+        "error": null,
+        "name": "cycle_16_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.647666096687317,
+        "error": null,
+        "name": "cycle_16_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.0597920045256615,
+        "error": null,
+        "name": "cycle_16_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6627081204205751,
+        "error": null,
+        "name": "cycle_16_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8354168385267258,
+        "error": null,
+        "name": "cycle_17_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8074170220643282,
+        "error": null,
+        "name": "cycle_17_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8319999799132347,
+        "error": null,
+        "name": "cycle_17_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3789169024676085,
+        "error": null,
+        "name": "cycle_17_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8830840233713388,
+        "error": null,
+        "name": "cycle_17_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6517909243702888,
+        "error": null,
+        "name": "cycle_17_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.24841695651412,
+        "error": null,
+        "name": "cycle_17_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8459999226033688,
+        "error": null,
+        "name": "cycle_17_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.627958146855235,
+        "error": null,
+        "name": "cycle_17_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6024999786168337,
+        "error": null,
+        "name": "cycle_17_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.1024170089513063,
+        "error": null,
+        "name": "cycle_17_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6423750203102827,
+        "error": null,
+        "name": "cycle_17_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9035000111907721,
+        "error": null,
+        "name": "cycle_18_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.8001659773290157,
+        "error": null,
+        "name": "cycle_18_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7575419042259455,
+        "error": null,
+        "name": "cycle_18_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.389124896377325,
+        "error": null,
+        "name": "cycle_18_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8748751133680344,
+        "error": null,
+        "name": "cycle_18_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6055000014603138,
+        "error": null,
+        "name": "cycle_18_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.230624970048666,
+        "error": null,
+        "name": "cycle_18_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.7995839696377516,
+        "error": null,
+        "name": "cycle_18_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6574999317526817,
+        "error": null,
+        "name": "cycle_18_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6445000655949116,
+        "error": null,
+        "name": "cycle_18_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.042333897203207,
+        "error": null,
+        "name": "cycle_18_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.613834174349904,
+        "error": null,
+        "name": "cycle_18_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.803415896371007,
+        "error": null,
+        "name": "cycle_19_0_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.744791865348816,
+        "error": null,
+        "name": "cycle_19_1_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.7922499682754278,
+        "error": null,
+        "name": "cycle_19_2_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.3618750963360071,
+        "error": null,
+        "name": "cycle_19_3_add",
+        "operation": "add",
+        "status_code": 201,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.851290998980403,
+        "error": null,
+        "name": "cycle_19_4_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.635249936953187,
+        "error": null,
+        "name": "cycle_19_5_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.2787501327693462,
+        "error": null,
+        "name": "cycle_19_6_update",
+        "operation": "update",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.8456660434603691,
+        "error": null,
+        "name": "cycle_19_7_get",
+        "operation": "get",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6322501469403505,
+        "error": null,
+        "name": "cycle_19_8_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6449589747935534,
+        "error": null,
+        "name": "cycle_19_9_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 0.9942909236997366,
+        "error": null,
+        "name": "cycle_19_10_delete",
+        "operation": "delete",
+        "status_code": 204,
+        "valid": true
+      },
+      {
+        "elapsed_ms": 1.6021248884499073,
+        "error": null,
+        "name": "cycle_19_11_list_search",
+        "operation": "list_search",
+        "status_code": 200,
+        "valid": true
+      }
+    ],
+    "score_ms": null,
+    "startup_status": "passed",
+    "warmups": [
+      {
+        "counts": {
+          "completed": 2,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.2901660520583391,
+            "mean": 1.2306454591453075,
+            "median": 1.2306454591453075,
+            "min": 1.171124866232276,
+            "p95": 1.2901660520583391
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 2,
+          "timed_out": 0,
+          "total": 2
+        },
+        "per_operation": {
+          "add": {
+            "completed": 0,
+            "failed": 0,
+            "latency_ms": {
+              "max": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "p95": null
+            },
+            "semantic_mismatches": 0,
+            "success_rate": null,
+            "successful": 0,
+            "timed_out": 0,
+            "total": 0
+          },
+          "delete": {
+            "completed": 0,
+            "failed": 0,
+            "latency_ms": {
+              "max": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "p95": null
+            },
+            "semantic_mismatches": 0,
+            "success_rate": null,
+            "successful": 0,
+            "timed_out": 0,
+            "total": 0
+          },
+          "get": {
+            "completed": 1,
+            "failed": 0,
+            "latency_ms": {
+              "max": 1.171124866232276,
+              "mean": 1.171124866232276,
+              "median": 1.171124866232276,
+              "min": 1.171124866232276,
+              "p95": 1.171124866232276
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 1,
+            "timed_out": 0,
+            "total": 1
+          },
+          "list_search": {
+            "completed": 1,
+            "failed": 0,
+            "latency_ms": {
+              "max": 1.2901660520583391,
+              "mean": 1.2901660520583391,
+              "median": 1.2901660520583391,
+              "min": 1.2901660520583391,
+              "p95": 1.2901660520583391
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 1,
+            "timed_out": 0,
+            "total": 1
+          },
+          "update": {
+            "completed": 0,
+            "failed": 0,
+            "latency_ms": {
+              "max": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "p95": null
+            },
+            "semantic_mismatches": 0,
+            "success_rate": null,
+            "successful": 0,
+            "timed_out": 0,
+            "total": 0
+          }
+        },
+        "requests": [
+          {
+            "elapsed_ms": 1.171124866232276,
+            "error": null,
+            "name": "warm_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 1.2901660520583391,
+            "error": null,
+            "name": "warm_list",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          }
+        ],
+        "score_ms": 1.2306454591453075,
+        "workload_elapsed_ms": 2.5750419590622187
+      },
+      {
+        "counts": {
+          "completed": 2,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.2715000193566084,
+            "mean": 1.0367914801463485,
+            "median": 1.0367914801463485,
+            "min": 0.8020829409360886,
+            "p95": 1.2715000193566084
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 2,
+          "timed_out": 0,
+          "total": 2
+        },
+        "per_operation": {
+          "add": {
+            "completed": 0,
+            "failed": 0,
+            "latency_ms": {
+              "max": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "p95": null
+            },
+            "semantic_mismatches": 0,
+            "success_rate": null,
+            "successful": 0,
+            "timed_out": 0,
+            "total": 0
+          },
+          "delete": {
+            "completed": 0,
+            "failed": 0,
+            "latency_ms": {
+              "max": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "p95": null
+            },
+            "semantic_mismatches": 0,
+            "success_rate": null,
+            "successful": 0,
+            "timed_out": 0,
+            "total": 0
+          },
+          "get": {
+            "completed": 1,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.8020829409360886,
+              "mean": 0.8020829409360886,
+              "median": 0.8020829409360886,
+              "min": 0.8020829409360886,
+              "p95": 0.8020829409360886
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 1,
+            "timed_out": 0,
+            "total": 1
+          },
+          "list_search": {
+            "completed": 1,
+            "failed": 0,
+            "latency_ms": {
+              "max": 1.2715000193566084,
+              "mean": 1.2715000193566084,
+              "median": 1.2715000193566084,
+              "min": 1.2715000193566084,
+              "p95": 1.2715000193566084
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 1,
+            "timed_out": 0,
+            "total": 1
+          },
+          "update": {
+            "completed": 0,
+            "failed": 0,
+            "latency_ms": {
+              "max": null,
+              "mean": null,
+              "median": null,
+              "min": null,
+              "p95": null
+            },
+            "semantic_mismatches": 0,
+            "success_rate": null,
+            "successful": 0,
+            "timed_out": 0,
+            "total": 0
+          }
+        },
+        "requests": [
+          {
+            "elapsed_ms": 0.8020829409360886,
+            "error": null,
+            "name": "warm_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 1.2715000193566084,
+            "error": null,
+            "name": "warm_list",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          }
+        ],
+        "score_ms": 1.0367914801463485,
+        "workload_elapsed_ms": 2.188874874264002
+      }
+    ],
+    "workload_elapsed_ms": 362.86566709168255
+  },
+  "schema_version": 1,
+  "scope": "endpoint functions, including sync worker threads; excludes ASGI serialization and network",
+  "score_ms": null,
+  "source": {
+    "files": {
+      "app/__init__.py": "90007a636cf190d01969c620f85e79d49f0d9b964d5608490e8decb09ec4d52c",
+      "app/db.py": "41854713f64648b2ef44c6696aa76943f04b6bdad880f73203d80db74a509b26",
+      "app/main.py": "5fea253237763d1eaf232a7e74bf1510cfe08d80ad1146c99bdeb164ff2bed62",
+      "app/models.py": "a6cd9687a3e6fc15f84c2fee6d400ec0f5529406ab9a3ca4a3d4f08308409978",
+      "app/seed.py": "d6e81cce0e90811f67b1dbd9714367d5f7fc5c32a74dc205d28c12793a050636",
+      "app/static/app.js": "61cd02f0c81aa86b287c34e88db6ea013efa45e8573afff7d2afa488176a3e24",
+      "app/static/index.html": "de61a3ce22f0b6d08e1f9a9652a8b6497f86fa4122eb2fb0548b7752c7df60c0",
+      "app/static/style.css": "0be8ae35f2d13b7cd6a028d749bd967095eb80d766ef596cabbaaa06a1f37428"
+    },
+    "sha256": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b"
+  },
+  "tool": "cProfile"
+}

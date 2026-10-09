@@ -19,10 +19,10 @@ class NoteBase(BaseModel):
             normalized = str(tag).strip()
             if not normalized:
                 continue
-            if normalized.lower() not in seen:
-                seen.add(normalized.lower())
+            if normalized not in seen:
+                seen.add(normalized)
                 cleaned.append(normalized)
-        return sorted(cleaned, key=lambda item: item.lower())
+        return sorted(cleaned)
 
 
 class NoteCreate(NoteBase):

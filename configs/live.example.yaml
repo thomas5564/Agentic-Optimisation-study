@@ -1,0 +1,28 @@
+# Fill in an explicitly chosen model and locally built immutable image ID.
+# This file intentionally cannot start a paid call until configured.
+schema_version: 1
+phase: smoke
+epsilon: 0.5
+baseline: research/baseline
+model: null
+reasoning: medium
+image: null
+agent_network: bridge
+benchmark:
+  seed: 7
+  note_count: 10
+  cycles: 2
+  repetitions: 2
+  warmups: 1
+  concurrency: 1
+  timeout_seconds: 5.0
+  startup_timeout_seconds: 15.0
+role_timeout_seconds: 120.0
+evaluation_timeout_seconds: 180.0
+max_input_bytes: 200000
+max_output_bytes: 1000000
+max_tool_calls: 30
+repair_budget: 0
+role_retries: 0
+checkpoints: [10, 15, 20, 25, 30]
+replicates: 3

@@ -1,0 +1,148 @@
+{
+  "completed_resume_unchanged": true,
+  "conditions": {
+    "memory": {
+      "attempt_statuses": [
+        "evaluated",
+        "syntax_failed",
+        "noop"
+      ],
+      "completed_iterations": 3,
+      "planner_memory_counts": [
+        0,
+        1,
+        2
+      ],
+      "state": {
+        "completed_iterations": 3,
+        "final_remeasurement_score_ms": 0.8994071104098111,
+        "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+        "status": "complete"
+      }
+    },
+    "stateless": {
+      "attempt_statuses": [
+        "evaluated",
+        "syntax_failed",
+        "noop"
+      ],
+      "completed_iterations": 3,
+      "planner_memory_counts": [
+        0,
+        0,
+        0
+      ],
+      "state": {
+        "completed_iterations": 3,
+        "final_remeasurement_score_ms": 0.946764577141342,
+        "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+        "status": "complete"
+      }
+    }
+  },
+  "container_evidence": {
+    "cli_version": "codex-cli 0.162.0-alpha.2",
+    "docker_server": "29.6.1",
+    "environment": {
+      "dependencies": {
+        "PyYAML": "6.0.3",
+        "fastapi": "0.143.0",
+        "httpx": "0.28.1",
+        "pydantic": "2.14.0",
+        "pytest": "8.4.2",
+        "starlette": "1.7.0",
+        "uvicorn": "0.54.0"
+      },
+      "machine": "aarch64",
+      "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
+      "python": "3.13.16",
+      "sqlite": "3.40.1"
+    },
+    "image_id": "sha256:385b5ef7719da065679daedf775a6a35567c9be0ddffa3143e659f21ab744238",
+    "isolation": {
+      "app_contract_inputs_readonly": true,
+      "history_absent": true,
+      "host_and_sibling_denied": true,
+      "output_writable": true
+    },
+    "live_model_calls": 0,
+    "measurement_counts": {
+      "completed": 48,
+      "failed": 0,
+      "latency_ms": {
+        "max": 72.75891699998738,
+        "mean": 41.78617981249625,
+        "median": 44.46960399997124,
+        "min": 2.1434170000134145,
+        "p95": 48.31816699999081
+      },
+      "semantic_mismatches": 0,
+      "success_rate": 1.0,
+      "successful": 48,
+      "timed_out": 0,
+      "total": 48
+    },
+    "passed": true,
+    "profile_valid": true,
+    "raw_evidence_sha256": "340b17c48d22d087fed4b4dae2c9f9a5f9a80ce40601bac5112ffd435bb23664",
+    "validation_status": "passed"
+  },
+  "container_integration": "/tmp/notes-container-integration-01/integration.json",
+  "date": "2026-10-08",
+  "implementation": {
+    "agents/__init__.py": "aac71b737963f6fab8eb6795e5fc03868c183b689f162f6482a3695ba3a1fd05",
+    "agents/codex.py": "2d9cf9151513a0cffef2a59c734834b5dfef7fe60e11fa0dae3ec1fe0ac4668c",
+    "agents/docker.py": "3b6564647cd835943813a3eab4b304ed577539502f645223a0a56be531e479f5",
+    "agents/inputs.py": "61770d74184e3360c0b3f643d1868cf5b45101a3f0daaa510d693e5fd32df3bf",
+    "agents/mock.py": "00d1d68b188b3a4fd5e5c69b129686885f787db93375926419cabc97649b1ac5",
+    "agents/preflight.py": "7d21388632dbd62f7b7f63bdde97fe9bd62802d60ea20a7ac9b38393d3da3ebb",
+    "agents/process.py": "ec900f352798bc4b97f5a501d497ef65f283d2a85d7b8743dc231f838b5f80d5",
+    "agents/prompts/auditor.txt": "17a3e71efe37c53a87d23b62fb385da7ea0fba1cb5df748708be5fdc03c263af",
+    "agents/prompts/developer.txt": "f68abd737fd5b2f5dd29c077dbd8705072453a5926da90267c5d8350cb44486a",
+    "agents/prompts/planner.txt": "b9b5ad601cb8f7af040f165317c7a3a8582ca5a66ec8c2aeb561e130b998e1f6",
+    "agents/schemas.py": "3db8f46885d8c3b0bb344adffbd47b83191f06d882436dabd6b801caa23ab33e",
+    "agents/schemas/attempt.json": "5df37ef1fd1e8b65ab65cb788faf18c1f9dbad386ab73324b6bcc1f5c1a1ff58",
+    "agents/schemas/auditor.json": "8f8bbd9cce5cf9045a95aaf32c637499bc34eb5ce54c9c1380788655a44abc19",
+    "agents/schemas/developer.json": "cca953ca2532002fc14ea044df66cb749a9a67005d95d8efeae9bde063f1612d",
+    "agents/schemas/memory.json": "2359c0c3df884aa3bee23ab3bd015a952c1fa2a97053f758e989853b85f4b13d",
+    "agents/schemas/planner.json": "5a33642701048cfa0477879aa849db1d047b51e443b6debc2aa8c689a7d9872b",
+    "agents/schemas/role_input.json": "ba798d156d98231244c9e2a8325591b7cf3f8ef120a5245f84ce72944dbeffcb",
+    "benchmarks/__init__.py": "b517b7b3e2c4242c77fefa9122488192dcbec0f8215cae3307d998a0a495f813",
+    "benchmarks/config.py": "dc27f23eb00eb119147359b6d31add3a467cf9def159cfb1c776c04693bf9849",
+    "benchmarks/fixtures.py": "f2a5467c418ce4305146cecd55a86aee12cc7c1d97c85e83b15080c316dd8024",
+    "benchmarks/metrics.py": "61d7fbd18337a69af697ff0dbae27e269b39cb0ab8230960da6eef228148f321",
+    "benchmarks/oracle.py": "b35f72f199baebed90b826653251fed0a1221a1c0b2d6325dde64af7297a1ce7",
+    "benchmarks/profile.py": "32c3658978cbd069989e43723b07f999881ea00080ce52687e07804093d3d021",
+    "benchmarks/reset.py": "789e56b1a471e0ae56dff8e5ac3e4e4b00d979bbbacf23b75469d253924a768f",
+    "benchmarks/run.py": "160c344db52587078cce213967410b13763f0a3ea1f21066c7bab3218e3b718a",
+    "benchmarks/runtime.py": "7e69bf162f253ff9191e7fd4556b73d26779aa0984eba3ce73dfb2b09ff796cc",
+    "benchmarks/server.py": "2cb6b7a1f3b4d6180e53c2887389f62fe9e22d5e70ee3f0fe3a35580b92f5096",
+    "benchmarks/snapshot.py": "07c438c7b02b33bf0a35441ee6e4aea543e76dbe4b38defdc9a9be4f25c3036f",
+    "benchmarks/workload.py": "583f571239a08340bfe696a9188290cb5c6baa38be57461a95240ea0382f241c",
+    "controller/__init__.py": "3f0d5b7d2bf72f63ace9d53499d91f0d028b96fd685261aed48538f629b3dfa7",
+    "controller/batch.py": "669fac470bdb2535b919e0900cab015530dc3bac61597773966488aff34c75fb",
+    "controller/check_environment.py": "1098602179ac9cc1cde29f92a35e97e0b9f47be5cc70e3db22b44d96835af4ba",
+    "controller/config.py": "462e87535c6f66304a3e0469ffa26ec99184ad38b38fa7bde95cfd0ef40157a5",
+    "controller/engine.py": "2db6937dae07286286ec865fd6036e8e39f3f08df5b895c46f62cce1c9b9d8f4",
+    "controller/evaluation.py": "b55028b676d1a3691b7d096c4ba239273415e69b5333445f66a26654b2f97227",
+    "controller/freeze.py": "2537891f95a35cd4d2f2f68311e6915ebc143854c6c50ca8786eea7b0d49b912",
+    "controller/journal.py": "b7364b2f3b201d2bb34b3e1487e500cdea028891eb2a7d404f66051a239e7341",
+    "controller/records.py": "2e90c3ef1f8f3e2b0a8c07549e0dcb7973c18367ba92245a2ce831fa2f3b44c1",
+    "controller/resume.py": "43cf0ac47a9d06901ddf85ee2613215ea83b74bf3006044f7f3c0048c72451ce",
+    "controller/run.py": "d2e3a7feb3fce8f025a45f322f993951661978ed6a5159f962679203a0cb63cb",
+    "controller/storage.py": "b850a27084310d83707352d97c9d37d11ff7a24406fba033aace0e70f06da270",
+    "controller/worker.py": "45b0905468ec95ebf83d49bd2ea7d102c9dfc737316d852d2f61f7970c575990",
+    "requirements.lock": "5e881aff850032990add83dd4fa035285627eb7e12a4d0592c093eac9d10b12b",
+    "tests/test_notes.py": "bd4a437ca364cdfe9e565861072916b863c584c4306a797e9b2528c3487528d6"
+  },
+  "live_model_calls": 0,
+  "report": "/Users/jaymesonkoh/.codex/visualizations/2026/10/09/01a11e69-8712-76f2-a79c-5dacf01d710e/experiment-smoke-report/index.html",
+  "schema_version": 1,
+  "smoke_root": "/tmp/notes-mock-verified-2026-10-08",
+  "tests": {
+    "command": ".venv/bin/python -m pytest tests/ -q",
+    "passed": 92,
+    "seconds": 15.27,
+    "warnings": 33
+  }
+}

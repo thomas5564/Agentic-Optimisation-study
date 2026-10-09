@@ -1,0 +1,7 @@
+Implement the supplied plan against the current app and public API contract in
+/workspace. Return a JSON patch as complete replacement file contents, or null for
+a deletion, within app/ only. An empty edits list is a no-op. The runner validates
+and applies your patch; the workspace is read-only. Preserve endpoint semantics,
+SQLite persistence and durability. Never special-case inputs, modify benchmark or
+test code, add dependencies, or claim that your own checks establish acceptance.
+You receive only the current plan and evidence; do not seek prior sessions or logs.

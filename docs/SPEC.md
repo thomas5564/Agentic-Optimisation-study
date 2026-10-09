@@ -131,3 +131,60 @@ Completion means a documented command can run a mock experiment, an explicitly a
 ## Implementation reference
 
 The official Codex iterative-loop example demonstrates separate role invocations and structured output: https://developers.openai.com/cookbook/examples/codex/build_iterative_repair_loops_with_codex . Check the installed CLI's supported arguments during integration; do not hard-code an assumed model or obsolete flags.
+
+## Baseline protocol clarifications (2026-10-08)
+
+The public v1 contract is `contracts/API.md`, with pinned validation examples in
+`contracts/validation-errors.json`. Exact tags are case-sensitive, whitespace
+trimmed, deduplicated by exact value, and sorted in Unicode string order. This
+repairs the original implementation's undocumented case folding before baseline
+freeze. Title/body limits are 1–200 / 1–5000 characters.
+
+The milestone 2 harness uses real loopback HTTP and a new process/database for
+each repetition. Runner-owned fixtures are seeded through the candidate API so
+candidate schema/index changes survive. A fixed read-only warm-up leaves the
+seeded logical state unchanged before timing. HTTPX timeouts currently bound
+transport inactivity; whole-request/role execution budgets remain controller work.
+Profiling captures endpoint functions in the server and worker threads, separately
+from timing; it does not yet profile ASGI serialization or network overhead.
+
+The inherited browser UI is preserved as ancillary functionality and excluded
+from the objective. List/search remains an explicitly disclosed addition to the
+proposal's four CRUD metrics. The proposal's successful/failed ratio and repeated
+memory/memory formula are interpreted as successful/total and stateless/memory,
+respectively, as defined above. Preserve raw counts for alternate presentations.
+No final epsilon or experimental result is implied by baseline development checks.
+
+## Implemented controller choices (2026-10-08)
+
+Developer returns a schema-validated list of complete-file replacements/deletions.
+The runner validates paths, preserves the public contract, and applies the patch
+in a new candidate snapshot. All three role workspaces are read-only. This is a
+stricter implementation of the role boundary and is identical across conditions.
+Official tests run in the trusted process and exercise candidate HTTP subprocesses;
+live evaluation additionally runs inside a network-disabled container.
+
+Measurements alternate whole parent/candidate batch order by iteration. CLI mock
+runs use real measurements; synthetic scores are confined to labeled unit fixtures.
+Both conditions append factual records for all attempts, but only memory Planner
+receives history. Memory is materialized from committed attempt records rather
+than maintaining a separately mutable append log. Complete role results and
+measurements are journaled; unresolved role calls are never silently repeated.
+
+A run archives its full implementation, prompts, config, dependency/runtime
+manifest, and content-addressed source snapshots. Resume rejects implementation,
+configuration, or environment drift. The paired scheduler alternates condition
+order and currently uses one recorded fixed workload seed across all replicate
+pairs. It does not assume deterministic model output.
+
+Analysis groups results by protocol, implementation, environment, phase, backend,
+and synthetic/measured provenance. It reports descriptive uncertainty across
+independent runs and explicitly identifies carried retained-code scores. Missing
+usage/cost remain null. Repeated unsuccessful approaches use the same declared
+approach category plus exactly matching case-folded, whitespace-normalized change
+text after an earlier rejection; no semantic similarity claim is implied.
+
+The real container boundary and baseline integration have passed unpaid checks.
+Milestone 4's live inference check is still open. Final protocol configuration
+must be frozen from completed real pilot evidence; final research execution is
+not a side effect of implementation or a mock smoke command.

@@ -1,31 +1,21 @@
-from __future__ import annotations
-
-import json
-import sqlite3
-from typing import Any
-
-from app.db import get_db_path, initialize_db
-from app.seed import seed_database
+"""Seed a fresh candidate through its public API, preserving its schema/indexes."""
+from benchmarks.fixtures import make_fixture
+from benchmarks.oracle import Oracle
 
 
-def reset_database(seed: int = 7, count: int = 20) -> list[dict[str, Any]]:
-    """Reset the notes DB and restore a deterministic fixture.
-
-    The same seed and count must produce the same logical dataset across runs.
-    """
-    db_path = get_db_path()
-    connection = sqlite3.connect(db_path)
-    try:
-        connection.execute("DROP TABLE IF EXISTS notes")
-        connection.commit()
-        initialize_db()
-        expected = seed_database(seed, count)
-        for note in expected:
-            connection.execute(
-                "INSERT INTO notes (id, title, body, tags) VALUES (?, ?, ?, ?)",
-                (int(note["id"]), str(note["title"]), str(note["body"]), json.dumps(note["tags"])),
-            )
-        connection.commit()
-    finally:
-        connection.close()
-    return expected
+def reset_database(client, seed: int = 7, count: int = 20) -> Oracle:
+    oracle = Oracle()
+    empty = client.get("/notes")
+    if not oracle.check({"method": "GET"}, empty.status_code, empty.json()):
+        raise ValueError("Fixture setup requires a fresh, empty application database")
+    for i, payload in enumerate(make_fixture(seed, count)):
+        step = {"method": "POST", "bind": f"seed_{i}", "payload": payload}
+        response = client.post("/notes", json=payload)
+        if not oracle.check(step, response.status_code, response.json()):
+            raise ValueError(f"Fixture response mismatch at note {i}")
+    for offset in range(0, count, 100):
+        step = {"method": "GET", "params": {"offset": offset, "limit": 100}}
+        response = client.get("/notes", params=step["params"])
+        if not oracle.check(step, response.status_code, response.json()):
+            raise ValueError(f"Fixture list mismatch at offset {offset}")
+    return oracle

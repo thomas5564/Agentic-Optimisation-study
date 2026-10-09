@@ -1,6 +1,9 @@
+# Development measurement settings; freeze only after a representative pilot.
 seed: 7
-note_count: 20
-repetitions: 3
-warmups: 1
+note_count: 100
+cycles: 20
+repetitions: 5
+warmups: 2
+concurrency: 1
 timeout_seconds: 5
-output_dir: tmp
+startup_timeout_seconds: 15

@@ -1,0 +1,50 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "hypothesis": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Hypothesis",
+      "type": "string"
+    },
+    "change": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Change",
+      "type": "string"
+    },
+    "risks": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Risks",
+      "type": "array"
+    },
+    "approach": {
+      "enum": [
+        "query",
+        "index",
+        "cache",
+        "serialization",
+        "computation",
+        "other"
+      ],
+      "title": "Approach",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "hypothesis",
+    "change",
+    "risks",
+    "approach"
+  ],
+  "title": "Plan",
+  "type": "object"
+}

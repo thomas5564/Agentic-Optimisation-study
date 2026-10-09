@@ -1,109 +1,166 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib.metadata
 import json
-import os
-import time
 from pathlib import Path
-from typing import Any
+import platform
+import sqlite3
+import time
+from datetime import datetime, timezone
 
-import yaml
-from fastapi.testclient import TestClient
+import httpx
 
-from app.main import app
-from benchmarks.metrics import summarize_samples, write_json
-from benchmarks.oracle import validate_create_response, validate_list_response, validate_update_response
+from benchmarks.config import BenchmarkConfig, load_config
+from benchmarks.fixtures import make_fixture
+from benchmarks.metrics import aggregate_runs, summarize_requests, write_json
 from benchmarks.reset import reset_database
-from benchmarks.workload import build_workload
+from benchmarks.runtime import PROJECT_ROOT, benchmark_lock, candidate_server
+from benchmarks.workload import build_warmup, build_workload
 
 
-def load_config(path: str | Path) -> dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as handle:
-        data = yaml.safe_load(handle) or {}
-    return data
+def content_hash(value) -> str:
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()).hexdigest()
 
 
-def run_once(seed: int = 7, note_count: int = 20) -> dict[str, Any]:
-    client = TestClient(app)
-    reset_database(seed=seed, count=note_count)
-    trace = build_workload(seed=seed, note_count=note_count)
-    samples: list[float] = []
-    results: list[dict[str, Any]] = []
+def source_manifest(root: Path) -> dict:
+    files = {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
+             for p in sorted((root / "app").rglob("*"))
+             if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"}
+    return {"sha256": content_hash(files), "files": files}
 
+
+def execute_trace(client, oracle, trace: list[dict]) -> dict:
+    results = []
+    trace_start = time.perf_counter()
     for step in trace:
-        name = step["name"]
+        result = {"name": step["name"], "operation": step["operation"],
+                  "status_code": None, "elapsed_ms": None, "valid": False,
+                  "error": None}
+        try:
+            path = oracle.path(step)
+        except KeyError:
+            result["error"] = "failed_dependency"
+            results.append(result)
+            continue
         start = time.perf_counter()
-        if step["method"] == "GET":
-            response = client.get(step["path"], params=step.get("params", {}))
-        elif step["method"] == "POST":
-            response = client.post(step["path"], json=step.get("payload", {}))
-        elif step["method"] == "PUT":
-            response = client.put(step["path"], json=step.get("payload", {}))
-        elif step["method"] == "DELETE":
-            response = client.delete(step["path"])
-        else:
-            raise ValueError(f"Unsupported method: {step['method']}")
-        elapsed_ms = (time.perf_counter() - start) * 1000
-        samples.append(elapsed_ms)
-
-        result = {
-            "name": name,
-            "status_code": response.status_code,
-            "elapsed_ms": elapsed_ms,
-            "ok": response.status_code < 400,
-        }
-        payload = response.json() if response.content else {}
-        if name == "list_initial":
-            result["valid"] = validate_list_response(payload, step["expected_total"], step.get("expected_titles"))
-        elif name == "create_note":
-            result["valid"] = validate_create_response(payload, step["expected_title"], step["expected_body"])
-        elif name == "search_notes":
-            result["valid"] = validate_list_response(payload, step["expected_total"], step.get("expected_titles"))
-        elif name == "update_note":
-            result["valid"] = validate_update_response(payload, step["expected_title"], step["expected_body"])
-        elif name == "delete_note":
-            result["valid"] = response.status_code == step["expected_status"]
-
+        try:
+            kwargs = {"params": step.get("params", {})}
+            if "payload" in step:
+                kwargs["json"] = step["payload"]
+            response = client.request(step["method"], path, **kwargs)
+            result["elapsed_ms"] = (time.perf_counter() - start) * 1000
+            result["status_code"] = response.status_code
+            try:
+                payload = response.json() if response.content else None
+                result["valid"] = oracle.check(step, response.status_code, payload, response.content)
+            except (ValueError, TypeError, KeyError):
+                result["valid"] = False
+            if not result["valid"]:
+                result["error"] = "semantic_mismatch"
+        except httpx.TimeoutException:
+            result["error"] = "timeout"
+        except httpx.TransportError:
+            result["error"] = "transport_error"
+        if result["elapsed_ms"] is None:
+            result["elapsed_ms"] = (time.perf_counter() - start) * 1000
         results.append(result)
-
-    return {
-        "seed": seed,
-        "note_count": note_count,
-        "samples": samples,
-        "per_operation": results,
-        "summary": summarize_samples(samples),
-    }
+    elapsed_ms = (time.perf_counter() - trace_start) * 1000
+    summary = summarize_requests(results)
+    return {"requests": results, "counts": summary, "workload_elapsed_ms": elapsed_ms,
+            "per_operation": {op: summarize_requests([r for r in results if r["operation"] == op])
+                              for op in ("add", "get", "update", "delete", "list_search")},
+            "score_ms": summary["latency_ms"]["mean"] if results and not summary["failed"] else None}
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Benchmark the notes app")
-    parser.add_argument("--config", required=True, help="Path to YAML benchmark config")
-    parser.add_argument("--output", default="tmp", help="Directory for output JSON (default: tmp)")
+def run_once(config: BenchmarkConfig, app_root: Path, log_path: Path, profile: Path | None = None) -> dict:
+    stage = "startup"
+    result = {"startup_status": "pending", "fixture_status": "pending", "warmups": [],
+              "requests": [], "score_ms": None, "error": None,
+              "official_tests": None}
+    try:
+        with candidate_server(app_root, config, log_path, profile) as (client, active):
+            result["startup_status"] = "passed"
+            stage = "fixture"
+            oracle = reset_database(client, seed=config.seed, count=config.note_count)
+            result["fixture_status"] = "passed"
+            result["logical_fixture_hash"] = content_hash(list(oracle.notes.values()))
+            stage = "warmup"
+            for _ in range(config.warmups):
+                warmup = execute_trace(client, oracle, build_warmup())
+                result["warmups"].append(warmup)
+                if warmup["score_ms"] is None:
+                    raise ValueError("Warm-up response validation failed")
+            stage = "workload"
+            if profile:
+                active.touch()
+            try:
+                result.update(execute_trace(client, oracle, build_workload(config.seed, config.note_count, config.cycles)))
+            finally:
+                if profile:
+                    active.unlink(missing_ok=True)
+            if profile:
+                result["score_ms"] = None
+    except (RuntimeError, TimeoutError, ValueError, httpx.TransportError) as error:
+        result["error"] = {"stage": stage, "type": type(error).__name__, "message": str(error)}
+        result[f"{stage}_status"] = "failed"
+        result["score_ms"] = None
+    return result
+
+
+def environment() -> dict:
+    return {"python": platform.python_version(), "platform": platform.platform(),
+            "machine": platform.machine(), "sqlite": sqlite3.sqlite_version,
+            "dependencies": {name: importlib.metadata.version(name) for name in
+                             ("fastapi", "pydantic", "starlette", "uvicorn", "httpx", "pytest", "PyYAML")}}
+
+
+def run_benchmark(config: BenchmarkConfig, output: Path, app_root: Path = PROJECT_ROOT) -> dict:
+    output.mkdir(parents=True, exist_ok=True)
+    if (output / "benchmark_summary.json").exists():
+        raise ValueError("Benchmark output already exists; use a fresh output directory")
+    manifest = source_manifest(app_root)
+    trace = build_workload(config.seed, config.note_count, config.cycles)
+    payload = {"schema_version": 1, "kind": "baseline_measurement", "synthetic": False,
+               "created_at": datetime.now(timezone.utc).isoformat(),
+               "config": config.to_dict(), "config_hash": content_hash(config.to_dict()),
+               "source": manifest, "environment": environment(),
+               "harness_files": {p.relative_to(PROJECT_ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                                 for p in sorted((PROJECT_ROOT / "benchmarks").glob("*.py"))},
+               "dependency_lock_sha256": hashlib.sha256((PROJECT_ROOT / "requirements.lock").read_bytes()).hexdigest(),
+               "trace": trace, "trace_hash": content_hash(trace),
+               "fixture_hash": content_hash(make_fixture(config.seed, config.note_count)),
+               "warmup_trace": build_warmup(), "runs": []}
+    with benchmark_lock():
+        for index in range(config.repetitions):
+            run = run_once(config, app_root, output / f"server-{index}.log")
+            payload["runs"].append({"run_index": index, **run})
+            payload["aggregate"] = aggregate_runs(payload["runs"])
+            # Preserve completed repetitions even if interrupted later.
+            payload["complete"] = index + 1 == config.repetitions
+            write_json(output / "benchmark_summary.json", payload)
+    if source_manifest(app_root) != manifest:
+        payload["aggregate"]["valid"] = False
+        payload["aggregate"]["score_ms"] = None
+        payload["error"] = "Application source changed during measurement"
+        write_json(output / "benchmark_summary.json", payload)
+    return payload
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Measure the notes API over real loopback HTTP")
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--app-root", type=Path, default=PROJECT_ROOT)
     args = parser.parse_args()
-
-    config = load_config(args.config)
-    repetitions = int(config.get("repetitions", 1))
-    seed = int(config.get("seed", 7))
-    note_count = int(config.get("note_count", 20))
-    output_dir = Path(args.output)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    run_results = []
-    all_samples: list[float] = []
-    for index in range(repetitions):
-        outcome = run_once(seed=seed, note_count=note_count)
-        run_results.append({"run_index": index, **outcome})
-        all_samples.extend(outcome["samples"])
-
-    payload = {
-        "config": config,
-        "runs": run_results,
-        "aggregate": summarize_samples(all_samples),
-    }
-
-    output_path = output_dir / "benchmark_summary.json"
-    write_json(output_path, payload)
-    print(json.dumps({"output": str(output_path), "aggregate": payload["aggregate"]}, indent=2, sort_keys=True))
+    try:
+        payload = run_benchmark(load_config(args.config), args.output, args.app_root)
+    except (ValueError, RuntimeError) as error:
+        parser.exit(2, f"{error}\n")
+    print(json.dumps({"output": str(args.output / "benchmark_summary.json"), "aggregate": payload["aggregate"]}, indent=2))
+    if not payload["aggregate"]["valid"]:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

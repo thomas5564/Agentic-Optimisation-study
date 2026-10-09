@@ -1,0 +1,318 @@
+{
+  "$defs": {
+    "Decision": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "title": "Accepted",
+          "type": "boolean"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "relative_improvement": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relative Improvement"
+        }
+      },
+      "required": [
+        "accepted",
+        "reason"
+      ],
+      "title": "Decision",
+      "type": "object"
+    },
+    "MemoryEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "iteration": {
+          "title": "Iteration",
+          "type": "integer"
+        },
+        "parent_hash": {
+          "title": "Parent Hash",
+          "type": "string"
+        },
+        "candidate_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Candidate Hash"
+        },
+        "hypothesis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hypothesis"
+        },
+        "attempted_change": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Attempted Change"
+        },
+        "approach": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Approach"
+        },
+        "facts": {
+          "additionalProperties": true,
+          "title": "Facts",
+          "type": "object"
+        },
+        "interpretation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Interpretation"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "audit_status": {
+          "title": "Audit Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "iteration",
+        "parent_hash",
+        "candidate_hash",
+        "hypothesis",
+        "attempted_change",
+        "approach",
+        "facts",
+        "interpretation",
+        "limitations",
+        "audit_status"
+      ],
+      "title": "MemoryEntry",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "attempt_id": {
+      "title": "Attempt Id",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "iteration": {
+      "title": "Iteration",
+      "type": "integer"
+    },
+    "condition": {
+      "enum": [
+        "stateless",
+        "memory"
+      ],
+      "title": "Condition",
+      "type": "string"
+    },
+    "config_hash": {
+      "title": "Config Hash",
+      "type": "string"
+    },
+    "parent_hash": {
+      "title": "Parent Hash",
+      "type": "string"
+    },
+    "candidate_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Candidate Hash"
+    },
+    "retained_hash": {
+      "title": "Retained Hash",
+      "type": "string"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "plan": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Plan"
+    },
+    "patch": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Patch",
+      "type": "array"
+    },
+    "validation": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Validation"
+    },
+    "parent_measurement": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Parent Measurement"
+    },
+    "candidate_measurement": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Candidate Measurement"
+    },
+    "retained_score_ms": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Retained Score Ms"
+    },
+    "decision": {
+      "$ref": "#/$defs/Decision"
+    },
+    "audit": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Audit"
+    },
+    "audit_status": {
+      "title": "Audit Status",
+      "type": "string"
+    },
+    "roles": {
+      "additionalProperties": true,
+      "title": "Roles",
+      "type": "object"
+    },
+    "memory": {
+      "$ref": "#/$defs/MemoryEntry"
+    },
+    "synthetic": {
+      "default": false,
+      "title": "Synthetic",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "attempt_id",
+    "run_id",
+    "iteration",
+    "condition",
+    "config_hash",
+    "parent_hash",
+    "candidate_hash",
+    "retained_hash",
+    "status",
+    "plan",
+    "patch",
+    "validation",
+    "parent_measurement",
+    "candidate_measurement",
+    "retained_score_ms",
+    "decision",
+    "audit",
+    "audit_status",
+    "roles",
+    "memory"
+  ],
+  "title": "Attempt",
+  "type": "object"
+}

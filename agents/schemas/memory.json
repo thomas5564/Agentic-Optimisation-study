@@ -1,0 +1,104 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "iteration": {
+      "title": "Iteration",
+      "type": "integer"
+    },
+    "parent_hash": {
+      "title": "Parent Hash",
+      "type": "string"
+    },
+    "candidate_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Candidate Hash"
+    },
+    "hypothesis": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Hypothesis"
+    },
+    "attempted_change": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Attempted Change"
+    },
+    "approach": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Approach"
+    },
+    "facts": {
+      "additionalProperties": true,
+      "title": "Facts",
+      "type": "object"
+    },
+    "interpretation": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Interpretation"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "audit_status": {
+      "title": "Audit Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "iteration",
+    "parent_hash",
+    "candidate_hash",
+    "hypothesis",
+    "attempted_change",
+    "approach",
+    "facts",
+    "interpretation",
+    "limitations",
+    "audit_status"
+  ],
+  "title": "MemoryEntry",
+  "type": "object"
+}

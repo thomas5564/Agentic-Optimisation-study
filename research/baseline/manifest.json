@@ -1,0 +1,46 @@
+{
+  "archive_sha256": "19fc9dcd27b7a7a02081a7f87c6cfad17a4d5f834878c9ad2f268515e2dc2663",
+  "dependency_lock_sha256": "5e881aff850032990add83dd4fa035285627eb7e12a4d0592c093eac9d10b12b",
+  "environment": {
+    "dependencies": {
+      "PyYAML": "6.0.3",
+      "fastapi": "0.143.0",
+      "httpx": "0.28.1",
+      "pydantic": "2.14.0",
+      "pytest": "8.4.2",
+      "starlette": "1.7.0",
+      "uvicorn": "0.54.0"
+    },
+    "machine": "arm64",
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+    "python": "3.13.2",
+    "sqlite": "3.49.1"
+  },
+  "files": {
+    "app/__init__.py": "90007a636cf190d01969c620f85e79d49f0d9b964d5608490e8decb09ec4d52c",
+    "app/db.py": "41854713f64648b2ef44c6696aa76943f04b6bdad880f73203d80db74a509b26",
+    "app/main.py": "5fea253237763d1eaf232a7e74bf1510cfe08d80ad1146c99bdeb164ff2bed62",
+    "app/models.py": "a6cd9687a3e6fc15f84c2fee6d400ec0f5529406ab9a3ca4a3d4f08308409978",
+    "app/seed.py": "d6e81cce0e90811f67b1dbd9714367d5f7fc5c32a74dc205d28c12793a050636",
+    "app/static/app.js": "61cd02f0c81aa86b287c34e88db6ea013efa45e8573afff7d2afa488176a3e24",
+    "app/static/index.html": "de61a3ce22f0b6d08e1f9a9652a8b6497f86fa4122eb2fb0548b7752c7df60c0",
+    "app/static/style.css": "0be8ae35f2d13b7cd6a028d749bd967095eb80d766ef596cabbaaa06a1f37428",
+    "contracts/API.md": "b9c9587199ac545eb20ce01416a867297a575ae366fb6a8745e1aa631db48584",
+    "contracts/validation-errors.json": "62ba87efe72134984d9d9b34695a3dea337b42c375920f0c3078257c02a1b184"
+  },
+  "kind": "frozen_baseline",
+  "schema_version": 1,
+  "source": {
+    "files": {
+      "app/__init__.py": "90007a636cf190d01969c620f85e79d49f0d9b964d5608490e8decb09ec4d52c",
+      "app/db.py": "41854713f64648b2ef44c6696aa76943f04b6bdad880f73203d80db74a509b26",
+      "app/main.py": "5fea253237763d1eaf232a7e74bf1510cfe08d80ad1146c99bdeb164ff2bed62",
+      "app/models.py": "a6cd9687a3e6fc15f84c2fee6d400ec0f5529406ab9a3ca4a3d4f08308409978",
+      "app/seed.py": "d6e81cce0e90811f67b1dbd9714367d5f7fc5c32a74dc205d28c12793a050636",
+      "app/static/app.js": "61cd02f0c81aa86b287c34e88db6ea013efa45e8573afff7d2afa488176a3e24",
+      "app/static/index.html": "de61a3ce22f0b6d08e1f9a9652a8b6497f86fa4122eb2fb0548b7752c7df60c0",
+      "app/static/style.css": "0be8ae35f2d13b7cd6a028d749bd967095eb80d766ef596cabbaaa06a1f37428"
+    },
+    "sha256": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b"
+  }
+}

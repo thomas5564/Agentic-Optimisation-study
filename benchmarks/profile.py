@@ -1,48 +1,40 @@
 from __future__ import annotations
 
 import argparse
-import cProfile
 import io
-import json
-import pstats
 from pathlib import Path
+import pstats
 
-import yaml
-
-from benchmarks.run import run_once
-
-
-def load_config(path: str | Path) -> dict:
-    with open(path, "r", encoding="utf-8") as handle:
-        data = yaml.safe_load(handle) or {}
-    return data
+from benchmarks.config import load_config
+from benchmarks.metrics import write_json
+from benchmarks.run import environment, run_once, source_manifest
+from benchmarks.runtime import PROJECT_ROOT, benchmark_lock
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Profile the notes benchmark workload")
-    parser.add_argument("--config", required=True, help="Path to YAML benchmark config")
-    parser.add_argument("--output", default="tmp", help="Directory for profile output (default: tmp)")
+def main():
+    parser = argparse.ArgumentParser(description="Profile application endpoints separately from timing")
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--app-root", type=Path, default=PROJECT_ROOT)
     args = parser.parse_args()
-
     config = load_config(args.config)
-    seed = int(config.get("seed", 7))
-    note_count = int(config.get("note_count", 20))
-    output_dir = Path(args.output)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    profiler = cProfile.Profile()
-    profiler.enable()
-    run_once(seed=seed, note_count=note_count)
-    profiler.disable()
-
+    args.output.mkdir(parents=True, exist_ok=True)
+    raw = args.output / "application.prof"
+    if raw.exists():
+        parser.error("Profile output already exists; use a fresh output directory")
+    with benchmark_lock():
+        result = run_once(config, args.app_root, args.output / "server.log", profile=raw)
+    summary = {"schema_version": 1, "kind": "profile_only", "score_ms": None,
+               "tool": "cProfile", "scope": "endpoint functions, including sync worker threads; excludes ASGI serialization and network",
+               "environment": environment(), "config": config.to_dict(),
+               "source": source_manifest(args.app_root), "run": result}
+    write_json(args.output / "profile_summary.json", summary)
+    if result["error"] or not raw.exists() or result.get("counts", {}).get("failed", 1):
+        parser.exit(1, "Profiling failed; see profile_summary.json and server.log\n")
     buffer = io.StringIO()
-    stats = pstats.Stats(profiler, stream=buffer).sort_stats("cumulative")
-    stats.print_stats(20)
-    profile_text = buffer.getvalue()
-
-    output_path = output_dir / "profile.txt"
-    output_path.write_text(profile_text, encoding="utf-8")
-    print(json.dumps({"output": str(output_path), "seed": seed, "note_count": note_count}, indent=2, sort_keys=True))
+    pstats.Stats(str(raw), stream=buffer).sort_stats("cumulative").print_stats(60)
+    (args.output / "profile.txt").write_text(buffer.getvalue())
+    print(f"Profile saved to {args.output / 'profile.txt'}; no acceptance score produced")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,23 @@
+schema_version: 1
+phase: smoke
+# Control-flow threshold only. This is NOT the final noise-calibrated epsilon.
+epsilon: 0.5
+baseline: research/baseline
+benchmark:
+  seed: 7
+  note_count: 10
+  cycles: 2
+  repetitions: 2
+  warmups: 1
+  timeout_seconds: 5.0
+  startup_timeout_seconds: 15.0
+  concurrency: 1
+role_timeout_seconds: 60.0
+evaluation_timeout_seconds: 120.0
+max_input_bytes: 200000
+max_output_bytes: 1000000
+repair_budget: 0
+role_retries: 0
+mock_cases: [comment, broken, noop]
+checkpoints: [10, 15, 20, 25, 30]
+replicates: 1
