@@ -1,0 +1,22 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor `list_notes` in `app/db.py` to perform filtering and total counting in SQL. Use `sqlite3` with `json_each` or `json_extract` to handle tag filtering directly in the database, and `LIKE` for text search. The query will select only the necessary columns and apply `WHERE` clauses for `search_text` and `tags_filter`. The `total` count will be derived from a separate `COUNT(*)` query with the same filters. Only the paginated subset of rows will be passed to `_to_note` for conversion to Pydantic models. This preserves the exact same filtering logic (case-sensitive substring match, exact tag matching, AND combination) and sorting (by ID ASC).",
+    "hypothesis": "The `list_notes` endpoint is dominated by the cost of fetching all rows and converting them to Pydantic models via `_to_note`, which triggers `json.loads` and Pydantic validation for every single note, even those that will be filtered out or discarded by pagination. By moving the filtering (search text and tags) and counting into the SQL query using `LIKE` and JSON functions, we can drastically reduce the number of Python-level object constructions and JSON parsing operations, thereby lowering cumulative time and memory allocation.",
+    "risks": [
+      "SQLite JSON functions (`json_each`, `json_extract`) require SQLite 3.38.0+. If the environment has an older version, this will fail. However, most modern environments support it.",
+      "Complex SQL queries with `json_each` can be slower than simple row fetching if the dataset is small and filters are selective, but the profile shows massive overhead in Python-side processing, suggesting the dataset is large enough for SQL to win.",
+      "Incorrect SQL syntax or logic could lead to wrong filtering results, violating the API contract. Careful testing of the SQL conditions against the Python logic is required."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

@@ -1,0 +1,20 @@
+{
+  "decision": {
+    "accepted": false,
+    "reason": "planner_timeout",
+    "relative_improvement": null
+  },
+  "evidence": {
+    "candidate": null,
+    "parent": null,
+    "validation": null
+  },
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": [],
+  "plan": null,
+  "role": "auditor",
+  "schema_version": 1
+}

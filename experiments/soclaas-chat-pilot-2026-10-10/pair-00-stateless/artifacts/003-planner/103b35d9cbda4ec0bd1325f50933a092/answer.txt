@@ -1,0 +1,11 @@
+{
+  "approach": "query",
+  "change": "Refactor the `list_notes` function in `app/db.py` to perform filtering and counting directly in SQLite using SQL expressions instead of loading all rows into Python memory. Replace the current `SELECT * FROM notes ORDER BY id ASC` with a dynamic query that applies `LIKE` for `search_text` and `LIKE` patterns for `tags_filter` (checking for exact tag boundaries in the JSON array string). Use `COUNT(*)` for the total and `LIMIT/OFFSET` for pagination within the same query execution. Ensure the `tags` column is indexed if not already, and verify that the SQL logic correctly handles the 'all tags must match' requirement by constructing `AND` clauses for each filter tag.",
+  "hypothesis": "The current implementation fetches all notes from the database into Python, then iterates through them to filter by search text and tags, and finally sorts and paginates in Python. This results in O(N) memory and CPU usage per request, where N is the total number of notes. By pushing the filtering logic to SQLite, we reduce memory allocation, avoid Python object creation overhead for non-matching rows, and leverage SQLite's optimized C-level string matching and indexing. This should significantly reduce `cumtime` for `list_notes` and `_to_note` calls, especially as the dataset grows.",
+  "risks": [
+    "Incorrect SQL construction for tag filtering may lead to false positives (e.g., matching 'work' inside 'workflow') or false negatives. The JSON array format must be handled carefully to ensure exact tag matches.",
+    "If the `tags` column is not indexed, the SQL `LIKE` operations might still be slow on very large tables, though likely faster than Python iteration. Adding an index is a separate change not included here, but the query should be written to be index-friendly.",
+    "Dynamic SQL construction must be done using parameterized queries to prevent SQL injection, especially for `search_text`."
+  ],
+  "schema_version": 1
+}

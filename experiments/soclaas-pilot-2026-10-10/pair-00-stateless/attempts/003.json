@@ -1,0 +1,91 @@
+{
+  "attempt_id": "f648410685fc4005a6a44208f0b97e58:003",
+  "audit": null,
+  "audit_status": "failed",
+  "candidate_hash": null,
+  "candidate_measurement": null,
+  "condition": "stateless",
+  "config_hash": "a9a841fa62332d0452cd25bdd1b8d2105f6a774c771a61527cdfcc3d9132b427",
+  "decision": {
+    "accepted": false,
+    "reason": "planner_malformed",
+    "relative_improvement": null
+  },
+  "iteration": 3,
+  "memory": {
+    "approach": null,
+    "attempted_change": null,
+    "audit_status": "failed",
+    "candidate_hash": null,
+    "facts": {
+      "acceptance": {
+        "accepted": false,
+        "reason": "planner_malformed",
+        "relative_improvement": null
+      },
+      "after_score_ms": null,
+      "before_score_ms": null,
+      "candidate_counts": null,
+      "correctness": null,
+      "status": "planner_malformed"
+    },
+    "hypothesis": null,
+    "interpretation": null,
+    "iteration": 3,
+    "limitations": [
+      "Auditor unavailable; no explanation inferred."
+    ],
+    "parent_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+    "schema_version": 1
+  },
+  "parent_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+  "parent_measurement": null,
+  "patch": [],
+  "plan": null,
+  "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+  "retained_score_ms": 3.8563045083344605,
+  "roles": {
+    "auditor": {
+      "elapsed_seconds": 4.08024145802483,
+      "error": "Response did not match required JSON schema",
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "default",
+        "tools": [],
+        "transport": "responses"
+      },
+      "output": null,
+      "schema_version": 1,
+      "status": "malformed",
+      "usage": {
+        "input_tokens": 8396,
+        "output_tokens": 170,
+        "total_tokens": 8566
+      }
+    },
+    "planner": {
+      "elapsed_seconds": 58.565999707905576,
+      "error": "Response did not match required JSON schema",
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "tools": [],
+        "transport": "responses"
+      },
+      "output": null,
+      "schema_version": 1,
+      "status": "malformed",
+      "usage": null
+    }
+  },
+  "run_id": "f648410685fc4005a6a44208f0b97e58",
+  "schema_version": 1,
+  "status": "planner_malformed",
+  "synthetic": false,
+  "validation": null
+}

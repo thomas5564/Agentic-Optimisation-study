@@ -1,0 +1,12 @@
+{
+  "approach": "query",
+  "change": "Refactor list_notes in app/db.py to perform filtering and counting directly in SQLite using SQL expressions instead of loading all rows into Python memory. Replace the SELECT * ... ORDER BY id ASC with a parameterized query that uses LIKE for search_text and JSON_EXTRACT for tag filtering. Use a separate COUNT query or window function to get the total before applying LIMIT/OFFSET. This eliminates the O(N) Python-side iteration, regex matching, and JSON parsing for every row during list operations.",
+  "hypothesis": "The profile shows list_notes consumes 8.8s of 9.4s total time, with 6.9s spent in _to_note (JSON parsing/Pydantic validation) and 2.2s in validate_tags. By moving filtering to SQLite, we avoid parsing JSON tags and validating Pydantic models for non-matching rows. SQLite's LIKE and JSON functions are highly optimized, and we only parse/validate the small subset of rows returned by the limit. This should reduce list_notes latency from ~15ms to <1ms per request.",
+  "risks": [
+    "SQLite JSON functions require SQLite 3.38+. The environment must support this.",
+    "SQL injection via LIKE patterns if not properly parameterized (mitigated by using ? placeholders).",
+    "Tag filtering logic must exactly match Python semantics: case-sensitive, exact match, whitespace-trimmed inputs.",
+    "The total count must reflect the filtered set, not the entire table."
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,12 @@
+{
+  "approach": "query",
+  "change": "Refactor list_notes in app/db.py to perform filtering (search_text and tags_filter) and counting directly in SQLite using SQL expressions instead of loading all rows into Python memory. Use a single query with COUNT(*) for the total and a second query with LIMIT/OFFSET for the page. Replace the manual tag parsing in Python with SQL string operations (e.g., INSTR or LIKE) on the stored JSON tags column to avoid repeated json.loads and set operations in Python. Ensure the query handles NULL tags and empty strings correctly to match existing Python logic.",
+  "hypothesis": "The current profile shows that list_notes spends significant time in _to_note (which calls json.loads) and in Python-side filtering loops. By pushing the filtering logic to SQLite, we reduce the number of rows transferred from the database to Python, eliminate repeated JSON parsing for non-matching rows, and reduce Python interpreter overhead. This should significantly lower cumulative time for list_notes, especially as the dataset grows.",
+  "risks": [
+    "SQL injection if user input is not properly parameterized, though parameterized queries mitigate this.",
+    "Incorrect SQL logic for tag matching might deviate from the exact Python set-based logic (e.g., handling of empty tags or whitespace).",
+    "Performance regression if the dataset is very small and the overhead of complex SQL queries outweighs the benefit.",
+    "Potential issues with SQLite's handling of JSON strings if the format changes or contains special characters."
+  ],
+  "schema_version": 1
+}

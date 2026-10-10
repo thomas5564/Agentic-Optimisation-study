@@ -1,0 +1,21 @@
+{
+  "elapsed_seconds": 4.08024145802483,
+  "error": "Response did not match required JSON schema",
+  "exit_code": null,
+  "metadata": {
+    "model": "default",
+    "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+    "reasoning_parameter_sent": false,
+    "reported_model": "default",
+    "tools": [],
+    "transport": "responses"
+  },
+  "output": null,
+  "schema_version": 1,
+  "status": "malformed",
+  "usage": {
+    "input_tokens": 8396,
+    "output_tokens": 170,
+    "total_tokens": 8566
+  }
+}

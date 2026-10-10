@@ -1,0 +1,68 @@
+{
+  "backend": "chat",
+  "config_hash": "463cd34538d57637df7d85be20f119f0648e63ce3fe421ed473716371969ec54",
+  "iterations": 30,
+  "schedule": [
+    {
+      "condition": "stateless",
+      "directory": "pair-00-stateless",
+      "pair_id": "0",
+      "seed": 7
+    },
+    {
+      "condition": "memory",
+      "directory": "pair-00-memory",
+      "pair_id": "0",
+      "seed": 7
+    },
+    {
+      "condition": "memory",
+      "directory": "pair-01-memory",
+      "pair_id": "1",
+      "seed": 7
+    },
+    {
+      "condition": "stateless",
+      "directory": "pair-01-stateless",
+      "pair_id": "1",
+      "seed": 7
+    },
+    {
+      "condition": "stateless",
+      "directory": "pair-02-stateless",
+      "pair_id": "2",
+      "seed": 7
+    },
+    {
+      "condition": "memory",
+      "directory": "pair-02-memory",
+      "pair_id": "2",
+      "seed": 7
+    },
+    {
+      "condition": "memory",
+      "directory": "pair-03-memory",
+      "pair_id": "3",
+      "seed": 7
+    },
+    {
+      "condition": "stateless",
+      "directory": "pair-03-stateless",
+      "pair_id": "3",
+      "seed": 7
+    },
+    {
+      "condition": "stateless",
+      "directory": "pair-04-stateless",
+      "pair_id": "4",
+      "seed": 7
+    },
+    {
+      "condition": "memory",
+      "directory": "pair-04-memory",
+      "pair_id": "4",
+      "seed": 7
+    }
+  ],
+  "schema_version": 1
+}

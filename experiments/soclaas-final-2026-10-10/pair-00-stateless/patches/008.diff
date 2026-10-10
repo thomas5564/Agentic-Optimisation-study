@@ -1,0 +1,109 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -106,31 +106,86 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+-    connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
++    # Build SQL query for text search
++    where_clauses = []
++    params: list[Any] = []
++    
++    if search_text is not None and search_text != "":
++        where_clauses.append("(title LIKE ? OR body LIKE ?)")
++        # Escape % and _ in search text to treat them as literals
++        escaped_search = search_text.replace("%", "\\%").replace("_", "\\_")
++        params.extend([f"%{escaped_search}%", f"%{escaped_search}%"])
++    
++    # Build SQL query for tags filter
++    # Since tags are stored as JSON array strings, we use a subquery with json_each
++    # to check if all required tags are present in the JSON array.
++    if tags_filter:
++        clean_tags = [tag.strip() for tag in tags_filter if tag and tag.strip()]
++        if clean_tags:
++            # We need to ensure ALL clean_tags are present in the note's tags array.
++            # We can do this by checking that the count of matching tags in the JSON array
++            # equals the number of required tags. However, json_each returns one row per element.
++            # A simpler approach for correctness without complex SQL is to fetch candidates
++            # and filter in Python, but to optimize, we can try to filter out notes that
++            # definitely don't have the tags. But since we need ALL tags, it's hard to exclude
++            # efficiently without a join. 
++            # Given the constraint to preserve schema and avoid complex schema changes,
++            # and the fact that text search is the main bottleneck identified (1.2M json.loads),
++            # we will rely on SQL for text search and Python for tags filtering on the reduced set.
++            # To ensure correctness, we fetch all notes that match the text search (or all if no text search),
++            # then filter by tags in Python.
++            pass 
++
++    if where_clauses:
++        where_sql = "WHERE " + " AND ".join(where_clauses)
++    else:
++        where_sql = ""
++
++    # Fetch matching rows with pagination
++    # We need the total count of matching rows (before pagination) to return in the response.
++    # We can run a separate COUNT query or use window functions. 
++    # A separate COUNT query is simpler and robust.
++    count_sql = f"SELECT COUNT(*) FROM notes {where_sql}"
++    total_row = connection.execute(count_sql, params).fetchone()
++    total = total_row[0]
++
++    # Fetch the paginated results
++    # We need to order by id ASC as per contract
++    fetch_sql = f"SELECT * FROM notes {where_sql} ORDER BY id ASC LIMIT ? OFFSET ?"
++    fetch_params = params + [limit, offset]
++    rows = connection.execute(fetch_sql, fetch_params).fetchall()
++    
++    connection.close()
++
++    # Parse rows into NoteRow objects
+     note_rows = [_to_note_row(row) for row in rows]
+     
++    # Filter by tags in Python on the reduced set
+     filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
++    if tags_filter:
++        clean_tags = [tag.strip() for tag in tags_filter if tag and tag.strip()]
++        if clean_tags:
++            required_tags = set(clean_tags)
++            for note_row in note_rows:
++                if required_tags.issubset(set(note_row.tags)):
++                    filtered.append(note_row)
++        else:
++            filtered = note_rows
++    else:
++        filtered = note_rows
++
++    # Note: The total count returned is the total number of notes matching the text search,
++    # NOT the total number of notes matching both text search AND tags filter.
++    # The contract says: "total counts all matching notes before pagination".
++    # "Matching" implies matching all filters (search and tags).
++    # So we need to count the filtered set, not just the SQL matched set.
++    # However, counting in Python after filtering is accurate.
+     total = len(filtered)
++    
++    # Apply pagination to the fully filtered list
+     paginated = filtered[offset: offset + limit]
++    
+     return paginated, total
+ 
+ 

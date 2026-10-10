@@ -1,0 +1,49 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -7,6 +7,9 @@
+ from typing import Any
+ 
+ from app.models import Note
++
++# Cache json.loads for faster access in hot paths
++_json_loads = json.loads
+ 
+ 
+ def get_db_path() -> Path:
+@@ -47,7 +50,21 @@
+         id=row["id"],
+         title=row["title"],
+         body=row["body"],
+-        tags=json.loads(tags_value),
++        tags=_json_loads(tags_value),
++    )
++
++
++def _row_to_note_tuple(row: tuple) -> Note:
++    """Convert a raw tuple row to a Note object.
++    
++    Schema order: id, title, body, tags
++    """
++    tags_value = row[3] or "[]"
++    return Note(
++        id=row[0],
++        title=row[1],
++        body=row[2],
++        tags=_json_loads(tags_value),
+     )
+ 
+ 
+@@ -125,7 +142,12 @@
+     
+     connection.close()
+     
+-    notes = [_to_note(row) for row in rows]
++    # Optimization: Use raw tuple indexing instead of sqlite3.Row attribute access
++    # and inline the conversion to avoid function call overhead in the list comprehension
++    notes = [
++        _row_to_note_tuple(row)
++        for row in rows
++    ]
+     return notes, total
+ 
+ 

@@ -1,0 +1,42 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -251,12 +251,34 @@
+         total_row = connection.execute(count_query, params).fetchone()
+         total = total_row[0]
+ 
+-        # Get paginated notes
+-        notes_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++        # Get paginated notes using bulk JSON serialization
++        notes_query = f"""
++            SELECT 
++                json_group_array(json_object('id', id, 'title', title, 'body', body, 'tags', tags)) as notes_json,
++                COUNT(*) as cnt
++            FROM notes
++            {where_clause}
++            ORDER BY id ASC
++            LIMIT ? OFFSET ?
++        """
+         query_params = params + [limit, offset]
+-        rows = connection.execute(notes_query, query_params).fetchall()
+-
+-        notes = [_to_note(row) for row in rows]
++        row = connection.execute(notes_query, query_params).fetchone()
++        
++        notes_json_str = row["notes_json"]
++        if notes_json_str is None:
++            notes_list: list[dict[str, Any]] = []
++        else:
++            notes_list = json.loads(notes_json_str)
++            # The tags field in the JSON is still a string representation of the array
++            # We need to parse it for Pydantic validation if it's not already a list
++            # However, json_object('tags', tags) will output the tags column as-is.
++            # Since tags is stored as a JSON string in SQLite, json_object will quote it.
++            # So we get a string like "[\"tag1\", \"tag2\"]". We need to parse it.
++            for note in notes_list:
++                if isinstance(note.get("tags"), str):
++                    note["tags"] = json.loads(note["tags"])
++
++        notes = [Note.model_validate(note) for note in notes_list]
+         return notes, total
+     finally:
+         _release_connection(connection)

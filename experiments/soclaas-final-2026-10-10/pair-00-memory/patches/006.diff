@@ -1,0 +1,86 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -7,6 +7,9 @@
+ from typing import Any
+ 
+ from app.models import Note
++
++# Cache json.loads for faster access in hot loops
++json_loads = json.loads
+ 
+ 
+ def get_db_path() -> Path:
+@@ -47,7 +50,7 @@
+         id=row["id"],
+         title=row["title"],
+         body=row["body"],
+-        tags=json.loads(tags_value),
++        tags=json_loads(tags_value),
+     )
+ 
+ 
+@@ -71,7 +74,14 @@
+     connection.close()
+     if row is None:
+         return None
+-    return _to_note(row)
++    # Inline conversion to avoid function call overhead
++    tags_value = row["tags"] or "[]"
++    return Note(
++        id=row["id"],
++        title=row["title"],
++        body=row["body"],
++        tags=json_loads(tags_value),
++    )
+ 
+ 
+ def list_notes(
+@@ -117,7 +127,7 @@
+     total = total_row[0]
+     
+     # Get paginated notes
+-    # We select all columns to reconstruct the Note object via _to_note
++    # We select all columns to reconstruct the Note object
+     # We order by id ASC as per contract
+     notes_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
+     query_params = params + [limit, offset]
+@@ -125,7 +135,16 @@
+     
+     connection.close()
+     
+-    notes = [_to_note(row) for row in rows]
++    # Inline conversion to eliminate _to_note function call overhead
++    notes = [
++        Note(
++            id=row["id"],
++            title=row["title"],
++            body=row["body"],
++            tags=json_loads(row["tags"] or "[]"),
++        )
++        for row in rows
++    ]
+     return notes, total
+ 
+ 
+@@ -143,7 +162,14 @@
+     updated = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+     connection.commit()
+     connection.close()
+-    return _to_note(updated)
++    # Inline conversion to avoid function call overhead
++    tags_value = updated["tags"] or "[]"
++    return Note(
++        id=updated["id"],
++        title=updated["title"],
++        body=updated["body"],
++        tags=json_loads(tags_value),
++    )
+ 
+ 
+ def delete_note(note_id: int) -> bool:
+@@ -158,4 +184,4 @@
+     connection = _connect()
+     rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+     connection.close()
+-    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json.loads(row["tags"])} for row in rows]
++    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json_loads(row["tags"])} for row in rows]

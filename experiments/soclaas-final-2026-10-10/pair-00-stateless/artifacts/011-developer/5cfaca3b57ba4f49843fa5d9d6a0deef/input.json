@@ -1,0 +1,23 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Modify app/db.py to use SQL-based filtering and pagination instead of in-memory processing. Specifically, update the list_notes function to construct a dynamic SQL query that applies the search_text and tags_filter conditions directly in the WHERE clause, and uses LIMIT/OFFSET for pagination. This replaces the current pattern of fetching all rows, parsing all JSON tags, and filtering in Python. Ensure the SQL query correctly handles the JSON tags array by using SQLite's json_each or similar functions to match tags, or by storing tags in a normalized structure if permissible (but given constraints, use json_each for correctness). Also, update the total count query to use COUNT(*) with the same WHERE clause to get the accurate total without fetching all rows.",
+    "hypothesis": "The current implementation fetches all notes from the database and filters them in Python, which is O(N) in both time and memory for every list request, regardless of the limit. By moving the filtering and pagination logic into the SQL query, we reduce the amount of data transferred from the database and processed in Python, leading to significant performance improvements, especially as the number of notes grows. This is a standard optimization for database-backed applications.",
+    "risks": [
+      "Incorrect SQL query construction could lead to SQL injection if not parameterized properly. Must use parameterized queries.",
+      "SQLite's JSON functions (json_each) might have different performance characteristics or availability in older SQLite versions, though SQLite 3.38+ supports them. Need to verify compatibility.",
+      "The tags filtering logic in SQL needs to precisely match the Python logic (case-sensitive, exact match, all tags must be present). This requires careful SQL construction.",
+      "If the database is very small, the overhead of complex SQL might not be worth it, but it should still be correct and not slower than the current approach for small N."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

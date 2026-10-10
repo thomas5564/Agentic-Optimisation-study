@@ -1,0 +1,88 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -82,30 +82,63 @@
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    # Clean tags filter: strip whitespace, remove empty strings
++    clean_tags = [tag.strip() for tag in (tags_filter or []) if tag and tag.strip()]
++    
++    conditions = []
++    params: list[Any] = []
++    
++    # Search condition: case-sensitive substring match in title or body
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++    
++    # Tag condition: all specified tags must be present in the JSON array string
++    # We check for the tag surrounded by quotes or brackets to ensure exact match
++    if clean_tags:
++        tag_conditions = []
++        for tag in clean_tags:
++            # Match "tag" inside the JSON array. 
++            # Since tags are sorted and stored as JSON array of strings, 
++            # we look for the exact string representation.
++            # To avoid partial matches (e.g. "work" matching "workshop"), 
++            # we ensure it's a distinct element.
++            # A simple heuristic: look for '"tag"' but ensure it's not part of a larger word.
++            # Since JSON strings are quoted, '"work"' is distinct from '"workshop"'.
++            tag_conditions.append("tags LIKE ?")
++            params.append(f'%"{tag}"%')
++        conditions.append(" AND ".join(tag_conditions))
++    
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++    
++    # Count total matching notes
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++    
++    # Fetch paginated notes
++    # We need to order by id ASC as per contract
++    # We use a subquery or CTE to apply filters, then order and limit
++    # However, since we already built the WHERE clause, we can just append ORDER BY and LIMIT
++    # But we need to be careful: the WHERE clause might be empty.
++    
++    # Re-build the query for fetching
++    fetch_conditions = conditions
++    fetch_where = ""
++    if fetch_conditions:
++        fetch_where = "WHERE " + " AND ".join(fetch_conditions)
++    
++    fetch_query = f"SELECT * FROM notes {fetch_where} ORDER BY id ASC LIMIT ? OFFSET ?"
++    fetch_params = params + [limit, offset]
++    
++    rows = connection.execute(fetch_query, fetch_params).fetchall()
+     connection.close()
+-
++    
+     notes = [_to_note(row) for row in rows]
+-    filtered = []
+-    for note in notes:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

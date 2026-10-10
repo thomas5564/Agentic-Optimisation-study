@@ -1,0 +1,88 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -54,8 +54,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -106,32 +104,52 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    # Build dynamic SQL query for filtering and pagination
++    where_clauses = []
++    params: list[Any] = []
++    
++    if search_text is not None and search_text != "":
++        where_clauses.append("(title LIKE ? OR body LIKE ?)")
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++    
++    if tags_filter:
++        # Filter out empty tags
++        valid_tags = [tag for tag in tags_filter if tag]
++        if valid_tags:
++            # We need to ensure ALL specified tags are present in the note's tags array.
++            # We use a subquery with json_each to check for the existence of each tag.
++            # To ensure ALL tags are present, we count how many distinct requested tags
++            # are found in the note's tags array, and ensure that count equals the number of requested tags.
++            tag_placeholders = ", ".join(["?" for _ in valid_tags])
++            where_clauses.append(
++                f"(
++                    SELECT COUNT(DISTINCT value) 
++                    FROM json_each(tags) 
++                    WHERE value IN ({tag_placeholders})
++                ) = ?"
++            )
++            params.extend(valid_tags)
++            params.append(len(valid_tags))
++    
++    where_sql = ""
++    if where_clauses:
++        where_sql = "WHERE " + " AND ".join(where_clauses)
++    
++    # Count query
++    count_sql = f"SELECT COUNT(*) FROM notes {where_sql}"
++    total_row = connection.execute(count_sql, params).fetchone()
++    total = total_row[0]
++    
++    # Data query with pagination
++    data_sql = f"SELECT * FROM notes {where_sql} ORDER BY id ASC LIMIT ? OFFSET ?"
++    data_params = params + [limit, offset]
++    rows = connection.execute(data_sql, data_params).fetchall()
++    
+     connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
+     note_rows = [_to_note_row(row) for row in rows]
+-    
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

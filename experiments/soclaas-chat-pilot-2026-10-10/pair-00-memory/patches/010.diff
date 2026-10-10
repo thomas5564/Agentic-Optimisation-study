@@ -1,0 +1,92 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -51,6 +51,40 @@
+     )
+ 
+ 
++def _build_where_clause(
++    search_text: str | None,
++    tags_filter: list[str] | None,
++) -> tuple[str, list[Any]]:
++    conditions: list[str] = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        # Escape SQL wildcards in search text
++        escaped_search = search_text.replace("%", "\\%").replace("_", "\\_")
++        params.extend([f"%{escaped_search}%", f"%{escaped_search}%"])
++
++    if tags_filter:
++        # Filter out empty tags
++        valid_tags = [tag for tag in tags_filter if tag]
++        if valid_tags:
++            # We need an AND condition for all tags
++            # Using EXISTS with json_each is efficient and correct
++            tag_conditions = []
++            for tag in valid_tags:
++                tag_conditions.append(
++                    "EXISTS (SELECT 1 FROM json_each(notes.tags) WHERE json_each.value = ?)"
++                )
++                params.append(tag)
++            conditions.append(" AND ".join(tag_conditions))
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    return where_clause, params
++
++
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+     connection = _connect()
+     payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))
+@@ -82,30 +116,27 @@
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    where_clause, params = _build_where_clause(search_text, tags_filter)
++    
++    # Get total count first
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++    
++    # Get paginated results
++    # We need to append offset/limit params for the second query
++    # But wait, params are already used in count. We need to reuse them or rebuild.
++    # Since params are positional, we can just pass them again.
++    
++    select_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    select_params = params + [limit, offset]
++    
++    rows = connection.execute(select_query, select_params).fetchall()
+     connection.close()
+ 
+     notes = [_to_note(row) for row in rows]
+-    filtered = []
+-    for note in notes:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

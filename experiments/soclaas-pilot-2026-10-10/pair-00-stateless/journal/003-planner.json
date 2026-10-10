@@ -1,0 +1,22 @@
+{
+  "execution_id": "d5ee758f89de4a77ad0a4e57c3f21b34",
+  "paid": true,
+  "result": {
+    "elapsed_seconds": 58.565999707905576,
+    "error": "Response did not match required JSON schema",
+    "exit_code": null,
+    "metadata": {
+      "model": "default",
+      "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+      "reasoning_parameter_sent": false,
+      "tools": [],
+      "transport": "responses"
+    },
+    "output": null,
+    "schema_version": 1,
+    "status": "malformed",
+    "usage": null
+  },
+  "result_hash": "d88ba7d2adeb1cd3116d7807bbd9755dfbee5fc0c8217569dc223707a0fbd0b1",
+  "status": "complete"
+}

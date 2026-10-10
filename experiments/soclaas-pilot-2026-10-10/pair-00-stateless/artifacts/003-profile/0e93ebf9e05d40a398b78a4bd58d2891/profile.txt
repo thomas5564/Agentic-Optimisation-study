@@ -1,0 +1,50 @@
+Sat Oct 10 20:37:03 2026    /result/application.prof
+
+         28022293 function calls (28022264 primitive calls) in 9.974 seconds
+
+   Ordered by: cumulative time
+   List reduced from 129 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+  629/600    0.266    0.000    9.616    0.016 /workspace/app/main.py:35(list_notes_endpoint)
+      600    0.938    0.002    9.205    0.015 /workspace/app/db.py:77(list_notes)
+  1200800    0.907    0.000    7.343    0.000 /workspace/app/db.py:44(_to_note)
+  1200800    0.255    0.000    3.560    0.000 /usr/local/lib/python3.13/site-packages/pydantic/main.py:270(__init__)
+  1200800    0.924    0.000    3.305    0.000 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}
+  1200800    0.575    0.000    2.874    0.000 /usr/local/lib/python3.13/json/__init__.py:304(loads)
+  1200800    1.547    0.000    2.382    0.000 /workspace/app/models.py:13(validate_tags)
+  1200800    0.984    0.000    2.083    0.000 /usr/local/lib/python3.13/json/decoder.py:340(decode)
+      600    0.746    0.001    0.746    0.001 {method 'fetchall' of 'sqlite3.Cursor' objects}
+  2401600    0.427    0.000    0.427    0.000 {method 'match' of 're.Pattern' objects}
+  1200800    0.349    0.000    0.349    0.000 /usr/local/lib/python3.13/json/decoder.py:351(raw_decode)
+  1000300    0.148    0.000    0.338    0.000 {built-in method builtins.all}
+  2048762    0.295    0.000    0.295    0.000 /workspace/app/db.py:101(<genexpr>)
+  2418241    0.234    0.000    0.234    0.000 {method 'append' of 'list' objects}
+  2401600    0.221    0.000    0.221    0.000 {method 'end' of 're.Match' objects}
+  2215491    0.211    0.000    0.211    0.000 {method 'add' of 'set' objects}
+  2217073    0.207    0.000    0.207    0.000 {method 'strip' of 'str' objects}
+  1201000    0.200    0.000    0.200    0.000 {built-in method builtins.sorted}
+  1200800    0.121    0.000    0.121    0.000 {method 'startswith' of 'str' objects}
+  1204016    0.102    0.000    0.102    0.000 {built-in method builtins.len}
+  1209980    0.096    0.000    0.096    0.000 {built-in method builtins.isinstance}
+     1200    0.004    0.000    0.092    0.000 /workspace/app/db.py:19(_connect)
+     2700    0.071    0.000    0.071    0.000 {method 'execute' of 'sqlite3.Connection' objects}
+      300    0.000    0.000    0.046    0.000 /workspace/app/main.py:27(read_note)
+      300    0.001    0.000    0.046    0.000 /workspace/app/db.py:68(get_note)
+     1200    0.026    0.000    0.039    0.000 {built-in method _sqlite3.connect}
+     1200    0.001    0.000    0.027    0.000 /runner/benchmarks/server.py:24(finish)
+     1200    0.026    0.000    0.026    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+      100    0.000    0.000    0.025    0.000 /workspace/app/main.py:52(update_note_endpoint)
+      100    0.001    0.000    0.025    0.000 /workspace/app/db.py:111(update_note)
+      100    0.000    0.000    0.024    0.000 /workspace/app/main.py:22(create_note_endpoint)
+      100    0.001    0.000    0.024    0.000 /workspace/app/db.py:54(create_note)
+      100    0.000    0.000    0.019    0.000 /workspace/app/main.py:60(delete_note_endpoint)
+      100    0.000    0.000    0.018    0.000 /workspace/app/db.py:128(delete_note)
+     1200    0.002    0.000    0.018    0.000 /usr/local/lib/python3.13/pathlib/_local.py:329(parent)
+       43    0.000    0.000    0.015    0.000 /usr/local/lib/python3.13/asyncio/base_events.py:1981(_run_once)
+     1200    0.002    0.000    0.015    0.000 /workspace/app/db.py:12(get_db_path)
+     1200    0.013    0.000    0.013    0.000 {method 'close' of 'sqlite3.Connection' objects}
+     1200    0.002    0.000    0.011    0.000 /usr/local/lib/python3.13/pathlib/_local.py:717(mkdir)
+     2400    0.003    0.000    0.010    0.000 /usr/local/lib/python3.13/pathlib/_local.py:289(drive)
+
+

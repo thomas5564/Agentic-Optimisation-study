@@ -1,0 +1,99 @@
+{
+  "complete": false,
+  "completed_attempts": 61,
+  "completed_pairs": 1,
+  "planned_attempts": 300,
+  "reason": "User requested wrap-up; active attempt completed, remaining horizon and scheduled runs not executed.",
+  "runs": [
+    {
+      "completed_iterations": 30,
+      "condition": "stateless",
+      "directory": "pair-00-stateless",
+      "final_remeasurement_score_ms": 2.7470787491703654,
+      "pair_id": "0",
+      "retained_hash": "bb59039e38d8bfb91efe852777331e361c02d872fb355e9c274434429dc20d8b",
+      "seed": 7,
+      "status": "complete"
+    },
+    {
+      "completed_iterations": 30,
+      "condition": "memory",
+      "directory": "pair-00-memory",
+      "final_remeasurement_score_ms": 0.9954501308455596,
+      "pair_id": "0",
+      "retained_hash": "c70ad2e6cdf32bceb14a9e8f62351759ff487877ac48cee94fb6d04ac7329da7",
+      "seed": 7,
+      "status": "complete"
+    },
+    {
+      "completed_iterations": 1,
+      "condition": "memory",
+      "directory": "pair-01-memory",
+      "final_remeasurement_score_ms": 4.09220315835455,
+      "pair_id": "1",
+      "planned_iterations": 30,
+      "reason": "User requested wrap-up; active attempt completed, remaining horizon and scheduled runs not executed.",
+      "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+      "seed": 7,
+      "status": "stopped_by_user"
+    },
+    {
+      "completed_iterations": 0,
+      "condition": "stateless",
+      "directory": "pair-01-stateless",
+      "pair_id": "1",
+      "seed": 7,
+      "status": "not_started"
+    },
+    {
+      "completed_iterations": 0,
+      "condition": "stateless",
+      "directory": "pair-02-stateless",
+      "pair_id": "2",
+      "seed": 7,
+      "status": "not_started"
+    },
+    {
+      "completed_iterations": 0,
+      "condition": "memory",
+      "directory": "pair-02-memory",
+      "pair_id": "2",
+      "seed": 7,
+      "status": "not_started"
+    },
+    {
+      "completed_iterations": 0,
+      "condition": "memory",
+      "directory": "pair-03-memory",
+      "pair_id": "3",
+      "seed": 7,
+      "status": "not_started"
+    },
+    {
+      "completed_iterations": 0,
+      "condition": "stateless",
+      "directory": "pair-03-stateless",
+      "pair_id": "3",
+      "seed": 7,
+      "status": "not_started"
+    },
+    {
+      "completed_iterations": 0,
+      "condition": "stateless",
+      "directory": "pair-04-stateless",
+      "pair_id": "4",
+      "seed": 7,
+      "status": "not_started"
+    },
+    {
+      "completed_iterations": 0,
+      "condition": "memory",
+      "directory": "pair-04-memory",
+      "pair_id": "4",
+      "seed": 7,
+      "status": "not_started"
+    }
+  ],
+  "schema_version": 1,
+  "stopped_at": "2026-10-10T22:35:37.400020+00:00"
+}

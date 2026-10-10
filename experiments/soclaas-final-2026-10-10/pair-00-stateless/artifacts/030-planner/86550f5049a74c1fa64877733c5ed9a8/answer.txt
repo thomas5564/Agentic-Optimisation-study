@@ -1,0 +1,12 @@
+{
+  "approach": "query",
+  "change": "Refactor the list_notes function in app/db.py to perform filtering and pagination directly in SQLite using SQL WHERE clauses and LIMIT/OFFSET, instead of fetching all rows and filtering in Python. Specifically: 1. Construct a SQL query with dynamic WHERE clauses for search_text (using LIKE '%...%') and tags_filter (using JSON_EXTRACT or LIKE on the tags JSON string). 2. Add ORDER BY id ASC, LIMIT ?, OFFSET ? to the SQL query. 3. Remove the Python-side list comprehension and filtering logic. 4. Keep the _to_note_row conversion for the returned rows to maintain the existing data structure.",
+  "hypothesis": "The current implementation fetches all notes from the database into memory and then filters them in Python. This causes O(N) database I/O and Python object creation overhead for every list request, regardless of the limit. By pushing the filtering and pagination to SQLite, we reduce the amount of data transferred from the database and the number of Python objects created, significantly reducing latency for list operations, especially as the dataset grows.",
+  "risks": [
+    "Incorrect SQL construction could lead to SQL injection if user input is not properly parameterized. Must use parameterized queries for all user inputs.",
+    "SQLite's JSON functions (JSON_EXTRACT) might not be available in older SQLite versions, but the environment likely supports them. If not, LIKE-based matching on the JSON string is a fallback but less precise.",
+    "The current implementation uses case-sensitive substring search. The SQL LIKE clause is case-sensitive by default in SQLite, so this behavior is preserved.",
+    "Tag filtering logic must correctly handle the JSON array format stored in the database. Using JSON_EXTRACT or LIKE with proper escaping is required to match exact tags."
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,84 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -41,13 +41,18 @@
+     connection.close()
+ 
+ 
+-def _to_note(row: sqlite3.Row) -> Note:
+-    tags_value = row["tags"] or "[]"
++def _parse_tags(tags_value: str | None) -> list[str]:
++    if not tags_value:
++        return []
++    return json.loads(tags_value)
++
++
++def _row_to_note(row: sqlite3.Row) -> Note:
+     return Note(
+         id=row["id"],
+         title=row["title"],
+         body=row["body"],
+-        tags=json.loads(tags_value),
++        tags=_parse_tags(row["tags"]),
+     )
+ 
+ 
+@@ -62,7 +67,7 @@
+     row = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+     connection.commit()
+     connection.close()
+-    return _to_note(row)
++    return _row_to_note(row)
+ 
+ 
+ def get_note(note_id: int) -> Note | None:
+@@ -71,7 +76,7 @@
+     connection.close()
+     if row is None:
+         return None
+-    return _to_note(row)
++    return _row_to_note(row)
+ 
+ 
+ def list_notes(
+@@ -117,7 +122,7 @@
+     total = total_row[0]
+     
+     # Get paginated notes
+-    # We select all columns to reconstruct the Note object via _to_note
++    # We select all columns to reconstruct the Note object via _row_to_note
+     # We order by id ASC as per contract
+     notes_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
+     query_params = params + [limit, offset]
+@@ -125,7 +130,16 @@
+     
+     connection.close()
+     
+-    notes = [_to_note(row) for row in rows]
++    # Optimized list comprehension: inline parsing to reduce function call overhead
++    notes = [
++        Note(
++            id=row["id"],
++            title=row["title"],
++            body=row["body"],
++            tags=_parse_tags(row["tags"]),
++        )
++        for row in rows
++    ]
+     return notes, total
+ 
+ 
+@@ -143,7 +157,7 @@
+     updated = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+     connection.commit()
+     connection.close()
+-    return _to_note(updated)
++    return _row_to_note(updated)
+ 
+ 
+ def delete_note(note_id: int) -> bool:
+@@ -158,4 +172,4 @@
+     connection = _connect()
+     rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+     connection.close()
+-    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json.loads(row["tags"])} for row in rows]
++    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": _parse_tags(row["tags"])} for row in rows]

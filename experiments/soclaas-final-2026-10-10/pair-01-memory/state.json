@@ -1,0 +1,8 @@
+{
+  "completed_iterations": 1,
+  "final_remeasurement_score_ms": 4.09220315835455,
+  "planned_iterations": 30,
+  "reason": "User requested wrap-up; active attempt completed, remaining horizon and scheduled runs not executed.",
+  "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+  "status": "stopped_by_user"
+}

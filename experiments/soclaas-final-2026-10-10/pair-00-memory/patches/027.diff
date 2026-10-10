@@ -1,0 +1,73 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -177,16 +177,6 @@
+         _release_connection(connection)
+ 
+ 
+-def _to_note(row: sqlite3.Row) -> Note:
+-    tags_value = row["tags"] or "[]"
+-    return Note(
+-        id=row["id"],
+-        title=row["title"],
+-        body=row["body"],
+-        tags=json.loads(tags_value),
+-    )
+-
+-
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+     connection = _connect()
+     try:
+@@ -214,6 +204,16 @@
+         _release_connection(connection)
+ 
+ 
++def _to_note(row: sqlite3.Row) -> Note:
++    tags_value = row["tags"] or "[]"
++    return Note(
++        id=row["id"],
++        title=row["title"],
++        body=row["body"],
++        tags=json.loads(tags_value),
++    )
++
++
+ def list_notes(
+     *,
+     search_text: str | None = None,
+@@ -251,12 +251,31 @@
+         total_row = connection.execute(count_query, params).fetchone()
+         total = total_row[0]
+ 
+-        # Get paginated notes
+-        notes_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++        # Get paginated notes using bulk JSON serialization
++        notes_query = f"""
++            SELECT json_group_array(
++                json_object(
++                    'id', id,
++                    'title', title,
++                    'body', body,
++                    'tags', json_extract(tags)
++                )
++            ) as notes_json
++            FROM notes
++            {where_clause}
++            ORDER BY id ASC
++            LIMIT ? OFFSET ?
++        """
+         query_params = params + [limit, offset]
+-        rows = connection.execute(notes_query, query_params).fetchall()
+-
+-        notes = [_to_note(row) for row in rows]
++        result_row = connection.execute(notes_query, query_params).fetchone()
++        notes_json_str = result_row[0] if result_row else "[]"
++        
++        # Parse the single JSON string once
++        notes_dicts = json.loads(notes_json_str)
++        
++        # Map dictionaries directly to Note objects
++        notes = [Note.model_validate(nd) for nd in notes_dicts]
++        
+         return notes, total
+     finally:
+         _release_connection(connection)

@@ -1,0 +1,38 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -7,6 +7,11 @@
+ from typing import Any
+ 
+ from app.models import Note
++
++try:
++    import orjson
++except ImportError:
++    orjson = None
+ 
+ 
+ def get_db_path() -> Path:
+@@ -43,11 +48,15 @@
+ 
+ def _to_note(row: sqlite3.Row) -> Note:
+     tags_value = row["tags"] or "[]"
++    if orjson is not None:
++        tags = orjson.loads(tags_value)
++    else:
++        tags = json.loads(tags_value)
+     return Note(
+         id=row["id"],
+         title=row["title"],
+         body=row["body"],
+-        tags=json.loads(tags_value),
++        tags=tags,
+     )
+ 
+ 
+@@ -137,4 +146,6 @@
+     connection = _connect()
+     rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+     connection.close()
++    if orjson is not None:
++        return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": orjson.loads(row["tags"])} for row in rows]
+     return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json.loads(row["tags"])} for row in rows]

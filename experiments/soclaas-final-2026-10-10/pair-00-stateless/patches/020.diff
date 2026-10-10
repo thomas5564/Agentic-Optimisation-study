@@ -1,0 +1,101 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -54,8 +54,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -106,32 +104,67 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    # Build dynamic query parts
++    conditions = []
++    params: list[Any] = []
++    
++    # Search condition: case-sensitive substring match in title or body
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        like_pattern = f"%{search_text}%"
++        params.extend([like_pattern, like_pattern])
++    
++    # Tag condition: exact match for all specified tags
++    if tags_filter:
++        # Filter out empty tags
++        valid_tags = [tag for tag in tags_filter if tag]
++        if valid_tags:
++            # We need to check if each tag exists in the JSON array string.
++            # Since tags are stored as a sorted JSON array string (e.g., '["a", "b"]'),
++            # we can use LIKE to check for the presence of the tag string within the array.
++            # To avoid partial matches (e.g., "work" matching "workshop"), we check for
++            # the tag surrounded by quotes or brackets/commas.
++            # A robust way in SQLite without complex regex is to check if the tag
++            # appears as a distinct element. Since we control the format (sorted, quoted),
++            # we can look for '"tag"' inside the string.
++            # However, simple LIKE '"tag"' might match '"tag"extra' if not careful,
++            # but JSON arrays are well-formed. A safer approach for small arrays:
++            # Check if '"tag"' is in the string. Since tags are sorted and quoted,
++            # '"tag"' will appear exactly when the tag is present.
++            # We must ensure we don't match '"tag"' inside '"tag2"'.
++            # The tag string itself is quoted in the JSON. So we look for '"tag"'.
++            # To be safe against "tag" being a substring of another tag like "tag2",
++            # we rely on the fact that JSON strings are delimited by quotes.
++            # So '"work"' will not match '"workshop"'.
++            for tag in valid_tags:
++                conditions.append("tags LIKE ?")
++                # We look for the tag enclosed in quotes. 
++                # Since the JSON is '["tag1", "tag2"]', the tag appears as "tag".
++                # We use LIKE '%"tag"%' to find it anywhere in the string.
++                # This is safe because quotes are unique delimiters in JSON strings.
++                params.append(f'%"{tag}"%')
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    # Count query
++    count_sql = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_sql, params).fetchone()
++    total = total_row[0]
++
++    # Data query with pagination
++    data_sql = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    data_params = params + [limit, offset]
++    rows = connection.execute(data_sql, data_params).fetchall()
++    
+     connection.close()
+ 
+-    # Parse all rows into lightweight NoteRow objects
++    # Convert rows to NoteRow objects
+     note_rows = [_to_note_row(row) for row in rows]
+     
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

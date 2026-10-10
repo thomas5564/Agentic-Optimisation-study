@@ -1,0 +1,23 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor app/db.py list_notes to use SQL-based filtering and pagination instead of in-memory processing. Replace the current pattern of fetching all rows and filtering in Python with a single SQL query that applies WHERE clauses for search_text (using LIKE) and tags (using JSON_CONTAINS or similar SQLite JSON functions), and applies LIMIT/OFFSET directly in the database. Update the total count query to use COUNT(*) with the same WHERE conditions. This eliminates the O(N) Python loop and json.loads overhead for every row in the result set.",
+    "hypothesis": "The current list_notes implementation fetches all notes from the database and filters them in Python, which is O(N) in both I/O and CPU time. By moving the filtering and pagination to the SQL layer, we reduce the amount of data transferred from SQLite to Python and avoid parsing JSON for non-matching rows. This should significantly reduce cumulative time for list_notes_endpoint, especially as the dataset grows.",
+    "risks": [
+      "SQLite's JSON functions may have different performance characteristics or availability depending on the build. If JSON_CONTAINS is not available, we may need to use a different approach like LIKE on the JSON string, which could be less efficient or incorrect.",
+      "The current implementation uses case-sensitive substring matching for search_text. The SQL LIKE operator is also case-sensitive by default in SQLite, so this should be preserved.",
+      "The current implementation sorts tags in Python before storing. The SQL query must correctly match tags against the stored JSON array. Using JSON_CONTAINS('tags', '\"tag\"') or similar is required.",
+      "If the dataset is small, the overhead of constructing complex SQL queries might not yield significant improvements, but it will not degrade performance significantly."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

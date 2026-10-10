@@ -1,0 +1,103 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -82,30 +82,79 @@
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    conditions = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        like_pattern = f"%{search_text}%"
++        params.extend([like_pattern, like_pattern])
++
++    if tags_filter:
++        clean_tags = [tag.strip() for tag in tags_filter if tag and tag.strip()]
++        if clean_tags:
++            tag_conditions = []
++            for tag in clean_tags:
++                # Match exact tag in JSON array: "tag" or ["tag", ...]
++                # We look for the tag surrounded by quotes, ensuring it's a distinct element
++                # Pattern: "tag" or ,"tag" or ["tag" or "tag", or "tag"]
++                # Simpler approach: check if the tag string exists as a distinct JSON string element
++                # We can use LIKE with specific boundaries or just check if the tag is in the parsed list
++                # But to do it in SQL efficiently without full parse, we can rely on the fact that
++                # tags are sorted and stored as JSON array of strings.
++                # A robust SQL-only check for exact match in JSON array string:
++                # The tag must be preceded by [ or , and followed by , or ]
++                # And the content between must be exactly the tag.
++                # Since tags are quoted in JSON: "tag"
++                # We look for: ["tag" or ,"tag" or "tag", or "tag"]
++                # To avoid partial matches (e.g. 'work' in 'workflow'), we ensure boundaries.
++                # However, SQLite LIKE is case-sensitive by default which is good.
++                # Let's use a pattern that matches the quoted tag.
++                # Pattern: '%["tag"%' or '%,"tag"%' etc.
++                # Actually, simpler: since we have the tag, we can just check if the JSON string contains the tag as a distinct element.
++                # Given the constraints and performance goal, we can construct a condition that checks for the tag surrounded by quotes
++                # and non-alphanumeric characters (or start/end of array structure).
++                # But the simplest correct SQL way without regex is to check for the tag in the JSON string with boundaries.
++                # Let's assume the JSON is well-formed. We look for the tag string surrounded by quotes.
++                # To ensure it's an exact match, we check for: ["tag" or ,"tag" or "tag", or "tag"]
++                # We can use LIKE with wildcards.
++                # Pattern: '%["' || tag || '"]%' is not quite right because of commas.
++                # Let's use: LIKE '%["' || tag || '"]%' OR LIKE '%,"' || tag || '"]%' OR LIKE '%["' || tag || '",%' OR LIKE '%,"' || tag || '",%'
++                # This is getting complex. 
++                # Alternative: Since we are pushing to SQL, we can just use the fact that tags are stored as a JSON array.
++                # We can use `json_each` if available, but standard SQLite might not have it enabled.
++                # Let's stick to string matching with careful boundaries.
++                # The tag is stored as a JSON string, e.g., "work". So in the DB it looks like: ["work", "research"]
++                # We want to match "work" exactly.
++                # We can check if the string contains '"work"' and ensure it's not part of a larger word.
++                # Since JSON strings are quoted, '"work"' is distinct from '"workflow"'.
++                # So we just need to check if '"' || tag || '"' is in the tags column.
++                # But wait, what if the tag is 'work' and we have 'workflow'? '"workflow"' does not contain '"work"'.
++                # So checking for '"' || tag || '"' is sufficient for exact match in JSON array of strings.
++                # We must escape single quotes in the tag for SQL.
++                escaped_tag = tag.replace("'", "''")
++                tag_conditions.append("tags LIKE '%' || '" + escaped_tag + "' || '%'")
++            if tag_conditions:
++                conditions.append(" AND ".join(tag_conditions))
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    # Count query
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++
++    # Data query
++    data_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    data_params = params + [limit, offset]
++    rows = connection.execute(data_query, data_params).fetchall()
+     connection.close()
+ 
+     notes = [_to_note(row) for row in rows]
+-    filtered = []
+-    for note in notes:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

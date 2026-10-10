@@ -1,0 +1,266 @@
+{
+  "decision": {
+    "accepted": false,
+    "reason": "insufficient_improvement",
+    "relative_improvement": -1.4047191338209033
+  },
+  "evidence": {
+    "candidate": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 126.47108300006948,
+          "mean": 9.37464300667322,
+          "median": 14.315979499770037,
+          "min": 0.4884589998255251,
+          "p95": 22.86908299993229
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.08608138758850879,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.20945809290391348,
+        "repetition_means_ms": [
+          8.702584552497683,
+          8.688913659178374,
+          10.652508505011156,
+          9.567673205004516,
+          9.261535111674371
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 11.280749999968975,
+            "mean": 1.0732158879964118,
+            "median": 0.938395500270417,
+            "min": 0.6921250005689217,
+            "p95": 1.5423750000991276
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 5.368417000681802,
+            "mean": 0.8005444200061902,
+            "median": 0.7174584998210776,
+            "min": 0.4884589998255251,
+            "p95": 1.2786670004061307
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 28.13320799941721,
+            "mean": 0.834368647334486,
+            "median": 0.7033750002847228,
+            "min": 0.5404579997048131,
+            "p95": 1.2689589993897243
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 126.47108300006948,
+            "mean": 17.80830697201448,
+            "median": 15.90020799994818,
+            "min": 14.297416999397683,
+            "p95": 26.343208000071172
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 93.56845799993607,
+            "mean": 1.2690079979856819,
+            "median": 0.9227914997609332,
+            "min": 0.6995409994488,
+            "p95": 1.6775829999460257
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 9.261535111674371,
+      "valid": true
+    },
+    "parent": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 110.99208300038299,
+          "mean": 4.075711885832637,
+          "median": 5.967478999991727,
+          "min": 0.4513750000114669,
+          "p95": 8.164208000380313
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.12475795349368295,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.296039741146823,
+        "repetition_means_ms": [
+          3.8513999333296547,
+          4.978702717507228,
+          3.942836217495369,
+          3.7721300258363044,
+          3.833490534994629
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 5.784499999208492,
+            "mean": 0.8593004600206768,
+            "median": 0.7749374999548309,
+            "min": 0.6507910002255812,
+            "p95": 1.270666999516834
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 110.99208300038299,
+            "mean": 0.8751750959909259,
+            "median": 0.552249499833124,
+            "min": 0.4513750000114669,
+            "p95": 1.0719169995354605
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 53.36370799977885,
+            "mean": 0.7298021713274162,
+            "median": 0.6152495002424985,
+            "min": 0.5078330004835152,
+            "p95": 0.9922080007527256
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 62.546375000238186,
+            "mean": 7.353795785005484,
+            "median": 6.719750000229396,
+            "min": 5.944333999650553,
+            "p95": 9.862666000117315
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 7.426582999869424,
+            "mean": 0.8618858499648923,
+            "median": 0.761646000228211,
+            "min": 0.6484589994215639,
+            "p95": 1.2531669999589212
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 3.8513999333296547,
+      "valid": true
+    },
+    "validation": {
+      "correct": true,
+      "status": "passed"
+    }
+  },
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nimport ast\nimport json\nimport os\nimport sqlite3\nfrom pathlib import Path\nfrom typing import Any\n\nfrom app.models import Note\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\ndef _connect() -> sqlite3.Connection:\n    path = get_db_path()\n    path.parent.mkdir(parents=True, exist_ok=True)\n    connection = sqlite3.connect(path)\n    connection.row_factory = sqlite3.Row\n    connection.execute(\"PRAGMA foreign_keys = ON\")\n    return connection\n\n\ndef initialize_db() -> None:\n    connection = _connect()\n    connection.execute(\n        \"\"\"\n        CREATE TABLE IF NOT EXISTS notes (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            title TEXT NOT NULL,\n            body TEXT NOT NULL,\n            tags TEXT NOT NULL DEFAULT '[]'\n        )\n        \"\"\"\n    )\n    connection.commit()\n    connection.close()\n\n\ndef _to_note(row: sqlite3.Row) -> Note:\n    tags_value = row[\"tags\"] or \"[]\"\n    return Note(\n        id=row[\"id\"],\n        title=row[\"title\"],\n        body=row[\"body\"],\n        tags=ast.literal_eval(tags_value),\n    )\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    connection = _connect()\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}), separators=(\",\", \":\"))\n    cursor = connection.execute(\n        \"INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)\",\n        (title, body, payload),\n    )\n    note_id = cursor.lastrowid\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.close()\n    if row is None:\n        return None\n    return _to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    connection = _connect()\n    rows = connection.execute(\"SELECT * FROM notes ORDER BY id ASC\").fetchall()\n    connection.close()\n\n    notes = [_to_note(row) for row in rows]\n    filtered = []\n    for note in notes:\n        matches_search = True\n        if search_text is not None and search_text != \"\":\n            matches_search = (search_text in note.title) or (search_text in note.body)\n\n        matches_tags = True\n        if tags_filter:\n            tag_values = {tag for tag in tags_filter if tag}\n            if not tag_values:\n                matches_tags = True\n            else:\n                matches_tags = all(tag in set(note.tags) for tag in tag_values)\n\n        if matches_search and matches_tags:\n            filtered.append(note)\n\n    total = len(filtered)\n    paginated = filtered[offset: offset + limit]\n    return paginated, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    if row is None:\n        connection.close()\n        return None\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}), separators=(\",\", \":\"))\n    connection.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?\",\n        (title, body, payload, note_id),\n    )\n    updated = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _to_note(updated)\n\n\ndef delete_note(note_id: int) -> bool:\n    connection = _connect()\n    cursor = connection.execute(\"DELETE FROM notes WHERE id = ?\", (note_id,))\n    connection.commit()\n    connection.close()\n    return cursor.rowcount > 0\n\n\ndef _storage_notes() -> list[dict[str, Any]]:\n    connection = _connect()\n    rows = connection.execute(\"SELECT * FROM notes ORDER BY id ASC\").fetchall()\n    connection.close()\n    return [{\"id\": row[\"id\"], \"title\": row[\"title\"], \"body\": row[\"body\"], \"tags\": ast.literal_eval(row[\"tags\"])} for row in rows]\n",
+      "path": "app/db.py"
+    }
+  ],
+  "plan": {
+    "approach": "serialization",
+    "change": "Refactor app/db.py to replace json.loads with ast.literal_eval for parsing the tags column in _to_note, and replace json.dumps with json.dumps using separators=(',', ':') for storing tags in create_note and update_note. This reduces the overhead of the JSON decoder/encoder for simple list-of-strings structures while maintaining valid JSON output for the API.",
+    "hypothesis": "The profile shows that json.loads and json.dumps consume significant time (cumulative 3.010s and 2.410s respectively) during list_notes, which processes 1.2 million tag parses. Since the tags are stored as simple JSON arrays of strings, using ast.literal_eval for parsing is faster than the full JSON parser, and compacting JSON output reduces serialization overhead. This change targets the highest cumulative time consumers in the hot path without altering API semantics or data types.",
+    "risks": [
+      "ast.literal_eval is generally safe for trusted data, but if the database is corrupted or manually modified with invalid Python literals, it could raise an exception. However, since the app controls writes, this is low risk.",
+      "Changing serialization format must ensure that the output remains valid JSON for the API contract. json.dumps with separators=(',', ':') produces valid JSON, so this is safe.",
+      "If tags contain characters that are valid in JSON but not in Python literals (e.g., certain unicode escapes), ast.literal_eval might behave differently. However, standard unicode strings are handled identically."
+    ],
+    "schema_version": 1
+  },
+  "role": "auditor",
+  "schema_version": 1
+}

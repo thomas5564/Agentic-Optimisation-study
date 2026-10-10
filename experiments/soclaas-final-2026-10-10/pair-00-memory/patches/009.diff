@@ -1,0 +1,72 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -7,6 +7,9 @@
+ from typing import Any
+ 
+ from app.models import Note
++
++# Cache json.loads to avoid global lookup overhead in hot paths
++_json_loads = json.loads
+ 
+ 
+ def get_db_path() -> Path:
+@@ -47,7 +50,7 @@
+         id=row["id"],
+         title=row["title"],
+         body=row["body"],
+-        tags=json.loads(tags_value),
++        tags=_json_loads(tags_value),
+     )
+ 
+ 
+@@ -71,7 +74,14 @@
+     connection.close()
+     if row is None:
+         return None
+-    return _to_note(row)
++    # Inline _to_note for single-row fetch to reduce function call overhead
++    tags_value = row["tags"] or "[]"
++    return Note(
++        id=row["id"],
++        title=row["title"],
++        body=row["body"],
++        tags=_json_loads(tags_value),
++    )
+ 
+ 
+ def list_notes(
+@@ -125,7 +135,17 @@
+     
+     connection.close()
+     
+-    notes = [_to_note(row) for row in rows]
++    # Inline Note construction to avoid _to_note function call overhead per row
++    # and use tuple indexing which is faster than sqlite3.Row attribute access
++    notes = [
++        Note(
++            id=row[0],
++            title=row[1],
++            body=row[2],
++            tags=_json_loads(row[3] or "[]"),
++        )
++        for row in rows
++    ]
+     return notes, total
+ 
+ 
+@@ -143,7 +163,14 @@
+     updated = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+     connection.commit()
+     connection.close()
+-    return _to_note(updated)
++    # Inline _to_note for single-row fetch to reduce function call overhead
++    tags_value = updated["tags"] or "[]"
++    return Note(
++        id=updated["id"],
++        title=updated["title"],
++        body=updated["body"],
++        tags=_json_loads(tags_value),
++    )
+ 
+ 
+ def delete_note(note_id: int) -> bool:

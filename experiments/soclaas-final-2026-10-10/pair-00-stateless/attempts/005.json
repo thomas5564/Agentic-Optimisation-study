@@ -1,0 +1,218 @@
+{
+  "attempt_id": "db5126313a4f42b1aecaaa1d33a2bd1e:005",
+  "audit": {
+    "interpretation": "The plan proposes refactoring `app/db.py` to optimize `list_notes` by moving filtering logic from Python to SQLite. It introduces a `tags_normalized` column (comma-separated, sorted tags) to enable efficient SQL-based tag matching, avoiding the high cost of `json.loads` on all rows. The patch implements this schema change, updates `create_note` and `update_note` to populate the new column, and rewrites `list_notes` to use dynamic SQL `WHERE` clauses for `search_text` and `tags_filter`.",
+    "limitations": [
+      "Tag filtering uses SQL LIKE with boundary checks, which is verbose and potentially error-prone for tags that are substrings of others.",
+      "The patch does not include a migration script to populate `tags_normalized` for existing database records, risking incorrect filter results on upgrade.",
+      "The `list_notes` function still calls `json.loads` in `_to_note_row` for every returned row, limiting latency gains if the result set is large.",
+      "The plan assumes the environment supports the specific SQL constructs used, without verifying SQLite version compatibility for all edge cases."
+    ],
+    "schema_version": 1
+  },
+  "audit_status": "passed",
+  "candidate_hash": "3933edecf131ade30b1b1e7dd3a0a0d67695a7223829a90dde1cdad35b4cb572",
+  "candidate_measurement": null,
+  "condition": "stateless",
+  "config_hash": "463cd34538d57637df7d85be20f119f0648e63ce3fe421ed473716371969ec54",
+  "decision": {
+    "accepted": false,
+    "reason": "correctness_failed",
+    "relative_improvement": null
+  },
+  "iteration": 5,
+  "memory": {
+    "approach": "query",
+    "attempted_change": "Refactor the list_notes function in app/db.py to perform filtering and counting directly in SQLite using SQL expressions instead of fetching all rows and filtering in Python. Replace the current SELECT * ... fetchall() pattern with a parameterized query that uses LIKE for substring search and JSON_EXTRACT/JSON_CONTAINS (or a helper table/CTE if needed, but standard JSON functions in SQLite 3.38+ are sufficient) for tag matching. Specifically: 1. Construct a WHERE clause dynamically based on search_text and tags_filter. 2. Use 'title LIKE ? OR body LIKE ?' for search. 3. Use 'json_extract(tags, ?) = ?' or similar for exact tag matching if the SQLite version supports it, or pre-compute a normalized tags string in the DB if JSON functions are too slow/unsupported. Given the profile shows heavy json.loads usage in Python, moving logic to SQL is key. If JSON functions are not available, add a 'tags_normalized' TEXT column that stores a sorted, comma-separated string of tags, and index it. However, to minimize schema changes and preserve semantics, we will attempt to use SQL-level filtering. If the environment is older SQLite, we will add a 'tags_str' column. Let's assume standard modern SQLite. We will use: SELECT id, title, body, tags FROM notes WHERE (search_text IS NULL OR title LIKE '%' || ? || '%' OR body LIKE '%' || ? || '%') AND (tags_filter IS NULL OR json_each(tags).value IN (SELECT value FROM json_each(?) ...)). Actually, simpler: Since tags are stored as JSON array, we can check if specific tags exist. A robust way without complex JSON functions is to add a 'tags_normalized' column. But to strictly follow 'preserve API semantics' and 'persistence', adding a column is a schema change. Let's look at the profile: 1.2M json.loads calls. This is the bottleneck. The current code fetches ALL notes, then filters in Python. The optimization is to filter in SQL. We will modify list_notes to build a SQL query with WHERE clauses for search and tags. For tags, since 'all' tags must be present, we can check if the JSON array contains each tag. In SQLite 3.38+, json_each is available. We will use: SELECT * FROM notes WHERE (search_text IS NULL OR title LIKE ? OR body LIKE ?) AND (tags_filter IS NULL OR (SELECT COUNT(*) FROM json_each(tags) WHERE value IN (SELECT value FROM json_each(?) ...)) = len(tags_filter)). This is complex. A simpler, highly effective change is to add a 'tags_normalized' TEXT column (comma-separated sorted tags) and index it. This requires a migration. The prompt says 'preserve persistence'. Adding a column is compatible. Let's propose adding a 'tags_normalized' column to the notes table, populating it during create/update, and using it for filtering. This avoids JSON parsing in Python entirely for list operations. Steps: 1. Modify initialize_db to create 'tags_normalized' TEXT column. 2. Modify create_note and update_note to compute and store 'tags_normalized'. 3. Modify list_notes to filter by 'tags_normalized' using SQL LIKE or exact match on the normalized string, and search using SQL LIKE. 4. Remove json.loads from _to_note_row and _row_to_note for list operations, or keep them for single-item fetches if needed. Actually, _to_note_row is used for list_notes. We can keep json.loads there if we only filter in SQL, but the profile shows json.loads is called 1.2M times. If we filter in SQL, we still fetch all rows? No, we fetch only matching rows. If the dataset is small, this helps. If large, it helps a lot. The profile shows 600 calls to list_notes, each fetching many rows. The total rows fetched is likely large. By filtering in SQL, we reduce the number of rows returned to Python, thus reducing json.loads calls. This is the primary gain. We will add a 'tags_normalized' column to enable efficient SQL filtering of tags without JSON functions. This is a schema migration but preserves data integrity.",
+    "audit_status": "passed",
+    "candidate_hash": "3933edecf131ade30b1b1e7dd3a0a0d67695a7223829a90dde1cdad35b4cb572",
+    "facts": {
+      "acceptance": {
+        "accepted": false,
+        "reason": "correctness_failed",
+        "relative_improvement": null
+      },
+      "after_score_ms": null,
+      "before_score_ms": null,
+      "candidate_counts": null,
+      "correctness": {
+        "correct": false,
+        "status": "correctness_failed"
+      },
+      "status": "correctness_failed"
+    },
+    "hypothesis": "The current list_notes implementation fetches all notes from the database and filters them in Python, causing excessive json.loads calls (1.2M) and Python-level iteration. By adding a 'tags_normalized' column to the notes table and performing filtering (search and tags) directly in SQL, we can significantly reduce the number of rows transferred to Python and the number of json.loads calls, thereby reducing cumulative time and latency.",
+    "interpretation": "The plan proposes refactoring `app/db.py` to optimize `list_notes` by moving filtering logic from Python to SQLite. It introduces a `tags_normalized` column (comma-separated, sorted tags) to enable efficient SQL-based tag matching, avoiding the high cost of `json.loads` on all rows. The patch implements this schema change, updates `create_note` and `update_note` to populate the new column, and rewrites `list_notes` to use dynamic SQL `WHERE` clauses for `search_text` and `tags_filter`.",
+    "iteration": 5,
+    "limitations": [
+      "Tag filtering uses SQL LIKE with boundary checks, which is verbose and potentially error-prone for tags that are substrings of others.",
+      "The patch does not include a migration script to populate `tags_normalized` for existing database records, risking incorrect filter results on upgrade.",
+      "The `list_notes` function still calls `json.loads` in `_to_note_row` for every returned row, limiting latency gains if the result set is large.",
+      "The plan assumes the environment supports the specific SQL constructs used, without verifying SQLite version compatibility for all edge cases."
+    ],
+    "parent_hash": "bb59039e38d8bfb91efe852777331e361c02d872fb355e9c274434429dc20d8b",
+    "schema_version": 1
+  },
+  "parent_hash": "bb59039e38d8bfb91efe852777331e361c02d872fb355e9c274434429dc20d8b",
+  "parent_measurement": null,
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nfrom dataclasses import dataclass\nfrom pathlib import Path\nfrom typing import Any\n\nfrom app.models import Note\n\n\n@dataclass\nclass NoteRow:\n    \"\"\"Lightweight internal representation of a note row from the database.\"\"\"\n    id: int\n    title: str\n    body: str\n    tags: list[str]\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\ndef _connect() -> sqlite3.Connection:\n    path = get_db_path()\n    path.parent.mkdir(parents=True, exist_ok=True)\n    connection = sqlite3.connect(path)\n    connection.row_factory = sqlite3.Row\n    connection.execute(\"PRAGMA foreign_keys = ON\")\n    return connection\n\n\ndef initialize_db() -> None:\n    connection = _connect()\n    connection.execute(\n        \"\"\"\n        CREATE TABLE IF NOT EXISTS notes (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            title TEXT NOT NULL,\n            body TEXT NOT NULL,\n            tags TEXT NOT NULL DEFAULT '[]',\n            tags_normalized TEXT NOT NULL DEFAULT ''\n        )\n        \"\"\"\n    )\n    connection.commit()\n    connection.close()\n\n\ndef _to_note_row(row: sqlite3.Row) -> NoteRow:\n    \"\"\"Convert a sqlite3.Row to a lightweight NoteRow dataclass.\"\"\"\n    tags_value = row[\"tags\"] or \"[]\"\n    tags = json.loads(tags_value)\n    return NoteRow(\n        id=row[\"id\"],\n        title=row[\"title\"],\n        body=row[\"body\"],\n        tags=tags,\n    )\n\n\ndef _row_to_note(row: sqlite3.Row) -> Note:\n    \"\"\"Convert a sqlite3.Row directly to a Pydantic Note. Used for single-item fetches.\"\"\"\n    return Note(\n        id=row[\"id\"],\n        title=row[\"title\"],\n        body=row[\"body\"],\n        tags=json.loads(row[\"tags\"] or \"[]\"),\n    )\n\n\ndef _normalize_tags(tags: list[str]) -> str:\n    \"\"\"Normalize tags for storage and SQL filtering.\"\"\"\n    cleaned = [tag.strip() for tag in tags if tag and tag.strip()]\n    unique = sorted(set(cleaned))\n    return \",\".join(unique)\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    connection = _connect()\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n    tags_normalized = _normalize_tags(tags)\n    cursor = connection.execute(\n        \"INSERT INTO notes (title, body, tags, tags_normalized) VALUES (?, ?, ?, ?)\",\n        (title, body, payload, tags_normalized),\n    )\n    note_id = cursor.lastrowid\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _row_to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.close()\n    if row is None:\n        return None\n    return _row_to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[NoteRow], int]:\n    connection = _connect()\n    \n    conditions = []\n    params: list[Any] = []\n\n    if search_text is not None and search_text != \"\":\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n\n    if tags_filter:\n        clean_tags = [t.strip() for t in tags_filter if t and t.strip()]\n        if clean_tags:\n            # tags_normalized is a comma-separated sorted string\n            # We check if each tag exists as a substring, but to be precise\n            # we can check for exact matches in the comma-separated list.\n            # Since tags are sorted and comma-separated, we can use LIKE with boundaries\n            # or simply check if the tag is in the string. \n            # A robust way for comma-separated sorted list:\n            # 'tag' must appear as ',tag,' or start with 'tag,' or end with ',tag' or be exactly 'tag'.\n            # Simpler: use a helper approach. Since we control the format (sorted, comma-sep),\n            # we can check if the normalized string contains the tag surrounded by commas or boundaries.\n            # However, standard SQL LIKE is sufficient if we ensure no tag is a substring of another\n            # in a way that causes false positives? No, 'work' is in 'workshop'.\n            # To be safe and correct: we will check each tag individually.\n            # For performance, we construct a complex OR clause or use a subquery.\n            # Given the constraint of simple SQL, we will use a helper function in Python to build the WHERE clause\n            # for exact tag matching on the normalized string.\n            # Format: \"tag1,tag2,tag3\"\n            # Check for tag: (tags_normalized = ? OR tags_normalized LIKE ? OR tags_normalized LIKE ? OR tags_normalized LIKE ?)\n            # This is verbose. \n            # Alternative: Since we are moving logic to SQL, let's use the fact that tags are sorted.\n            # We can check if the tag is present by ensuring it's surrounded by commas or boundaries.\n            # Let's build a condition for each tag.\n            tag_conditions = []\n            for tag in clean_tags:\n                # Match: start with tag, or contain ,tag,, or end with ,tag\n                tag_conditions.append(\n                    \"(tags_normalized = ? OR tags_normalized LIKE ? OR tags_normalized LIKE ? OR tags_normalized LIKE ?)\"\n                )\n                params.extend([\n                    tag,\n                    f\"{tag},%\",\n                    f\"%,{tag},%\",\n                    f\"%,{tag}\"\n                ])\n            conditions.append(f\"({' AND '.join(tag_conditions)})\")\n\n    where_clause = \"\"\n    if conditions:\n        where_clause = \"WHERE \" + \" AND \".join(conditions)\n\n    # Count total matches\n    count_query = f\"SELECT COUNT(*) FROM notes {where_clause}\"\n    total_row = connection.execute(count_query, params).fetchone()\n    total = total_row[0]\n\n    # Fetch paginated results\n    # We need to fetch the rows to convert them to NoteRow\n    # The query selects id, title, body, tags\n    fetch_query = f\"SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?\"\n    fetch_params = params + [limit, offset]\n    rows = connection.execute(fetch_query, fetch_params).fetchall()\n    connection.close()\n\n    note_rows = [_to_note_row(row) for row in rows]\n    return note_rows, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    if row is None:\n        connection.close()\n        return None\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n    tags_normalized = _normalize_tags(tags)\n    connection.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ?, tags_normalized = ? WHERE id = ?\",\n        (title, body, payload, tags_normalized, note_id),\n    )\n    updated = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _row_to_note(updated)\n\n\ndef delete_note(note_id: int) -> bool:\n    connection = _connect()\n    cursor = connection.execute(\"DELETE FROM notes WHERE id = ?\", (note_id,))\n    connection.commit()\n    connection.close()\n    return cursor.rowcount > 0\n\n\ndef _storage_notes() -> list[dict[str, Any]]:\n    connection = _connect()\n    rows = connection.execute(\"SELECT * FROM notes ORDER BY id ASC\").fetchall()\n    connection.close()\n    return [{\"id\": row[\"id\"], \"title\": row[\"title\"], \"body\": row[\"body\"], \"tags\": json.loads(row[\"tags\"])} for row in rows]\n",
+      "path": "app/db.py"
+    }
+  ],
+  "plan": {
+    "approach": "query",
+    "change": "Refactor the list_notes function in app/db.py to perform filtering and counting directly in SQLite using SQL expressions instead of fetching all rows and filtering in Python. Replace the current SELECT * ... fetchall() pattern with a parameterized query that uses LIKE for substring search and JSON_EXTRACT/JSON_CONTAINS (or a helper table/CTE if needed, but standard JSON functions in SQLite 3.38+ are sufficient) for tag matching. Specifically: 1. Construct a WHERE clause dynamically based on search_text and tags_filter. 2. Use 'title LIKE ? OR body LIKE ?' for search. 3. Use 'json_extract(tags, ?) = ?' or similar for exact tag matching if the SQLite version supports it, or pre-compute a normalized tags string in the DB if JSON functions are too slow/unsupported. Given the profile shows heavy json.loads usage in Python, moving logic to SQL is key. If JSON functions are not available, add a 'tags_normalized' TEXT column that stores a sorted, comma-separated string of tags, and index it. However, to minimize schema changes and preserve semantics, we will attempt to use SQL-level filtering. If the environment is older SQLite, we will add a 'tags_str' column. Let's assume standard modern SQLite. We will use: SELECT id, title, body, tags FROM notes WHERE (search_text IS NULL OR title LIKE '%' || ? || '%' OR body LIKE '%' || ? || '%') AND (tags_filter IS NULL OR json_each(tags).value IN (SELECT value FROM json_each(?) ...)). Actually, simpler: Since tags are stored as JSON array, we can check if specific tags exist. A robust way without complex JSON functions is to add a 'tags_normalized' column. But to strictly follow 'preserve API semantics' and 'persistence', adding a column is a schema change. Let's look at the profile: 1.2M json.loads calls. This is the bottleneck. The current code fetches ALL notes, then filters in Python. The optimization is to filter in SQL. We will modify list_notes to build a SQL query with WHERE clauses for search and tags. For tags, since 'all' tags must be present, we can check if the JSON array contains each tag. In SQLite 3.38+, json_each is available. We will use: SELECT * FROM notes WHERE (search_text IS NULL OR title LIKE ? OR body LIKE ?) AND (tags_filter IS NULL OR (SELECT COUNT(*) FROM json_each(tags) WHERE value IN (SELECT value FROM json_each(?) ...)) = len(tags_filter)). This is complex. A simpler, highly effective change is to add a 'tags_normalized' TEXT column (comma-separated sorted tags) and index it. This requires a migration. The prompt says 'preserve persistence'. Adding a column is compatible. Let's propose adding a 'tags_normalized' column to the notes table, populating it during create/update, and using it for filtering. This avoids JSON parsing in Python entirely for list operations. Steps: 1. Modify initialize_db to create 'tags_normalized' TEXT column. 2. Modify create_note and update_note to compute and store 'tags_normalized'. 3. Modify list_notes to filter by 'tags_normalized' using SQL LIKE or exact match on the normalized string, and search using SQL LIKE. 4. Remove json.loads from _to_note_row and _row_to_note for list operations, or keep them for single-item fetches if needed. Actually, _to_note_row is used for list_notes. We can keep json.loads there if we only filter in SQL, but the profile shows json.loads is called 1.2M times. If we filter in SQL, we still fetch all rows? No, we fetch only matching rows. If the dataset is small, this helps. If large, it helps a lot. The profile shows 600 calls to list_notes, each fetching many rows. The total rows fetched is likely large. By filtering in SQL, we reduce the number of rows returned to Python, thus reducing json.loads calls. This is the primary gain. We will add a 'tags_normalized' column to enable efficient SQL filtering of tags without JSON functions. This is a schema migration but preserves data integrity.",
+    "hypothesis": "The current list_notes implementation fetches all notes from the database and filters them in Python, causing excessive json.loads calls (1.2M) and Python-level iteration. By adding a 'tags_normalized' column to the notes table and performing filtering (search and tags) directly in SQL, we can significantly reduce the number of rows transferred to Python and the number of json.loads calls, thereby reducing cumulative time and latency.",
+    "risks": [
+      "Schema migration requires updating the database structure, which must be done carefully to preserve existing data.",
+      "Adding a column increases storage slightly, but this is negligible.",
+      "If the SQLite version does not support certain JSON functions, we rely on the 'tags_normalized' column, which is robust.",
+      "The migration must be idempotent and safe for existing databases."
+    ],
+    "schema_version": 1
+  },
+  "retained_hash": "bb59039e38d8bfb91efe852777331e361c02d872fb355e9c274434429dc20d8b",
+  "retained_score_ms": 2.7837561375033224,
+  "roles": {
+    "auditor": {
+      "elapsed_seconds": 4.472448792075738,
+      "error": null,
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "qwen3.6:35b",
+        "tools": [],
+        "transport": "chat_completions"
+      },
+      "output": {
+        "interpretation": "The plan proposes refactoring `app/db.py` to optimize `list_notes` by moving filtering logic from Python to SQLite. It introduces a `tags_normalized` column (comma-separated, sorted tags) to enable efficient SQL-based tag matching, avoiding the high cost of `json.loads` on all rows. The patch implements this schema change, updates `create_note` and `update_note` to populate the new column, and rewrites `list_notes` to use dynamic SQL `WHERE` clauses for `search_text` and `tags_filter`.",
+        "limitations": [
+          "Tag filtering uses SQL LIKE with boundary checks, which is verbose and potentially error-prone for tags that are substrings of others.",
+          "The patch does not include a migration script to populate `tags_normalized` for existing database records, risking incorrect filter results on upgrade.",
+          "The `list_notes` function still calls `json.loads` in `_to_note_row` for every returned row, limiting latency gains if the result set is large.",
+          "The plan assumes the environment supports the specific SQL constructs used, without verifying SQLite version compatibility for all edge cases."
+        ],
+        "schema_version": 1
+      },
+      "schema_version": 1,
+      "status": "ok",
+      "usage": {
+        "input_tokens": 12046,
+        "output_tokens": 257,
+        "provider_usage": {
+          "completion_tokens": 257,
+          "prompt_tokens": 12046,
+          "prompt_tokens_details": null,
+          "total_tokens": 12303
+        },
+        "total_tokens": 12303
+      }
+    },
+    "developer": {
+      "elapsed_seconds": 18.609268208034337,
+      "error": null,
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "qwen3.6:35b",
+        "tools": [],
+        "transport": "chat_completions"
+      },
+      "output": {
+        "edits": [
+          {
+            "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nfrom dataclasses import dataclass\nfrom pathlib import Path\nfrom typing import Any\n\nfrom app.models import Note\n\n\n@dataclass\nclass NoteRow:\n    \"\"\"Lightweight internal representation of a note row from the database.\"\"\"\n    id: int\n    title: str\n    body: str\n    tags: list[str]\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\ndef _connect() -> sqlite3.Connection:\n    path = get_db_path()\n    path.parent.mkdir(parents=True, exist_ok=True)\n    connection = sqlite3.connect(path)\n    connection.row_factory = sqlite3.Row\n    connection.execute(\"PRAGMA foreign_keys = ON\")\n    return connection\n\n\ndef initialize_db() -> None:\n    connection = _connect()\n    connection.execute(\n        \"\"\"\n        CREATE TABLE IF NOT EXISTS notes (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            title TEXT NOT NULL,\n            body TEXT NOT NULL,\n            tags TEXT NOT NULL DEFAULT '[]',\n            tags_normalized TEXT NOT NULL DEFAULT ''\n        )\n        \"\"\"\n    )\n    connection.commit()\n    connection.close()\n\n\ndef _to_note_row(row: sqlite3.Row) -> NoteRow:\n    \"\"\"Convert a sqlite3.Row to a lightweight NoteRow dataclass.\"\"\"\n    tags_value = row[\"tags\"] or \"[]\"\n    tags = json.loads(tags_value)\n    return NoteRow(\n        id=row[\"id\"],\n        title=row[\"title\"],\n        body=row[\"body\"],\n        tags=tags,\n    )\n\n\ndef _row_to_note(row: sqlite3.Row) -> Note:\n    \"\"\"Convert a sqlite3.Row directly to a Pydantic Note. Used for single-item fetches.\"\"\"\n    return Note(\n        id=row[\"id\"],\n        title=row[\"title\"],\n        body=row[\"body\"],\n        tags=json.loads(row[\"tags\"] or \"[]\"),\n    )\n\n\ndef _normalize_tags(tags: list[str]) -> str:\n    \"\"\"Normalize tags for storage and SQL filtering.\"\"\"\n    cleaned = [tag.strip() for tag in tags if tag and tag.strip()]\n    unique = sorted(set(cleaned))\n    return \",\".join(unique)\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    connection = _connect()\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n    tags_normalized = _normalize_tags(tags)\n    cursor = connection.execute(\n        \"INSERT INTO notes (title, body, tags, tags_normalized) VALUES (?, ?, ?, ?)\",\n        (title, body, payload, tags_normalized),\n    )\n    note_id = cursor.lastrowid\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _row_to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.close()\n    if row is None:\n        return None\n    return _row_to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[NoteRow], int]:\n    connection = _connect()\n    \n    conditions = []\n    params: list[Any] = []\n\n    if search_text is not None and search_text != \"\":\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n\n    if tags_filter:\n        clean_tags = [t.strip() for t in tags_filter if t and t.strip()]\n        if clean_tags:\n            # tags_normalized is a comma-separated sorted string\n            # We check if each tag exists as a substring, but to be precise\n            # we can check for exact matches in the comma-separated list.\n            # Since tags are sorted and comma-separated, we can use LIKE with boundaries\n            # or simply check if the tag is in the string. \n            # A robust way for comma-separated sorted list:\n            # 'tag' must appear as ',tag,' or start with 'tag,' or end with ',tag' or be exactly 'tag'.\n            # Simpler: use a helper approach. Since we control the format (sorted, comma-sep),\n            # we can check if the normalized string contains the tag surrounded by commas or boundaries.\n            # However, standard SQL LIKE is sufficient if we ensure no tag is a substring of another\n            # in a way that causes false positives? No, 'work' is in 'workshop'.\n            # To be safe and correct: we will check each tag individually.\n            # For performance, we construct a complex OR clause or use a subquery.\n            # Given the constraint of simple SQL, we will use a helper function in Python to build the WHERE clause\n            # for exact tag matching on the normalized string.\n            # Format: \"tag1,tag2,tag3\"\n            # Check for tag: (tags_normalized = ? OR tags_normalized LIKE ? OR tags_normalized LIKE ? OR tags_normalized LIKE ?)\n            # This is verbose. \n            # Alternative: Since we are moving logic to SQL, let's use the fact that tags are sorted.\n            # We can check if the tag is present by ensuring it's surrounded by commas or boundaries.\n            # Let's build a condition for each tag.\n            tag_conditions = []\n            for tag in clean_tags:\n                # Match: start with tag, or contain ,tag,, or end with ,tag\n                tag_conditions.append(\n                    \"(tags_normalized = ? OR tags_normalized LIKE ? OR tags_normalized LIKE ? OR tags_normalized LIKE ?)\"\n                )\n                params.extend([\n                    tag,\n                    f\"{tag},%\",\n                    f\"%,{tag},%\",\n                    f\"%,{tag}\"\n                ])\n            conditions.append(f\"({' AND '.join(tag_conditions)})\")\n\n    where_clause = \"\"\n    if conditions:\n        where_clause = \"WHERE \" + \" AND \".join(conditions)\n\n    # Count total matches\n    count_query = f\"SELECT COUNT(*) FROM notes {where_clause}\"\n    total_row = connection.execute(count_query, params).fetchone()\n    total = total_row[0]\n\n    # Fetch paginated results\n    # We need to fetch the rows to convert them to NoteRow\n    # The query selects id, title, body, tags\n    fetch_query = f\"SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?\"\n    fetch_params = params + [limit, offset]\n    rows = connection.execute(fetch_query, fetch_params).fetchall()\n    connection.close()\n\n    note_rows = [_to_note_row(row) for row in rows]\n    return note_rows, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    if row is None:\n        connection.close()\n        return None\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n    tags_normalized = _normalize_tags(tags)\n    connection.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ?, tags_normalized = ? WHERE id = ?\",\n        (title, body, payload, tags_normalized, note_id),\n    )\n    updated = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _row_to_note(updated)\n\n\ndef delete_note(note_id: int) -> bool:\n    connection = _connect()\n    cursor = connection.execute(\"DELETE FROM notes WHERE id = ?\", (note_id,))\n    connection.commit()\n    connection.close()\n    return cursor.rowcount > 0\n\n\ndef _storage_notes() -> list[dict[str, Any]]:\n    connection = _connect()\n    rows = connection.execute(\"SELECT * FROM notes ORDER BY id ASC\").fetchall()\n    connection.close()\n    return [{\"id\": row[\"id\"], \"title\": row[\"title\"], \"body\": row[\"body\"], \"tags\": json.loads(row[\"tags\"])} for row in rows]\n",
+            "path": "app/db.py"
+          }
+        ],
+        "schema_version": 1,
+        "summary": "Refactored list_notes to perform filtering in SQL using a new 'tags_normalized' column. This column stores a comma-separated, sorted list of tags, enabling efficient substring matching in SQLite without Python-level iteration or JSON parsing for filtering. The create_note and update_note functions now populate this column. This significantly reduces the number of rows fetched and json.loads calls, addressing the latency bottleneck."
+      },
+      "schema_version": 1,
+      "status": "ok",
+      "usage": {
+        "input_tokens": 9321,
+        "output_tokens": 2199,
+        "provider_usage": {
+          "completion_tokens": 2199,
+          "prompt_tokens": 9321,
+          "prompt_tokens_details": null,
+          "total_tokens": 11520
+        },
+        "total_tokens": 11520
+      }
+    },
+    "planner": {
+      "elapsed_seconds": 9.85520879086107,
+      "error": null,
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "qwen3.6:35b",
+        "tools": [],
+        "transport": "chat_completions"
+      },
+      "output": {
+        "approach": "query",
+        "change": "Refactor the list_notes function in app/db.py to perform filtering and counting directly in SQLite using SQL expressions instead of fetching all rows and filtering in Python. Replace the current SELECT * ... fetchall() pattern with a parameterized query that uses LIKE for substring search and JSON_EXTRACT/JSON_CONTAINS (or a helper table/CTE if needed, but standard JSON functions in SQLite 3.38+ are sufficient) for tag matching. Specifically: 1. Construct a WHERE clause dynamically based on search_text and tags_filter. 2. Use 'title LIKE ? OR body LIKE ?' for search. 3. Use 'json_extract(tags, ?) = ?' or similar for exact tag matching if the SQLite version supports it, or pre-compute a normalized tags string in the DB if JSON functions are too slow/unsupported. Given the profile shows heavy json.loads usage in Python, moving logic to SQL is key. If JSON functions are not available, add a 'tags_normalized' TEXT column that stores a sorted, comma-separated string of tags, and index it. However, to minimize schema changes and preserve semantics, we will attempt to use SQL-level filtering. If the environment is older SQLite, we will add a 'tags_str' column. Let's assume standard modern SQLite. We will use: SELECT id, title, body, tags FROM notes WHERE (search_text IS NULL OR title LIKE '%' || ? || '%' OR body LIKE '%' || ? || '%') AND (tags_filter IS NULL OR json_each(tags).value IN (SELECT value FROM json_each(?) ...)). Actually, simpler: Since tags are stored as JSON array, we can check if specific tags exist. A robust way without complex JSON functions is to add a 'tags_normalized' column. But to strictly follow 'preserve API semantics' and 'persistence', adding a column is a schema change. Let's look at the profile: 1.2M json.loads calls. This is the bottleneck. The current code fetches ALL notes, then filters in Python. The optimization is to filter in SQL. We will modify list_notes to build a SQL query with WHERE clauses for search and tags. For tags, since 'all' tags must be present, we can check if the JSON array contains each tag. In SQLite 3.38+, json_each is available. We will use: SELECT * FROM notes WHERE (search_text IS NULL OR title LIKE ? OR body LIKE ?) AND (tags_filter IS NULL OR (SELECT COUNT(*) FROM json_each(tags) WHERE value IN (SELECT value FROM json_each(?) ...)) = len(tags_filter)). This is complex. A simpler, highly effective change is to add a 'tags_normalized' TEXT column (comma-separated sorted tags) and index it. This requires a migration. The prompt says 'preserve persistence'. Adding a column is compatible. Let's propose adding a 'tags_normalized' column to the notes table, populating it during create/update, and using it for filtering. This avoids JSON parsing in Python entirely for list operations. Steps: 1. Modify initialize_db to create 'tags_normalized' TEXT column. 2. Modify create_note and update_note to compute and store 'tags_normalized'. 3. Modify list_notes to filter by 'tags_normalized' using SQL LIKE or exact match on the normalized string, and search using SQL LIKE. 4. Remove json.loads from _to_note_row and _row_to_note for list operations, or keep them for single-item fetches if needed. Actually, _to_note_row is used for list_notes. We can keep json.loads there if we only filter in SQL, but the profile shows json.loads is called 1.2M times. If we filter in SQL, we still fetch all rows? No, we fetch only matching rows. If the dataset is small, this helps. If large, it helps a lot. The profile shows 600 calls to list_notes, each fetching many rows. The total rows fetched is likely large. By filtering in SQL, we reduce the number of rows returned to Python, thus reducing json.loads calls. This is the primary gain. We will add a 'tags_normalized' column to enable efficient SQL filtering of tags without JSON functions. This is a schema migration but preserves data integrity.",
+        "hypothesis": "The current list_notes implementation fetches all notes from the database and filters them in Python, causing excessive json.loads calls (1.2M) and Python-level iteration. By adding a 'tags_normalized' column to the notes table and performing filtering (search and tags) directly in SQL, we can significantly reduce the number of rows transferred to Python and the number of json.loads calls, thereby reducing cumulative time and latency.",
+        "risks": [
+          "Schema migration requires updating the database structure, which must be done carefully to preserve existing data.",
+          "Adding a column increases storage slightly, but this is negligible.",
+          "If the SQLite version does not support certain JSON functions, we rely on the 'tags_normalized' column, which is robust.",
+          "The migration must be idempotent and safe for existing databases."
+        ],
+        "schema_version": 1
+      },
+      "schema_version": 1,
+      "status": "ok",
+      "usage": {
+        "input_tokens": 10424,
+        "output_tokens": 1082,
+        "provider_usage": {
+          "completion_tokens": 1082,
+          "completion_tokens_details": {
+            "reasoning_tokens": 0
+          },
+          "prompt_tokens": 10424,
+          "prompt_tokens_details": null,
+          "total_tokens": 11506
+        },
+        "total_tokens": 11506
+      }
+    }
+  },
+  "run_id": "db5126313a4f42b1aecaaa1d33a2bd1e",
+  "schema_version": 1,
+  "status": "correctness_failed",
+  "synthetic": false,
+  "validation": {
+    "artifacts": "/Users/jaymesonkoh/.codex/visualizations/2026/10/09/01a11e69-8712-76f2-a79c-5dacf01d710e/experiments/soclaas-final-2026-10-10/pair-00-stateless/artifacts/005-validation/e52da5ac1a3c4f95b3c6eaf6f7b0bda6",
+    "correct": false,
+    "environment": {
+      "dependencies": {
+        "PyYAML": "6.0.3",
+        "fastapi": "0.143.0",
+        "httpx": "0.28.1",
+        "pydantic": "2.14.0",
+        "pytest": "8.4.2",
+        "starlette": "1.7.0",
+        "uvicorn": "0.54.0"
+      },
+      "machine": "aarch64",
+      "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
+      "python": "3.13.16",
+      "sqlite": "3.40.1"
+    },
+    "exit_code": 1,
+    "status": "correctness_failed"
+  }
+}

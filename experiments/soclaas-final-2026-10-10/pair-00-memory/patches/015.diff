@@ -1,0 +1,40 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -9,6 +9,9 @@
+ from typing import Any
+ 
+ from app.models import Note
++
++# Cache json.loads for faster access in hot paths
++_json_loads = json.loads
+ 
+ 
+ def get_db_path() -> Path:
+@@ -183,7 +186,7 @@
+         id=row["id"],
+         title=row["title"],
+         body=row["body"],
+-        tags=json.loads(tags_value),
++        tags=_json_loads(tags_value),
+     )
+ 
+ 
+@@ -256,7 +259,17 @@
+         query_params = params + [limit, offset]
+         rows = connection.execute(notes_query, query_params).fetchall()
+ 
+-        notes = [_to_note(row) for row in rows]
++        # Optimization: Inline Note construction and use tuple indexing to avoid
++        # sqlite3.Row attribute access overhead and _to_note function call overhead.
++        notes = [
++            Note(
++                id=row[0],
++                title=row[1],
++                body=row[2],
++                tags=_json_loads(row[3] or "[]")
++            )
++            for row in rows
++        ]
+         return notes, total
+     finally:
+         _release_connection(connection)

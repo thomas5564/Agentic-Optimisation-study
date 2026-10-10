@@ -1,0 +1,23 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor the `list_notes` function in `app/db.py` to perform filtering and counting directly within SQLite using SQL expressions instead of loading all rows into Python memory. Replace the current `SELECT * FROM notes` followed by Python-side iteration with a single query that uses `LIKE` for text search and `json_each` for tag filtering. Specifically: 1. Construct a dynamic SQL query with `WHERE` clauses for `search_text` (using `title LIKE ? OR body LIKE ?`) and `tags_filter` (using `json_each` to check for exact tag matches). 2. Use `COUNT(*)` in a subquery or separate query to get the total count of matching notes before applying `LIMIT` and `OFFSET`. 3. Fetch only the paginated results. This eliminates the overhead of parsing JSON for all tags in every row and iterating through all rows in Python for filtering.",
+    "hypothesis": "The current implementation loads all notes from the database into Python, parses the JSON tags for every single note, and then filters them in Python. This results in O(N) complexity for filtering where N is the total number of notes, regardless of the requested page size. By moving the filtering logic to SQLite using `json_each` and `LIKE`, we reduce the data transfer from the database to the application layer and leverage SQLite's optimized C-based execution engine. This should significantly reduce CPU time spent in `json.loads` and Python loops, thereby lowering the cumulative time for `list_notes`.",
+    "risks": [
+      "Complexity of constructing dynamic SQL queries with `json_each` for multiple tags might introduce bugs if not handled carefully.",
+      "SQLite's `json_each` function might have overhead for very small datasets or simple queries, though it is generally efficient.",
+      "Ensuring case-sensitive matching for tags and text search is preserved correctly in SQL.",
+      "The `total` count must accurately reflect the filtered set, requiring careful query construction."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

@@ -1,0 +1,12 @@
+{
+  "approach": "computation",
+  "change": "Refactor app/db.py to move filtering and sorting from Python to SQLite. 1. Add a helper `_build_where_clause` that constructs SQL WHERE conditions for `search_text` and `tags_filter`. For tags, use `EXISTS (SELECT 1 FROM json_each(notes.tags) WHERE json_each.value = ?)` subqueries to enforce an AND condition across all filter tags, ensuring correlation with the outer row. 2. Modify `list_notes` to execute a single SQL query: `SELECT * FROM notes WHERE <conditions> ORDER BY id ASC`. 3. Remove the Python-side list comprehension `_to_note(row) for row in rows` for the full dataset, the manual search/tag filtering loop, and the Python-side `sorted` and `len` calls for pagination. 4. Apply `_to_note` only to the final result set returned by the cursor. This eliminates the O(N) Python iteration and JSON parsing for every row in the table for every list request, moving the heavy lifting to the SQLite engine.",
+  "hypothesis": "The profile shows that `list_notes` spends significant time in `_to_note` (7.185s) and Python-side filtering/sorting. Currently, `list_notes` fetches ALL notes from the database, parses every row into a Pydantic model, and then filters/sorts in Python. By moving the filtering (substring search and tag matching) and sorting (ORDER BY id) to the SQL layer, we reduce the number of rows processed in Python to only those that match the criteria (or all if no filters, but still avoid the Python loop overhead). Specifically, using `json_each` allows SQLite to filter tags without loading the full JSON into Python memory for every row. This should drastically reduce CPU time spent in `_to_note`, `json.loads`, and Python list operations, leading to lower latency.",
+  "risks": [
+    "Validation failure reason is generic ('correctness_failed'); specific test case or error message is not provided.",
+    "Assumes SQLite version supports `json_each` (3.38+) without verifying runtime environment.",
+    "Does not account for potential SQL injection if `search_text` contains characters requiring escaping for `LIKE`.",
+    "Relies on stored tags being perfectly normalized to match filter tags exactly."
+  ],
+  "schema_version": 1
+}

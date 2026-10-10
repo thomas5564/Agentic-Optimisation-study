@@ -1,0 +1,125 @@
+.F....F........F.                                                        [100%]
+=================================== FAILURES ===================================
+________________________ test_search_filter_pagination _________________________
+
+client = <httpx.Client object at 0xffffb1c211d0>
+
+    def test_search_filter_pagination(client):
+        client.post("/notes", json={"title": "Alpha", "body": "Red apple", "tags": ["fruit", "red"]})
+        client.post("/notes", json={"title": "Beta", "body": "Green berry", "tags": ["fruit", "green"]})
+        client.post("/notes", json={"title": "Gamma", "body": "Blue sky", "tags": ["color"]})
+    
+        response = client.get("/notes", params={"q": "apple", "tag": "fruit", "limit": 10})
+        assert response.status_code == 200
+        body = response.json()
+        assert body["total"] == 1
+        assert [note["title"] for note in body["items"]] == ["Alpha"]
+    
+        paginated = client.get("/notes", params={"offset": 1, "limit": 1})
+        assert paginated.status_code == 200
+>       assert paginated.json()["total"] == 3
+E       assert 1 == 3
+
+tests/test_notes.py:62: AssertionError
+________ test_case_sensitive_exact_filters_unicode_and_parameterization ________
+
+client = <httpx.Client object at 0xffffb1bb3020>
+
+    def test_case_sensitive_exact_filters_unicode_and_parameterization(client):
+        payload = {"title": "Café 世界", "body": "100%_literal ' OR 1=1 --", "tags": ["Work", "work", " Work ", ""]}
+        created = client.post("/notes", json=payload).json()
+        assert created["tags"] == ["Work", "work"]
+        client.post("/notes", json={"title": "Other", "body": "other", "tags": ["work"]})
+        assert client.get("/notes", params={"q": "Café"}).json()["total"] == 1
+>       assert client.get("/notes", params={"q": "café"}).json()["total"] == 0
+E       assert 1 == 0
+
+tests/test_notes.py:142: AssertionError
+_________________ test_mutations_survive_real_process_restart __________________
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_mutations_survive_real_pr0')
+
+    def test_mutations_survive_real_process_restart(tmp_path):
+        import json
+        import os
+        from pathlib import Path
+        import subprocess
+        import sys
+    
+        if os.environ.get("NOTES_EVALUATION_ROOT"):
+            from benchmarks.config import BenchmarkConfig
+            from benchmarks.runtime import candidate_server
+            root = Path(os.environ["NOTES_EVALUATION_ROOT"])
+            db = tmp_path / "persist.db"
+            with candidate_server(root, BenchmarkConfig(), tmp_path / "before.log", database=db) as (remote, _):
+                a = remote.post("/notes", json={"title": "Before", "body": "Body", "tags": ["old"]}).json()
+                b = remote.post("/notes", json={"title": "Delete", "body": "Body"}).json()
+                updated = remote.put(f"/notes/{a['id']}", json={"title": "Persist 世界", "body": "Changed", "tags": ["new"]}).json()
+                assert remote.delete(f"/notes/{b['id']}").status_code == 204
+>           with candidate_server(root, BenchmarkConfig(), tmp_path / "after.log", database=db) as (remote, _):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_notes.py:202: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.13/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+app_root = PosixPath('/workspace')
+config = BenchmarkConfig(seed=7, note_count=100, cycles=20, repetitions=5, warmups=2, timeout_seconds=5.0, startup_timeout_seconds=15.0, concurrency=1)
+log_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_mutations_survive_real_pr0/after.log')
+profile = None
+database = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_mutations_survive_real_pr0/persist.db')
+
+    @contextmanager
+    def candidate_server(app_root: Path, config: BenchmarkConfig, log_path: Path, profile: Path | None = None,
+                         database: Path | None = None):
+        if not (app_root / "app" / "main.py").is_file():
+            raise ValueError(f"Candidate app/main.py is missing from {app_root}")
+        with tempfile.TemporaryDirectory(prefix="notes-measure-") as directory:
+            scratch = Path(directory)
+            ready = scratch / "ready"
+            active = scratch / "profile-active"
+            command = [sys.executable, "-m", "benchmarks.server", "--app-root", str(app_root.resolve()), "--ready", str(ready)]
+            if profile:
+                command += ["--profile", str(profile.resolve()), "--profile-active", str(active)]
+            env = {**os.environ, "NOTES_DB_PATH": str(database or scratch / "notes.db"),
+                   "PYTHONPATH": str(PROJECT_ROOT), "PYTHONDONTWRITEBYTECODE": "1"}
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            with log_path.open("w") as log:
+                process = subprocess.Popen(command, cwd=scratch, env=env, stdout=log, stderr=log)
+                try:
+                    deadline = time.monotonic() + config.startup_timeout_seconds
+                    while not ready.exists():
+                        if process.poll() is not None:
+                            raise RuntimeError(f"Candidate import/startup failed; see {log_path}")
+                        if time.monotonic() >= deadline:
+                            raise TimeoutError(f"Candidate startup timed out; see {log_path}")
+                        time.sleep(.02)
+                    with httpx.Client(base_url=f"http://127.0.0.1:{ready.read_text()}",
+                                      timeout=config.timeout_seconds, trust_env=False) as client:
+                        while True:
+                            if process.poll() is not None:
+                                raise RuntimeError(f"Candidate exited at startup; see {log_path}")
+                            remaining = deadline - time.monotonic()
+                            if remaining <= 0:
+>                               raise TimeoutError(f"Candidate startup timed out; see {log_path}")
+E                               TimeoutError: Candidate startup timed out; see /tmp/pytest-of-unknown/pytest-0/test_mutations_survive_real_pr0/after.log
+
+/runner/benchmarks/runtime.py:65: TimeoutError
+=============================== warnings summary ===============================
+../usr/local/lib/python3.13/site-packages/_pytest/config/__init__.py:1290
+  /usr/local/lib/python3.13/site-packages/_pytest/config/__init__.py:1290: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+../usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_notes.py::test_search_filter_pagination - assert 1 == 3
+FAILED tests/test_notes.py::test_case_sensitive_exact_filters_unicode_and_parameterization
+FAILED tests/test_notes.py::test_mutations_survive_real_process_restart - Tim...
+3 failed, 14 passed, 2 warnings in 23.38s

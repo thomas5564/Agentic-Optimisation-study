@@ -1,0 +1,154 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -43,7 +43,8 @@
+             id INTEGER PRIMARY KEY AUTOINCREMENT,
+             title TEXT NOT NULL,
+             body TEXT NOT NULL,
+-            tags TEXT NOT NULL DEFAULT '[]'
++            tags TEXT NOT NULL DEFAULT '[]',
++            tags_normalized TEXT NOT NULL DEFAULT ''
+         )
+         """
+     )
+@@ -54,8 +55,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -75,12 +74,20 @@
+     )
+ 
+ 
++def _normalize_tags(tags: list[str]) -> str:
++    """Normalize tags for storage and SQL filtering."""
++    cleaned = [tag.strip() for tag in tags if tag and tag.strip()]
++    unique = sorted(set(cleaned))
++    return ",".join(unique)
++
++
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+     connection = _connect()
+     payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))
++    tags_normalized = _normalize_tags(tags)
+     cursor = connection.execute(
+-        "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)",
+-        (title, body, payload),
++        "INSERT INTO notes (title, body, tags, tags_normalized) VALUES (?, ?, ?, ?)",
++        (title, body, payload, tags_normalized),
+     )
+     note_id = cursor.lastrowid
+     row = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+@@ -106,32 +113,71 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+-    connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
++    conditions = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++
++    if tags_filter:
++        clean_tags = [t.strip() for t in tags_filter if t and t.strip()]
++        if clean_tags:
++            # tags_normalized is a comma-separated sorted string
++            # We check if each tag exists as a substring, but to be precise
++            # we can check for exact matches in the comma-separated list.
++            # Since tags are sorted and comma-separated, we can use LIKE with boundaries
++            # or simply check if the tag is in the string. 
++            # A robust way for comma-separated sorted list:
++            # 'tag' must appear as ',tag,' or start with 'tag,' or end with ',tag' or be exactly 'tag'.
++            # Simpler: use a helper approach. Since we control the format (sorted, comma-sep),
++            # we can check if the normalized string contains the tag surrounded by commas or boundaries.
++            # However, standard SQL LIKE is sufficient if we ensure no tag is a substring of another
++            # in a way that causes false positives? No, 'work' is in 'workshop'.
++            # To be safe and correct: we will check each tag individually.
++            # For performance, we construct a complex OR clause or use a subquery.
++            # Given the constraint of simple SQL, we will use a helper function in Python to build the WHERE clause
++            # for exact tag matching on the normalized string.
++            # Format: "tag1,tag2,tag3"
++            # Check for tag: (tags_normalized = ? OR tags_normalized LIKE ? OR tags_normalized LIKE ? OR tags_normalized LIKE ?)
++            # This is verbose. 
++            # Alternative: Since we are moving logic to SQL, let's use the fact that tags are sorted.
++            # We can check if the tag is present by ensuring it's surrounded by commas or boundaries.
++            # Let's build a condition for each tag.
++            tag_conditions = []
++            for tag in clean_tags:
++                # Match: start with tag, or contain ,tag,, or end with ,tag
++                tag_conditions.append(
++                    "(tags_normalized = ? OR tags_normalized LIKE ? OR tags_normalized LIKE ? OR tags_normalized LIKE ?)"
++                )
++                params.extend([
++                    tag,
++                    f"{tag},%",
++                    f"%,{tag},%",
++                    f"%,{tag}"
++                ])
++            conditions.append(f"({' AND '.join(tag_conditions)})")
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    # Count total matches
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++
++    # Fetch paginated results
++    # We need to fetch the rows to convert them to NoteRow
++    # The query selects id, title, body, tags
++    fetch_query = f"SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    fetch_params = params + [limit, offset]
++    rows = connection.execute(fetch_query, fetch_params).fetchall()
++    connection.close()
++
+     note_rows = [_to_note_row(row) for row in rows]
+-    
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
+@@ -141,9 +187,10 @@
+         connection.close()
+         return None
+     payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))
++    tags_normalized = _normalize_tags(tags)
+     connection.execute(
+-        "UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?",
+-        (title, body, payload, note_id),
++        "UPDATE notes SET title = ?, body = ?, tags = ?, tags_normalized = ? WHERE id = ?",
++        (title, body, payload, tags_normalized, note_id),
+     )
+     updated = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+     connection.commit()

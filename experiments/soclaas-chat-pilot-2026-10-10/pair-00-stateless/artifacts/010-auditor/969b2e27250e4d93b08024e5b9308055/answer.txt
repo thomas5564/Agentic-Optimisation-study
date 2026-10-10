@@ -1,0 +1,10 @@
+{
+  "interpretation": "The plan refactors `app/db.py` to replace in-memory Python filtering in `list_notes` with dynamic SQL queries using SQLite's `json_each` for tag matching and `LIKE` for text search. The objective is to reduce latency by minimizing data transfer and CPU usage. Validation reports `correct: false` with status `correctness_failed`, leading to rejection. The patch implements SQL injection-safe parameterization and handles empty filters correctly. However, the correctness failure likely stems from semantic mismatches between the SQL logic and the original Python behavior. Specifically, the `LIKE` operator in SQLite is case-insensitive by default for ASCII, whereas the contract and original code require case-sensitive substring matching. Additionally, `json_each` behavior or the specific escaping of wildcards (`%`, `_`) might not perfectly replicate the original Python `in` checks or `json.loads` parsing, particularly regarding tag normalization (sorting/deduplication) which is handled at write time but must match exactly at read time. The use of `EXISTS` with `json_each` is logically sound for AND logic but may differ in edge cases regarding whitespace or empty strings compared to the Python set logic. The rejection indicates the output does not preserve the complete API contract, likely due to these case-sensitivity or filtering precision issues.",
+  "limitations": [
+    "Validation score is binary and lacks specific error details or failing test cases.",
+    "Case-sensitivity of SQLite LIKE vs Python 'in' is a known risk not verified by provided metrics.",
+    "No performance measurements are included to confirm latency reduction.",
+    "Assumes SQLite json_each availability without empirical verification in the target environment."
+  ],
+  "schema_version": 1
+}

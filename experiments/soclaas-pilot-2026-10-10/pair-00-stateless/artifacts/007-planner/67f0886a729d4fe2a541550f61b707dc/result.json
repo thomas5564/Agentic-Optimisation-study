@@ -1,0 +1,16 @@
+{
+  "elapsed_seconds": 300.59968958282843,
+  "error": "Provider timeout; no retry",
+  "exit_code": null,
+  "metadata": {
+    "model": "default",
+    "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+    "reasoning_parameter_sent": false,
+    "tools": [],
+    "transport": "responses"
+  },
+  "output": null,
+  "schema_version": 1,
+  "status": "timeout",
+  "usage": null
+}

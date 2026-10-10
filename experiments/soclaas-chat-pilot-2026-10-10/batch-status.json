@@ -1,0 +1,25 @@
+{
+  "complete": true,
+  "runs": [
+    {
+      "completed_iterations": 10,
+      "condition": "stateless",
+      "directory": "pair-00-stateless",
+      "final_remeasurement_score_ms": 3.7626067275028654,
+      "pair_id": "0",
+      "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+      "seed": 7,
+      "status": "complete"
+    },
+    {
+      "completed_iterations": 10,
+      "condition": "memory",
+      "directory": "pair-00-memory",
+      "final_remeasurement_score_ms": 3.7961576433377786,
+      "pair_id": "0",
+      "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+      "seed": 7,
+      "status": "complete"
+    }
+  ]
+}

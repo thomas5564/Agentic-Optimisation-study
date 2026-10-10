@@ -1,0 +1,33 @@
+{
+  "elapsed_seconds": 24.287481958977878,
+  "error": null,
+  "exit_code": null,
+  "metadata": {
+    "model": "default",
+    "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+    "reasoning_parameter_sent": false,
+    "reported_model": "default",
+    "tools": [],
+    "transport": "responses"
+  },
+  "output": {
+    "approach": "query",
+    "change": "Refactor `list_notes` in `app/db.py` to use SQL-based filtering instead of Python-based filtering. \n\n1. Construct a SQL query with `WHERE` clauses for `search_text` (using `LIKE '%' || ? || '%'` on title and body) and `tags_filter` (using `json_each` for exact tag matching).\n2. Use `ORDER BY id ASC` and `LIMIT ? OFFSET ?` directly in the SQL query to handle pagination at the database level.\n3. Only fetch the rows that match the criteria and are within the page range.\n4. Keep the `_to_note` conversion and Pydantic validation for the returned rows, as this is required for API contract compliance.\n\nSpecifically:\n- If `search_text` is provided, add `(title LIKE ? OR body LIKE ?)` to the WHERE clause, escaping `%` and `_` characters.\n- If `tags_filter` is provided, add `EXISTS (SELECT 1 FROM json_each(notes.tags) WHERE json_each.value = ?)` for each tag.\n- Use `LIMIT ? OFFSET ?` for pagination.\n\nThis reduces the number of rows processed in Python from `total_notes` to `limit` (or the number of matches if limit is large, but SQLite handles the sorting and limiting). This eliminates the Python loop over all notes for filtering and pagination.",
+    "hypothesis": "The `list_notes` endpoint is the primary bottleneck, consuming ~94% of total execution time. The current implementation fetches all notes from SQLite into Python memory, then performs filtering and pagination in Python. This is inefficient because SQLite is capable of performing the filtering (substring search, tag matching) and ordering natively. By moving the filtering logic into a SQL query with `WHERE` clauses and `LIMIT`/`OFFSET`, we reduce memory usage, avoid Python-level iteration overhead, and leverage SQLite's optimized C-based execution engine. The profile shows significant time spent in `json.loads` (for tags) and Pydantic validation for every single note row, even those that might be filtered out or paginated away. While we must still validate and serialize the returned items, reducing the number of rows processed from the database to only those needed for the response (or at least filtering before Python processing) will yield substantial gains. Specifically, we will construct a dynamic SQL query that includes `LIKE` for search text and `JOIN` or `LIKE`/`IN` for tags, allowing SQLite to do the heavy lifting.",
+    "risks": [
+      "SQL injection if search_text or tags are not properly parameterized. Using parameterized queries (`?`) mitigates this.",
+      "Tag matching using `LIKE` might have edge cases with special characters in tags (e.g., quotes, percent signs). Using `json_each` avoids this issue by treating tags as JSON values.",
+      "Performance of `json_each` might be slower than expected if the database is very large and lacks an index. However, since we are fetching fewer rows, the overall benefit should still be positive.",
+      "The `search_text` in SQL `LIKE` is case-sensitive by default, which matches the Python behavior (`search_text in note.title`). So that's good.",
+      "We need to escape `%` and `_` in `search_text` for SQL `LIKE`. We will use `ESCAPE '\\'` in the query and escape these characters in the parameter."
+    ],
+    "schema_version": 1
+  },
+  "schema_version": 1,
+  "status": "ok",
+  "usage": {
+    "input_tokens": 12705,
+    "output_tokens": 749,
+    "total_tokens": 13454
+  }
+}

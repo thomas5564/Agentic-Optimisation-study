@@ -1,0 +1,107 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -82,30 +82,82 @@
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    # Build conditions for search and tags
++    conditions = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        params.append(f"%{search_text}%")
++        params.append(f"%{search_text}%")
++
++    if tags_filter:
++        # Filter out empty tags
++        valid_tags = [tag for tag in tags_filter if tag]
++        if valid_tags:
++            # We need to check if ALL valid_tags are present in the JSON array stored in 'tags'
++            # Using json_each to expand the array and checking existence
++            # This is a bit complex in pure SQL without a helper table, so we use a subquery approach
++            # or simply check if the JSON string contains the tag. 
++            # However, to be safe against substring matches (e.g. "work" matching "workshop"), 
++            # we should use json_each. 
++            # Since we need ALL tags to be present, we can count distinct matching tags.
++            # But simpler: just filter rows where the tags JSON contains all required tags.
++            # A robust way in SQLite: 
++            # SELECT * FROM notes WHERE (SELECT count(*) FROM json_each(tags) WHERE value IN (?, ?, ...)) = ?
++            # This requires a lateral join or subquery which can be tricky in WHERE clause directly for multiple params.
++            # Alternative: Use a helper function or just check string containment if we assume tags are unique words.
++            # Given the profile issue is performance, let's use the json_each approach for correctness.
++            
++            # We will construct a query that counts how many of the required tags are found in the note's tags.
++            # If count == len(valid_tags), then all are present.
++            
++            # To do this efficiently, we can use a subquery in the WHERE clause.
++            # However, SQLite doesn't allow parameterized lists in IN clauses easily inside a subquery like that.
++            # Instead, we can iterate and add conditions, or use a single query with a complex WHERE.
++            
++            # Let's use a simpler approach: 
++            # We will fetch the count of matching notes first.
++            # Then fetch the paginated notes.
++            
++            # For the tag filter, we can use a trick: 
++            # Create a temporary table or just use multiple EXISTS checks? No, that's slow.
++            # Let's use the fact that tags are sorted JSON array. 
++            # We can check if each tag is in the array using json_each.
++            
++            # Actually, the most performant and correct way in SQLite for "all tags present":
++            # SELECT * FROM notes WHERE 
++            #   (SELECT count(*) FROM json_each(tags) WHERE value IN (tag1, tag2)) = 2
++            # But we can't pass parameters to the IN clause of a subquery easily in a single statement without dynamic SQL.
++            
++            # Let's build dynamic SQL for the tag conditions.
++            tag_conditions = []
++            for tag in valid_tags:
++                tag_conditions.append("? IN (SELECT value FROM json_each(tags))")
++                params.append(tag)
++            
++            if tag_conditions:
++                conditions.append("(" + " AND ".join(tag_conditions) + ")")
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    # Count query
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++
++    # Fetch query
++    fetch_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    fetch_params = params + [limit, offset]
++    rows = connection.execute(fetch_query, fetch_params).fetchall()
++    
+     connection.close()
+-
++    
+     notes = [_to_note(row) for row in rows]
+-    filtered = []
+-    for note in notes:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

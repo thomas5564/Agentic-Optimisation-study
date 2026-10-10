@@ -1,0 +1,20 @@
+{
+  "backend": "responses",
+  "config_hash": "a9a841fa62332d0452cd25bdd1b8d2105f6a774c771a61527cdfcc3d9132b427",
+  "iterations": 10,
+  "schedule": [
+    {
+      "condition": "stateless",
+      "directory": "pair-00-stateless",
+      "pair_id": "0",
+      "seed": 7
+    },
+    {
+      "condition": "memory",
+      "directory": "pair-00-memory",
+      "pair_id": "0",
+      "seed": 7
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,135 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -54,8 +54,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -106,32 +104,99 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+-    connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
++    # Build the base query
++    query = "SELECT id, title, body, tags FROM notes"
++    conditions = []
++    params: list[Any] = []
++
++    # Filter by search text
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++
++    # Filter by tags
++    if tags_filter:
++        # Clean tags: strip whitespace, remove empty strings
++        clean_tags = [t.strip() for t in tags_filter if t and t.strip()]
++        if clean_tags:
++            # Use a subquery with json_each to check if all required tags exist in the note's tags array
++            # We need to ensure that for a given note, every tag in clean_tags is present in its tags array.
++            # This is equivalent to: NOT EXISTS (tag IN clean_tags WHERE tag NOT IN note_tags)
++            # Or simpler: Count distinct matching tags in the note's array. If count == len(clean_tags), it matches.
++            # However, SQLite json_each expands the array. We can use a correlated subquery.
++            
++            # Construct the tag placeholders for the subquery
++            tag_placeholders = ", ".join(["?" for _ in clean_tags])
++            
++            # The condition: The number of distinct tags in the note's JSON array that are in clean_tags
++            # must equal the total number of clean_tags.
++            # Note: json_each returns one row per element. We use DISTINCT to handle duplicates in the JSON array itself,
++            # though our storage logic ensures sorted unique tags.
++            
++            # We need to pass the clean_tags list to the subquery. 
++            # To avoid dynamic SQL for the IN clause size, we can use a fixed large enough list or dynamic SQL.
++            # Given the constraint of no external deps and simplicity, dynamic SQL for the IN clause is acceptable 
++            # as the number of tags is small.
++            
++            # Alternative: Use a simpler approach with multiple EXISTS or a JOIN.
++            # Let's use a JOIN approach which is often more readable and performant for small tag lists.
++            # We join notes with a virtual table of required tags, and ensure all required tags match.
++            
++            # Actually, the most robust way without dynamic SQL complexity in the main query structure:
++            # We can filter using a subquery that counts matches.
++            
++            # Let's stick to the plan's suggestion: json_each.
++            # We will construct a query that ensures for each note, the intersection of its tags and clean_tags
++            # has size equal to len(clean_tags).
++            
++            # To do this in a single query without dynamic IN clauses, we can use a trick:
++            # We can't easily pass a list to a subquery in SQLite without dynamic SQL.
++            # So we will generate the dynamic SQL for the tag filter.
++            
++            # Re-evaluating: The plan suggests using json_each. 
++            # Let's use a correlated subquery that checks existence.
++            # Condition: (SELECT COUNT(DISTINCT value) FROM json_each(tags) WHERE value IN (?, ?, ...)) = ?
++            
++            # Since we need to pass the tags, we'll build the query string dynamically for the tag part.
++            # This is safe because tags are validated strings.
++            
++            tag_in_clause = ", ".join(["?" for _ in clean_tags])
++            conditions.append(
++                f"(SELECT COUNT(DISTINCT value) FROM json_each(tags) WHERE value IN ({tag_in_clause})) = ?"
++            )
++            params.extend(clean_tags)
++            params.append(len(clean_tags))
++
++    # Add WHERE clause if there are conditions
++    if conditions:
++        query += " WHERE " + " AND ".join(conditions)
++
++    # Add ordering, limit, offset
++    query += " ORDER BY id ASC LIMIT ? OFFSET ?"
++    params.extend([limit, offset])
++
++    # Execute the main query to get the paginated results
++    rows = connection.execute(query, params).fetchall()
++    
++    # Get the total count of matching rows
++    # We need to run a COUNT query with the same conditions but without LIMIT/OFFSET
++    count_query = "SELECT COUNT(*) FROM notes"
++    count_conditions = conditions
++    count_params = params[:-2] # Remove limit and offset
++    
++    if count_conditions:
++        count_query += " WHERE " + " AND ".join(count_conditions)
++        
++    total_row = connection.execute(count_query, count_params).fetchone()
++    total = total_row[0] if total_row else 0
++    
++    connection.close()
++
++    # Convert rows to NoteRow objects
+     note_rows = [_to_note_row(row) for row in rows]
+     
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

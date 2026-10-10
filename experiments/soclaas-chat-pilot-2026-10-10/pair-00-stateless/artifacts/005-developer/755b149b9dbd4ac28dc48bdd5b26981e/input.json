@@ -1,0 +1,24 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor list_notes in app/db.py to use SQL-based filtering and pagination instead of loading all rows into memory. Replace the current SELECT * ORDER BY id ASC followed by Python-side filtering with a single SQL query that applies WHERE clauses for search_text (using LIKE) and tags_filter (using JSON_CONTAINS or similar SQLite JSON functions), and applies LIMIT/OFFSET directly in the SQL. Update the tags storage format in create_note and update_note to use a normalized JSON array format that SQLite's json_each or json_contains can efficiently query, or alternatively, use a separate tags table for relational filtering if JSON functions are too slow. Given the profile shows heavy json.loads and Python-side filtering, moving the filtering logic to SQLite is the primary change. Specifically, change list_notes to: 1. Build a dynamic SQL query with placeholders for search and tags. 2. Use SQLite's json_each to unnest tags for filtering if necessary, or use json_contains if SQLite version supports it. 3. Return only the paginated results from SQL. 4. Count total matches with a separate COUNT query or use window functions if supported. This eliminates the need to load all 1200+ notes into Python memory and filter them.",
+    "hypothesis": "The current list_notes endpoint loads all notes from the database into Python memory, then filters them in Python. This is inefficient because it transfers all data regardless of filters and performs string operations in Python. By moving the filtering logic to SQLite using SQL WHERE clauses and leveraging SQLite's indexing or JSON functions, we can significantly reduce the amount of data transferred and processed in Python. This should reduce the cumulative time spent in list_notes, _to_note, and json.loads, as fewer rows will be fetched and processed. The profile shows 1200800 calls to json.loads and _to_note for list_notes, indicating that every note is being fully parsed and converted. By limiting the SQL query to only the needed rows, we reduce these calls proportionally to the limit parameter.",
+    "risks": [
+      "SQLite's JSON functions may not be available or may be slow in older versions. Need to verify SQLite version and fallback to alternative methods if necessary.",
+      "Dynamic SQL construction must be done carefully to prevent SQL injection. Use parameterized queries exclusively.",
+      "The tags filtering logic in the current code uses exact match on a set of tags. Translating this to SQL requires careful handling of the JSON array format. If tags are stored as a JSON array, we need to ensure that the SQL query correctly matches all required tags.",
+      "The current implementation returns the total count of all matching notes before pagination. This requires a separate COUNT query or a subquery, which adds complexity. If not implemented correctly, the total count may be inaccurate.",
+      "Changing the SQL query structure may affect performance for unfiltered queries (no search or tags). Need to ensure that the query plan is efficient for all cases."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

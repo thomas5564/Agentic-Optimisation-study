@@ -1,0 +1,35 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -116,16 +116,26 @@
+     total_row = connection.execute(count_query, params).fetchone()
+     total = total_row[0]
+     
+-    # Get paginated notes
+-    # We select all columns to reconstruct the Note object via _to_note
+-    # We order by id ASC as per contract
+-    notes_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Get paginated notes using bulk JSON serialization
++    # This reduces Python overhead by serializing in SQL and parsing once in Python
++    notes_query = f"""
++        SELECT json_group_array(json_object(
++            'id', id,
++            'title', title,
++            'body', body,
++            'tags', tags
++        )) as notes_json
++        FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?
++    """
+     query_params = params + [limit, offset]
+-    rows = connection.execute(notes_query, query_params).fetchall()
++    row = connection.execute(notes_query, query_params).fetchone()
+     
+     connection.close()
+     
+-    notes = [_to_note(row) for row in rows]
++    notes_json_str = row["notes_json"] if row and row["notes_json"] else "[]"
++    notes_dicts = json.loads(notes_json_str)
++    notes = [Note.model_validate(nd) for nd in notes_dicts]
++    
+     return notes, total
+ 
+ 

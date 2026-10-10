@@ -1,0 +1,75 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -82,30 +82,45 @@
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    conditions = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        conditions.append("INSTR(title, ?) > 0 OR INSTR(body, ?) > 0")
++        params.extend([search_text, search_text])
++
++    if tags_filter:
++        clean_tags = [tag for tag in tags_filter if tag]
++        if clean_tags:
++            tag_conditions = []
++            for tag in clean_tags:
++                # Tags are stored as a sorted JSON array string like '["a", "b"]'.
++                # We check for the exact quoted tag string to ensure case-sensitive exact match.
++                tag_conditions.append("tags LIKE ?")
++                params.append(f'%"{tag}"%')
++            conditions.append(f"({' AND '.join(tag_conditions)})")
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    # Count total matching rows
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++
++    # Fetch paginated rows
++    # We select only necessary columns. Tags are still fetched to reconstruct Note objects,
++    # but we avoid deserializing tags for non-matching rows.
++    fetch_query = f"SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    fetch_params = params + [limit, offset]
++    rows = connection.execute(fetch_query, fetch_params).fetchall()
++    
+     connection.close()
+ 
+     notes = [_to_note(row) for row in rows]
+-    filtered = []
+-    for note in notes:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
+@@ -137,4 +152,4 @@
+     connection = _connect()
+     rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+     connection.close()
+-    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json.loads(row["tags"])} for row in rows]
++    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json.loads(row["tags"])} for row in rows]

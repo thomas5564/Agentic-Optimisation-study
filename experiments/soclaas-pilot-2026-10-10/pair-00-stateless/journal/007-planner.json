@@ -1,0 +1,22 @@
+{
+  "execution_id": "67f0886a729d4fe2a541550f61b707dc",
+  "paid": true,
+  "result": {
+    "elapsed_seconds": 300.59968958282843,
+    "error": "Provider timeout; no retry",
+    "exit_code": null,
+    "metadata": {
+      "model": "default",
+      "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+      "reasoning_parameter_sent": false,
+      "tools": [],
+      "transport": "responses"
+    },
+    "output": null,
+    "schema_version": 1,
+    "status": "timeout",
+    "usage": null
+  },
+  "result_hash": "b3e82ab12e2315634a9ba05772552017b21c254276e9b9cb2dcfcd0b851544c2",
+  "status": "complete"
+}

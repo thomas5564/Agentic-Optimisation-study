@@ -1,0 +1,58 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -251,13 +251,49 @@
+         total_row = connection.execute(count_query, params).fetchone()
+         total = total_row[0]
+ 
+-        # Get paginated notes
+-        notes_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++        # Get paginated notes using bulk JSON serialization
++        notes_query = f"""
++            SELECT json_group_array(json_object('id', id, 'title', title, 'body', body, 'tags', tags)) as notes_json
++            FROM (
++                SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?
++            )
++        """
+         query_params = params + [limit, offset]
+-        rows = connection.execute(notes_query, query_params).fetchall()
+-
+-        notes = [_to_note(row) for row in rows]
+-        return notes, total
++        row = connection.execute(notes_query, query_params).fetchone()
++        
++        notes_json_str = row["notes_json"]
++        if notes_json_str is None:
++            notes_list = []
++        else:
++            # Parse the single JSON string containing the array of note objects
++            # The tags field is already a JSON string in the database, so it will be
++            # double-encoded in the json_object output. We need to handle this.
++            # json_object('tags', tags) will produce '"tags": "[\"tag1\", \"tag2\"]"'
++            # We need to parse the outer array, then parse the inner tags string for each note.
++            raw_notes = json.loads(notes_json_str)
++            notes_list = []
++            for raw_note in raw_notes:
++                # raw_note['tags'] is a string like '["tag1", "tag2"]'
++                # We need to parse it to a list
++                tags_str = raw_note.get('tags', '[]')
++                if isinstance(tags_str, str):
++                    try:
++                        tags_list = json.loads(tags_str)
++                    except json.JSONDecodeError:
++                        tags_list = []
++                else:
++                    tags_list = tags_str
++                
++                # Create Note object using model_validate
++                note = Note.model_validate({
++                    'id': raw_note['id'],
++                    'title': raw_note['title'],
++                    'body': raw_note['body'],
++                    'tags': tags_list
++                })
++                notes_list.append(note)
++
++        return notes_list, total
+     finally:
+         _release_connection(connection)
+ 

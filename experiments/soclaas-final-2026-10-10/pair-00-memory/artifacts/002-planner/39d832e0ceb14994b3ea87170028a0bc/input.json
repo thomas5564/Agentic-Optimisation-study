@@ -1,0 +1,62 @@
+{
+  "decision": null,
+  "evidence": {
+    "profile": "Sat Oct 10 21:56:37 2026    /result/application.prof\n\n         151039 function calls (151038 primitive calls) in 0.684 seconds\n\n   Ordered by: cumulative time\n   List reduced from 122 to 40 due to restriction <40>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n  601/600    0.003    0.000    0.581    0.001 /workspace/app/main.py:35(list_notes_endpoint)\n      600    0.004    0.000    0.577    0.001 /workspace/app/db.py:77(list_notes)\n     3300    0.522    0.000    0.522    0.000 {method 'execute' of 'sqlite3.Connection' objects}\n     1200    0.003    0.000    0.072    0.000 /workspace/app/db.py:19(_connect)\n      300    0.000    0.000    0.035    0.000 /workspace/app/main.py:27(read_note)\n      300    0.001    0.000    0.035    0.000 /workspace/app/db.py:68(get_note)\n     1200    0.018    0.000    0.029    0.000 {built-in method _sqlite3.connect}\n      600    0.023    0.000    0.023    0.000 {method 'fetchall' of 'sqlite3.Cursor' objects}\n     1200    0.001    0.000    0.021    0.000 /runner/benchmarks/server.py:24(finish)\n     1200    0.020    0.000    0.020    0.000 {method 'disable' of '_lsprof.Profiler' objects}\n     1848    0.003    0.000    0.020    0.000 /workspace/app/db.py:44(_to_note)\n      100    0.000    0.000    0.016    0.000 /workspace/app/main.py:52(update_note_endpoint)\n      100    0.001    0.000    0.016    0.000 /workspace/app/db.py:132(update_note)\n      100    0.000    0.000    0.016    0.000 /workspace/app/main.py:22(create_note_endpoint)\n      100    0.001    0.000    0.016    0.000 /workspace/app/db.py:54(create_note)\n     1200    0.002    0.000    0.016    0.000 /usr/local/lib/python3.13/pathlib/_local.py:329(parent)\n      100    0.000    0.000    0.013    0.000 /workspace/app/main.py:60(delete_note_endpoint)\n     1200    0.002    0.000    0.012    0.000 /workspace/app/db.py:12(get_db_path)\n      100    0.000    0.000    0.012    0.000 /workspace/app/db.py:149(delete_note)\n     1200    0.010    0.000    0.010    0.000 {method 'close' of 'sqlite3.Connection' objects}\n     1200    0.001    0.000    0.009    0.000 /usr/local/lib/python3.13/pathlib/_local.py:717(mkdir)\n     1848    0.002    0.000    0.009    0.000 /usr/local/lib/python3.13/json/__init__.py:304(loads)\n     1848    0.001    0.000    0.009    0.000 /usr/local/lib/python3.13/site-packages/pydantic/main.py:270(__init__)\n     2400    0.002    0.000    0.008    0.000 /usr/local/lib/python3.13/pathlib/_local.py:289(drive)\n     1200    0.001    0.000    0.008    0.000 /usr/local/lib/python3.13/functools.py:544(decorating_function)\n     1848    0.003    0.000    0.007    0.000 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}\n     1848    0.003    0.000    0.006    0.000 /usr/local/lib/python3.13/json/decoder.py:340(decode)\n     1200    0.004    0.000    0.006    0.000 /usr/local/lib/python3.13/functools.py:36(update_wrapper)\n     1200    0.001    0.000    0.006    0.000 /usr/local/lib/python3.13/pathlib/_local.py:245(_from_parsed_parts)\n     2400    0.001    0.000    0.006    0.000 /usr/local/lib/python3.13/pathlib/_local.py:498(__init__)\n     1200    0.001    0.000    0.006    0.000 <frozen os>:811(getenv)\n     1200    0.003    0.000    0.005    0.000 /usr/local/lib/python3.13/pathlib/_local.py:257(_parse_path)\n     1200    0.001    0.000    0.005    0.000 <frozen _collections_abc>:808(get)\n     1848    0.003    0.000    0.005    0.000 /workspace/app/models.py:13(validate_tags)\n     3600    0.002    0.000    0.004    0.000 /usr/local/lib/python3.13/pathlib/_local.py:166(__fspath__)\n     1200    0.001    0.000    0.004    0.000 /usr/local/lib/python3.13/pathlib/_abc.py:460(is_dir)\n     2400    0.003    0.000    0.004    0.000 /usr/local/lib/python3.13/pathlib/_local.py:117(__init__)\n     1200    0.001    0.000    0.004    0.000 <frozen os>:712(__getitem__)\n      300    0.004    0.000    0.004    0.000 {method 'commit' of 'sqlite3.Connection' objects}\n     1200    0.001    0.000    0.004    0.000 /usr/local/lib/python3.13/pathlib/_local.py:252(_from_parsed_string)\n\n\n"
+  },
+  "memory": [
+    {
+      "approach": "query",
+      "attempted_change": "Refactor list_notes in app/db.py to perform filtering and counting directly in SQLite using SQL expressions instead of loading all rows into Python memory. Replace the current SELECT * ... ORDER BY id ASC followed by Python-side iteration with a single query that uses CASE statements for substring matching and JSON functions for tag containment. Specifically: 1) Use a parameterized query that constructs WHERE clauses dynamically based on search_text and tags_filter. 2) For search_text, use INSTR(title, ?) > 0 OR INSTR(body, ?) > 0. 3) For tags_filter, use json_each to expand the stored JSON array and check for existence of each required tag. 4) Use a COUNT(*) subquery or separate query to get the total count of matching notes before applying LIMIT/OFFSET. 5) Return only the paginated subset using LIMIT/OFFSET. This eliminates the need to deserialize all tags for all notes in Python and reduces memory allocation and CPU usage significantly.",
+      "audit_status": "passed",
+      "candidate_hash": "98464a2d05d9b6a29149530e4ba3f702e2109bac7dfa5fe1a10b9c0959b34e6b",
+      "facts": {
+        "acceptance": {
+          "accepted": true,
+          "reason": "improved_beyond_epsilon",
+          "relative_improvement": 0.7101334917744181
+        },
+        "after_score_ms": 1.1315870216700812,
+        "before_score_ms": 3.903821205827095,
+        "candidate_counts": {
+          "completed": 6000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 8.791000000201166,
+            "mean": 1.1502332198369913,
+            "median": 0.8853130000261444,
+            "min": 0.4553750000013679,
+            "p95": 1.9547910001165292
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 6000,
+          "timed_out": 0,
+          "total": 6000
+        },
+        "correctness": {
+          "correct": true,
+          "status": "passed"
+        },
+        "status": "evaluated"
+      },
+      "hypothesis": "The current implementation loads all notes from the database into Python memory, deserializes all tags for every note, and performs filtering in Python. This is inefficient because it processes data that may not be needed (due to pagination) and performs string operations in Python rather than letting SQLite handle them. By moving the filtering logic to SQL, we reduce the amount of data transferred from the database, reduce Python object creation overhead, and leverage SQLite's optimized string and JSON functions. This should significantly reduce the cumulative time spent in list_notes, _to_note, and json.loads, which are the top hotspots in the profile.",
+      "interpretation": "The plan refactors `app/db.py` to move filtering logic from Python to SQLite, aiming to reduce `list_notes` latency. The patch implements dynamic SQL construction using `INSTR` for substring search and `json_each` with `EXISTS` for tag filtering. Validation passed, and measurements show a significant performance improvement: the candidate's mean latency (1.15ms) is roughly 71% lower than the parent's (3.90ms), with a relative improvement of 0.71. The `list_search` operation specifically improved from a mean of 7.33ms to 1.61ms. Success rates remain 100% with zero semantic mismatches or failures across all operations. The runner accepted the change based on this improvement exceeding the epsilon threshold. The implementation correctly handles parameterization to prevent SQL injection and maintains the required sorting and pagination semantics. Noise levels are low (CV 0.029), indicating stable performance.",
+      "iteration": 1,
+      "limitations": [
+        "Performance gains are specific to the measured workload; results may vary with different data distributions or larger datasets.",
+        "The patch relies on SQLite's `json_each` function, which may have different performance characteristics on other SQL engines.",
+        "Dynamic SQL construction introduces complexity that could be prone to syntax errors if future modifications are not carefully parameterized.",
+        "The improvement metric is relative to a specific parent version; absolute latency values are still subject to hardware and environment variability."
+      ],
+      "parent_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+      "schema_version": 1
+    }
+  ],
+  "memory_count": 1,
+  "memory_hash": "2070f5d4a47f4574b7b8d338bfed038f5f9170ef9a07bc05c1c4ec4c73b53ac6",
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": null,
+  "role": "planner",
+  "schema_version": 1
+}

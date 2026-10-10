@@ -1,0 +1,122 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -82,30 +82,98 @@
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    # Build dynamic WHERE clause
++    conditions: list[str] = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        # Use ESCAPE clause if needed, but standard LIKE with % is sufficient for literal substring
++        # SQLite LIKE is case-insensitive by default for ASCII, but we need case-sensitive.
++        # However, the contract says "case-sensitive literal substring".
++        # SQLite's LIKE is case-insensitive. We must use INSTR or = for case-sensitive.
++        # INSTR is case-sensitive in SQLite.
++        conditions.append("(INSTR(title, ?) > 0 OR INSTR(body, ?) > 0)")
++        params.extend([search_text, search_text])
++
++    if tags_filter:
++        # Filter out empty tags
++        valid_tags = [tag for tag in tags_filter if tag and tag.strip()]
++        if valid_tags:
++            # Tags are stored as JSON array string. We need to check if each tag exists in the array.
++            # Since tags are sorted and unique in storage, we can check for exact string presence in the JSON array.
++            # However, checking JSON array membership in SQL is complex. 
++            # Alternative: Store tags in a separate table? No, schema is fixed.
++            # We can use JSON functions if available (SQLite 3.38+), but to be safe and compatible:
++            # We can check if the tag string is present in the tags column, ensuring it's a whole word match.
++            # Since tags are JSON encoded like "["tag1", "tag2"]", we can look for ", "tag", " or start/end of string.
++            # A simpler robust way for small tag lists: check if the tag is in the parsed list in Python? 
++            # But the plan says move to SQL. 
++            # Let's use JSON extraction if possible, or fallback to a pattern match.
++            # Given the constraint to preserve semantics exactly, and tags are sorted/unique:
++            # We can check if the tag is present in the JSON string. 
++            # To avoid partial matches (e.g. "work" matching "workshop"), we need word boundaries.
++            # In JSON: "["work"]" or ", "work"" or "work","
++            # Let's construct a condition that checks for the tag in the JSON array.
++            # Since we can't easily do array contains in older SQLite without extensions, 
++            # and we want to avoid Python filtering for performance, we will use a heuristic:
++            # The tags column is a JSON array. We can check if the tag appears as a string value.
++            # Pattern: '"tag"' inside the string, but ensuring it's not part of another word.
++            # Actually, since tags are sorted and unique, and stored as JSON, we can just check if the tag is in the list.
++            # But we want to do it in SQL. 
++            # Let's assume standard SQLite. We can use `json_each` if version >= 3.38.0 (2022-01-20).
++            # Most modern environments have this. If not, we might need to fallback.
++            # Given the prompt asks for SQL-based filtering, I will use `json_each` if available, 
++            # or a robust string check. 
++            # To be safe against SQL injection and ensure correctness, let's use parameterized queries with a helper.
++            # If `json_each` is not available, this might fail. 
++            # Alternative: Since the number of tags is likely small, we can filter in Python for tags if SQL is too hard?
++            # No, the plan says move filtering to SQL.
++            # Let's try a string containment check that is safe.
++            # Tag is stored as: "["tag1", "tag2"]"
++            # We want to find if '"tag"' is in the string.
++            # But '"tag"' could be part of '"tag1"'.
++            # We can check for '"tag"' preceded by '[' or ',' and followed by ',' or ']'.
++            # This is getting complex. 
++            # Let's rely on `json_each` which is standard in recent SQLite.
++            # If the environment is old, this might break. But "modern" usually implies recent enough.
++            # Let's assume `json_each` is available.
++            
++            tag_conditions = []
++            for tag in valid_tags:
++                # Check if the tag exists in the JSON array
++                # Using json_each to expand the array
++                tag_conditions.append("id IN (SELECT note_id FROM (SELECT id as note_id, json_each(tags) as val FROM notes) WHERE val.value = ?)")
++                params.append(tag)
++            
++            if tag_conditions:
++                conditions.append(" AND (" + " AND ".join(tag_conditions) + ")")
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    # Count total matches
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++
++    # Fetch paginated results
++    # We need to order by id ASC
++    # We need to join the count logic with the select logic to avoid double scanning if possible,
++    # but for simplicity and correctness, we do two queries. 
++    # To optimize, we can use a CTE or just accept two queries.
++    # Given the goal is reducing latency, two queries is still better than loading all rows.
++    
++    select_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    select_params = params + [limit, offset]
++    
++    rows = connection.execute(select_query, select_params).fetchall()
+     connection.close()
+ 
+     notes = [_to_note(row) for row in rows]
+-    filtered = []
+-    for note in notes:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

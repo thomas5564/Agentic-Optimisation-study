@@ -1,0 +1,99 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -82,30 +82,74 @@
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    conditions = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++
++    if tags_filter:
++        clean_tags = [tag.strip() for tag in tags_filter if tag and tag.strip()]
++        if clean_tags:
++            # Use json_each to unnest the JSON array in the tags column
++            # We need to match if ALL requested tags are present in the note's tags array
++            # This is achieved by grouping by note id and ensuring the count of distinct matching tags equals the number of requested tags
++            # However, a simpler approach for exact match of all tags in SQL without complex grouping is to use multiple EXISTS or a specific pattern.
++            # Given the constraint of moving logic to SQL, we can use a subquery or join.
++            # A robust way: For each tag, check if it exists in the JSON array.
++            # Since we need ALL tags, we can construct a query that ensures the note has all of them.
++            # One efficient way in SQLite: 
++            # SELECT * FROM notes WHERE id IN (
++            #   SELECT note_id FROM (
++            #     SELECT n.id as note_id, t.value as tag
++            #     FROM notes n, json_each(n.tags) t
++            #     WHERE t.value IN (?, ?, ...)
++            #   )
++            #   GROUP BY note_id
++            #   HAVING COUNT(DISTINCT tag) = ?
++            # )
++            # This requires dynamic SQL construction for the IN clause and the HAVING count.
++            
++            placeholders = ", ".join(["?"] * len(clean_tags))
++            subquery_conditions = f"t.value IN ({placeholders})"
++            params.extend(clean_tags)
++            
++            # We need to count how many distinct requested tags are found in each note
++            # If that count equals the number of requested tags, then all tags are present.
++            where_clause = f"""
++                id IN (
++                    SELECT note_id FROM (
++                        SELECT n.id as note_id, t.value as tag
++                        FROM notes n, json_each(n.tags) t
++                        WHERE {subquery_conditions}
++                    )
++                    GROUP BY note_id
++                    HAVING COUNT(DISTINCT tag) = ?
++                )
++            """
++            conditions.append(where_clause)
++            params.append(len(clean_tags))
++
++    where_sql = ""
++    if conditions:
++        where_sql = "WHERE " + " AND ".join(conditions)
++
++    # Count query
++    count_sql = f"SELECT COUNT(*) FROM notes {where_sql}"
++    total_row = connection.execute(count_sql, params).fetchone()
++    total = total_row[0]
++
++    # Data query
++    data_sql = f"SELECT * FROM notes {where_sql} ORDER BY id ASC LIMIT ? OFFSET ?"
++    data_params = params + [limit, offset]
++    rows = connection.execute(data_sql, data_params).fetchall()
++    
+     connection.close()
+-
++    
+     notes = [_to_note(row) for row in rows]
+-    filtered = []
+-    for note in notes:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

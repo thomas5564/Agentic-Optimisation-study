@@ -1,0 +1,12 @@
+{
+  "approach": "query",
+  "change": "Modify app/db.py to use SQL-based filtering and pagination instead of in-memory Python processing. Specifically, update the list_notes function to accept search_text and tags_filter parameters and construct a dynamic SQL query with WHERE clauses for title/body substring matching and tags JSON containment. Use SQLite's LIMIT and OFFSET for pagination and COUNT(*) for the total. Replace the in-memory list comprehension and filtering logic with the database engine's execution. Ensure the query correctly handles the 'all tags' requirement by using JSON_CONTAINS or equivalent logic for each tag filter.",
+  "hypothesis": "The current implementation fetches all notes from the database and filters/paginates them in Python, which scales poorly with data volume and causes high CPU usage due to repeated json.loads and string operations. By pushing filtering and pagination to SQLite, we reduce memory allocation, avoid parsing tags for non-matching rows, and leverage the database engine's optimized execution plan, significantly reducing cumulative time for list_notes.",
+  "risks": [
+    "Incorrect SQL construction could lead to SQL injection if parameters are not properly bound (must use parameterized queries).",
+    "JSON containment queries in SQLite may be slower than expected if no appropriate indexes exist, though for small datasets this is unlikely to be worse than Python processing.",
+    "The 'all tags' logic requires careful handling of multiple tag filters with AND conditions.",
+    "Case-sensitive substring search in SQL must match the Python 'in' operator behavior exactly."
+  ],
+  "schema_version": 1
+}

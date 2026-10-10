@@ -1,0 +1,108 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -54,8 +54,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -106,32 +104,72 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+-    connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
++    # Build dynamic SQL for filtering
++    conditions = []
++    params: list[Any] = []
++    
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++    
++    if tags_filter:
++        # Clean tags: strip whitespace, remove empty, deduplicate
++        clean_tags = sorted({tag.strip() for tag in tags_filter if tag and tag.strip()})
++        if clean_tags:
++            # Use JSON_each to unnest the tags array in the DB
++            # We need to ensure ALL required tags are present in the note's tags array
++            # We construct a subquery that checks for the presence of each required tag
++            tag_placeholders = ", ".join(["?" for _ in clean_tags])
++            conditions.append(
++                f"NOT EXISTS (
++                    SELECT 1 FROM (
++                        SELECT value AS required_tag
++                        UNION ALL VALUES ({tag_placeholders})
++                    ) AS req
++                    WHERE req.required_tag NOT IN (
++                        SELECT json_each.value FROM notes AS n2, json_each(n2.tags) 
++                        WHERE n2.id = notes.id
++                    )
++                )"
++            )
++            params.extend(clean_tags)
++    
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++    
++    # Query for total count
++    count_sql = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_sql, params).fetchone()
++    total = total_row[0]
++    
++    # Query for paginated results
++    # We need to fetch the rows to parse JSON tags in Python anyway for the NoteRow/Note conversion
++    # But we avoid fetching ALL rows and filtering in Python.
++    # We use LIMIT and OFFSET in SQL.
++    # Note: The subquery for tags filtering in the WHERE clause is correlated.
++    # To get the actual rows, we run the same query but with LIMIT/OFFSET.
++    
++    # However, the correlated subquery in WHERE might be slow if not indexed, but it avoids
++    # loading all rows into Python. Since we can't easily add indexes without schema migration,
++    # we rely on SQLite's query planner. For large datasets, this is still O(N) in DB scan
++    # but avoids Python overhead and network/memory transfer of non-matching rows.
++    
++    # To optimize, we can select only necessary columns if we were converting to dicts,
++    # but we need all columns for NoteRow. 
++    
++    # We construct the main query
++    select_sql = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    final_params = params + [limit, offset]
++    
++    rows = connection.execute(select_sql, final_params).fetchall()
++    connection.close()
++    
++    # Convert to NoteRow objects
+     note_rows = [_to_note_row(row) for row in rows]
+     
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

@@ -1,0 +1,108 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -106,32 +106,81 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+-    connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
++    # Build dynamic SQL query for filtering
++    conditions = []
++    params: list[Any] = []
++    
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        # Use BINARY to ensure case-sensitive matching as per contract
++        conditions[-1] = "(BINARY title LIKE ? OR BINARY body LIKE ?)"
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++    
++    if tags_filter:
++        # Filter out empty tags
++        valid_tags = [tag for tag in tags_filter if tag]
++        if valid_tags:
++            # For each required tag, check if it exists in the JSON array
++            # We use LIKE on the JSON string representation to find the tag.
++            # Since tags are stored as a sorted JSON array string like '["tag1", "tag2"]',
++            # we can look for the tag surrounded by quotes and brackets/commas.
++            # A robust way for simple strings is to check for '"tag"' inside the string.
++            # However, to avoid false positives (e.g. 'work' in 'workflow'), we rely on
++            # the JSON structure. Since tags are sorted and unique, we can check for
++            # the presence of the tag as a JSON element.
++            # Simple approach: check if '"tag"' is in the tags string.
++            # This works because tags are stripped and unique. 
++            # To be safer against substring matches within other tags, we check for
++            # the tag surrounded by quotes, possibly preceded by [ or , and followed by , or ].
++            # Given the sorted nature and JSON format, '"tag"' is usually sufficient if tags
++            # don't contain quotes. The contract implies simple strings.
++            # Let's use a more robust check: JSON_EXTRACT if available, else LIKE.
++            # Since we want to avoid dependencies and ensure compatibility, we'll use LIKE
++            # with careful pattern matching. 
++            # Pattern: '"tag"' must appear. To avoid 'work' matching 'workflow', we check
++            # that the character before '"tag"' is not a letter (or is start of string) and
++            # the character after is not a letter (or is end of string). 
++            # Actually, since it's a JSON array, tags are quoted. So we look for '"tag"'.
++            # To ensure it's a whole word in the JSON context: 
++            # '"tag"' is unique enough if tags don't contain quotes. 
++            # Let's assume standard tags without quotes. 
++            # We will use a subquery or multiple conditions. 
++            # For simplicity and correctness with the existing storage format:
++            # We check if '"tag"' is in the tags column. 
++            # To prevent 'work' matching 'workflow', we can check for '"work"' specifically.
++            # Since the array is sorted, we can't rely on position easily without parsing.
++            # We will use multiple LIKE conditions joined by AND.
++            for tag in valid_tags:
++                # Escape single quotes for SQL
++                escaped_tag = tag.replace("'", "''")
++                # We look for '"tag"' in the string. 
++                # To be safe against 'work' vs 'workflow', we check for '"work"'.
++                # This is safe because tags are stored as JSON strings.
++                conditions.append("tags LIKE ?")
++                params.append(f"%\"{escaped_tag}\"%")
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    # Count total matching rows
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++
++    # Fetch paginated rows
++    # We need to order by id ASC
++    fetch_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    fetch_params = params + [limit, offset]
++    rows = connection.execute(fetch_query, fetch_params).fetchall()
++    
++    connection.close()
++
++    # Parse only the matching rows
+     note_rows = [_to_note_row(row) for row in rows]
+     
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

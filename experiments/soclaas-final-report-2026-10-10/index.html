@@ -1,0 +1,17 @@
+<!doctype html><html><meta charset="utf-8"><title>Experiment wrap-up</title>
+<style>body{font:17px/1.55 system-ui;margin:40px auto;max-width:1050px;padding:0 24px;color:#182335}h1{line-height:1.15}table{border-collapse:collapse;width:100%}td,th{padding:12px;text-align:left;border-bottom:1px solid #ddd}.notice{padding:20px;background:#fff3dc;border-left:5px solid #af7000}img{max-width:100%}a{color:#245daa}</style>
+<h1>Memory-guided optimization: experiment wrap-up</h1>
+<p class="notice"><strong>Stopped at the user's request.</strong> 61 of 300 planned final-study attempts were recorded: one complete 30-attempt pair and one additional memory attempt. Seven scheduled runs were not started. No further model calls are running.</p>
+<h2>The one complete pair</h2><table><tr><th>Measure</th><th>Stateless</th><th>Memory</th></tr>
+<tr><td>Attempts</td><td>30</td><td>30</td></tr><tr><td>Accepted changes</td><td>1</td><td>2</td></tr>
+<tr><td>Correct / evaluated candidates</td><td>1 / 29</td><td>11 / 30</td></tr>
+<tr><td>Independent final latency</td><td>2.747079 ms</td><td>0.995450 ms</td></tr>
+<tr><td>Input tokens</td><td>902,663</td><td>1,447,992</td></tr></table>
+<p>The observed stateless/memory latency ratio is <strong>2.760×</strong>. This is one pair, not a replicated finding. Memory's largest gain occurred at attempt one, before history existed. Stopping followed visible interim results. No significance or causal memory-benefit claim is justified.</p>
+<h2>Retained-code trajectory: complete pair only</h2>
+<p>Values carry the last measured retained-code latency; small changes can reflect remeasurement noise. They are not 30 independent samples. The partial second memory run is excluded from these figures.</p>
+<img src="complete-pair/latency.png" alt="Retained latency for the complete pair">
+<img src="complete-pair/correctness.png" alt="Candidate correctness for the complete pair">
+<h2>Dataset and protocol</h2><p>2,000 seeded synthetic notes; seed 7; 100 cycles × 12 requests × five repetitions = 6,000 timed requests per snapshot. Each cycle contains one Add, three Get, one Update, one Delete, and six List/Search calls. Fresh process/database per repetition; two read-only warmups; concurrency one; median of repetition means. Only memory Planner receives complete prior-attempt history. Acceptance requires correctness and more than 8% improvement.</p>
+<h2>Evidence</h2><ul><li><a href="complete-pair/summary.json">Complete-pair summary</a></li><li><a href="complete-pair/runs.csv">Complete-pair metrics and usage</a></li><li><a href="complete-pair/checkpoints.csv">Independent checkpoints</a></li><li><a href="final-chat-measured-31baf0669711/index.html">All recorded final-study runs, including the explicitly partial run, with raw CSV exports</a></li></ul>
+<p>The supplied model alias was default; all final-study responses reported qwen3.6:35b. An immutable weight version and monetary pricing were unavailable. Pilots and failed provider compatibility runs remain separate cohorts.</p></html>

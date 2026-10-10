@@ -1,0 +1,19 @@
+{
+  "elapsed_seconds": null,
+  "error": "Provider HTTP 502: web tool step limit exceeded. Recovered terminal failure from archived response without repeating the call.",
+  "exit_code": null,
+  "metadata": {
+    "elapsed_seconds_unavailable": true,
+    "http_status": 502,
+    "model": "default",
+    "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+    "recovery_source": "response.json",
+    "reported_model": null,
+    "transport": "responses",
+    "usage_unavailable": true
+  },
+  "output": null,
+  "schema_version": 1,
+  "status": "agent_error",
+  "usage": null
+}

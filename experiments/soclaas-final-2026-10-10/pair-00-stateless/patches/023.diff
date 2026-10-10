@@ -1,0 +1,113 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -2,6 +2,7 @@
+ 
+ import json
+ import os
++import re
+ import sqlite3
+ from dataclasses import dataclass
+ from pathlib import Path
+@@ -54,8 +55,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -98,6 +97,26 @@
+     return _row_to_note(row)
+ 
+ 
++def _build_tags_pattern(tags_filter: list[str]) -> str | None:
++    """
++    Build a SQL LIKE pattern to approximate tag filtering on the JSON blob.
++    Since tags are stored as a sorted JSON array string like '["a", "b"]',
++    we look for the tag surrounded by quotes and separators.
++    """
++    if not tags_filter:
++        return None
++    # We need to match any of the tags. The SQL query will use OR for multiple tags
++    # if we were doing OR logic, but the API requires ALL tags (AND logic).
++    # However, SQL LIKE is an approximation. We will construct a pattern that
++    # attempts to match the presence of the tag in the JSON string.
++    # A robust way for AND logic in SQL without JSON functions is difficult.
++    # Strategy: We will filter by text in SQL, and do precise tag filtering in Python
++    # on the reduced set. This is the safest way to preserve semantics without
++    # complex SQL or schema changes.
++    # To optimize, we can at least filter by text.
++    return None
++
++
+ def list_notes(
+     *,
+     search_text: str | None = None,
+@@ -106,12 +125,56 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+-    connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
++    # Build SQL query with filtering
++    conditions = []
++    params: list[Any] = []
++    
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        # Escape % and _ for SQL LIKE
++        escaped_search = search_text.replace("%", "\\%").replace("_", "\\_")
++        params.extend([f"%{escaped_search}%", f"%{escaped_search}%"])
++    
++    # Note: We cannot efficiently filter JSON arrays in SQLite without JSON functions
++    # (available in 3.38+). To ensure compatibility and correctness without schema changes,
++    # we fetch a larger set if tags are involved, or just rely on text filtering in SQL
++    # and do precise filtering in Python. 
++    # However, the prompt asks to move filtering to SQL. 
++    # If tags are present, we can't easily do AND logic with LIKE on the JSON blob.
++    # We will fetch all notes if tags are specified to ensure correctness, 
++    # BUT we will still use SQL for text search if possible.
++    # Actually, to strictly follow "Reduce median-of-repetition mean request latency",
++    # we should try to filter as much as possible in SQL.
++    # If tags_filter is provided, we must fetch all notes to check exact tag membership
++    # because SQL LIKE on JSON is unreliable for exact matches (e.g. 'tag' vs 'mytag').
++    # So: 
++    # 1. If only search_text: Use SQL LIKE.
++    # 2. If tags_filter: Fetch all, filter in Python (exact match).
++    # 3. If both: Fetch all, filter in Python (exact match for tags, substring for text).
++    # This is still an improvement if search_text is used alone.
++    
++    if tags_filter:
++        # If tags are required, we must fetch all notes to perform exact set intersection
++        # because the JSON blob storage doesn't support efficient AND containment queries
++        # in older SQLite versions without JSON functions, and even with them, it's complex.
++        # We will fetch all notes.
++        query = "SELECT * FROM notes ORDER BY id ASC"
++        rows = connection.execute(query).fetchall()
++    else:
++        # Only text search: Use SQL LIKE for performance
++        if conditions:
++            query = f"SELECT * FROM notes WHERE {' AND '.join(conditions)} ORDER BY id ASC"
++        else:
++            query = "SELECT * FROM notes ORDER BY id ASC"
++        rows = connection.execute(query, params).fetchall()
++    
++    connection.close()
++
++    # Parse rows
+     note_rows = [_to_note_row(row) for row in rows]
+     
++    # Apply precise filtering in Python
+     filtered = []
+     for note_row in note_rows:
+         matches_search = True
+@@ -163,4 +226,4 @@
+     connection = _connect()
+     rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+     connection.close()
+-    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json.loads(row["tags"])} for row in rows]
++    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json.loads(row["tags"])} for row in rows]

@@ -1,0 +1,6 @@
+{
+  "http_status_observed": 502,
+  "inference_repeated": false,
+  "raw_response": "response.json",
+  "reason": "The archived response establishes a terminal provider tool-step error, not a successful model answer. Recover as a failed role; do not issue another Developer call."
+}

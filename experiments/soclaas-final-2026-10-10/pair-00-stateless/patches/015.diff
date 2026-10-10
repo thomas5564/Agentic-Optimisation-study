@@ -1,0 +1,120 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -54,8 +54,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -106,32 +104,84 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+-    connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
++    # Build base query
++    base_query = "SELECT id, title, body, tags FROM notes"
++    count_query = "SELECT COUNT(*) FROM notes"
++    
++    conditions = []
++    params: list[Any] = []
++    
++    # Handle search_text
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        # Escape % and _ for SQL LIKE, then wrap with %
++        escaped_search = search_text.replace("%", "\\%").replace("_", "\\_")
++        params.extend([f"%{escaped_search}%", f"%{escaped_search}%"])
++    
++    # Handle tags_filter
++    if tags_filter:
++        # Filter out empty/whitespace-only tags
++        valid_tags = [tag.strip() for tag in tags_filter if tag and tag.strip()]
++        if valid_tags:
++            # We need to check if the JSON array in 'tags' contains ALL of the valid_tags.
++            # Since SQLite doesn't have a native JSON array containment operator for "all of" in older versions,
++            # and json_each is available in SQLite 3.38+, we can use a subquery or string matching.
++            # A robust and compatible way is to check if the stored JSON string contains each tag.
++            # Note: Tags are stored as sorted JSON arrays, e.g., '["a", "b"]'.
++            # We must ensure we match exact tag strings. Simple string containment might match "work" in "worker".
++            # To be safe, we can use json_each if available, or rely on the fact that tags are JSON encoded.
++            # A safer string match for JSON array elements: look for ", "tag" or start/end of array.
++            # However, the simplest robust method in standard SQLite without json_each is to iterate.
++            # But we want to push to SQL. Let's use json_each if possible, fallback to string matching.
++            # Given the constraints and typical SQLite versions in these environments, json_each is usually available.
++            # If not, we can use a trick: the tags are sorted. 
++            # Let's try to use json_each for correctness.
++            # If json_each is not available, this might fail. But it's standard in modern SQLite.
++            # Alternative: Use a subquery with json_each.
++            
++            # Construct a condition that checks if the 'tags' column contains all required tags.
++            # We can do this by ensuring that for each required tag, it exists in the json array.
++            # This is complex in a single WHERE clause without json_each.
++            # Let's assume json_each is available (SQLite 3.38+ is common now).
++            # If we want to be super safe and compatible with older SQLite, we might stick to Python filtering for tags
++            # if the dataset is small, but the plan says to push to SQL.
++            # Let's use the json_each approach.
++            
++            # We will generate a condition: 
++            # EXISTS (SELECT 1 FROM json_each(notes.tags) WHERE value = ?) for each tag.
++            # This is clean and correct.
++            for tag in valid_tags:
++                conditions.append(f"EXISTS (SELECT 1 FROM json_each(notes.tags) WHERE value = ?)")
++                params.append(tag)
++    
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++    
++    # Get total count
++    count_sql = f"{count_query} {where_clause}"
++    total_row = connection.execute(count_sql, params).fetchone()
++    total = total_row[0]
++    
++    # Get paginated results
++    # We need to order by id ASC as per contract
++    order_clause = "ORDER BY id ASC"
++    limit_clause = "LIMIT ? OFFSET ?"
++    
++    # Note: The count query doesn't need LIMIT/OFFSET. The data query does.
++    # We must pass limit and offset to the data query.
++    # The params for count are already set. We need to append limit/offset for the data query.
++    
++    data_sql = f"{base_query} {where_clause} {order_clause} {limit_clause}"
++    data_params = params + [limit, offset]
++    
++    rows = connection.execute(data_sql, data_params).fetchall()
++    connection.close()
++    
+     note_rows = [_to_note_row(row) for row in rows]
+     
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

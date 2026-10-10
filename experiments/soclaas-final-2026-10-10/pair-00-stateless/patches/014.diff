@@ -1,0 +1,91 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -54,8 +54,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -106,32 +104,57 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    # Build dynamic SQL query for filtering and counting
++    base_query = "SELECT id, title, body, tags FROM notes"
++    count_query = "SELECT COUNT(*) FROM notes"
++    where_clauses = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        where_clauses.append("(title LIKE ? OR body LIKE ?)")
++        # Use LIKE with wildcards for substring matching
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++
++    if tags_filter:
++        # Filter out empty tags
++        valid_tags = [tag for tag in tags_filter if tag]
++        if valid_tags:
++            # SQLite JSON_CONTAINS checks if a JSON value is contained within a JSON array
++            # We check if each tag string is contained in the 'tags' column
++            tag_conditions = []
++            for tag in valid_tags:
++                tag_conditions.append("json_contains(tags, ?)")
++                params.append(json.dumps(tag))
++            where_clauses.append(" AND ".join(tag_conditions))
++
++    if where_clauses:
++        where_clause = "WHERE " + " AND ".join(where_clauses)
++        count_query += f" {where_clause}"
++        base_query += f" {where_clause}"
++
++    # Get total count
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0] if total_row else 0
++
++    # Apply pagination and ordering
++    # Note: params already contains the filter values. We need to append offset/limit values
++    # But since we used them in the WHERE clause, we can't just append. 
++    # We need to execute count first, then execute the main query with same params + pagination.
++    
++    # Re-construct params for the main query if we separated them, but here we reuse.
++    # Actually, the params list is ready for the main query too.
++    
++    base_query += " ORDER BY id ASC LIMIT ? OFFSET ?"
++    params.extend([limit, offset])
++
++    rows = connection.execute(base_query, params).fetchall()
+     connection.close()
+ 
+-    # Parse all rows into lightweight NoteRow objects
++    # Convert rows to NoteRow objects
+     note_rows = [_to_note_row(row) for row in rows]
+     
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

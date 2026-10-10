@@ -1,0 +1,12 @@
+{
+  "approach": "query",
+  "change": "Refactor the list_notes function in app/db.py to perform filtering and counting directly in SQLite using SQL expressions instead of loading all rows into Python memory. Replace the current 'SELECT * FROM notes ORDER BY id ASC' with a query that applies WHERE clauses for search_text (using LIKE or INSTR) and tags (using JSON_EXTRACT or LIKE on the JSON array string) to match the Python logic. Use COUNT(*) for the total and LIMIT/OFFSET for pagination. This eliminates the need to parse JSON for all rows in Python and avoids the O(N) Python-side filtering loop.",
+  "hypothesis": "The current profile shows that list_notes spends significant time in json.loads (2.8s) and Python-side filtering (0.8s for fetchall + 0.8s for list comprehension/filtering). By moving the filtering logic to SQLite, we reduce the amount of data transferred from the database to Python and avoid parsing JSON for non-matching rows. SQLite's JSON functions (available in recent versions) or simple string matching on the tags column can replicate the Python tag filtering logic efficiently. This should drastically reduce cumulative time for list_notes.",
+  "risks": [
+    "SQLite's JSON functions might not be available or might have different performance characteristics in the specific environment. If JSON functions are unavailable, we must use LIKE-based string matching on the tags column, which requires careful escaping to avoid false positives (e.g., matching 'work' in 'workflow').",
+    "The Python logic for tag filtering uses set intersection. Translating this to SQL requires ensuring that all specified tags are present in the JSON array. This can be done with multiple JSON_EXTRACT checks or a single JSON_CONTAINS check if available.",
+    "Search text matching in Python is a simple substring check ('in'). In SQL, this translates to LIKE '%search_text%' or INSTR. We must ensure case-sensitivity is preserved (SQL LIKE is case-insensitive by default in some collations, so we must use BINARY LIKE or COLLATE NOCASE appropriately, but the contract says case-sensitive, so we need exact substring match).",
+    "The current implementation sorts by ID in Python after filtering. The SQL query must also sort by ID to maintain the same order."
+  ],
+  "schema_version": 1
+}

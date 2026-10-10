@@ -1,0 +1,98 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -82,30 +82,74 @@
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    # Build query parameters
++    params: list[Any] = []
++    where_clauses: list[str] = []
++
++    # Search filter: case-sensitive literal substring in title OR body
++    if search_text is not None and search_text != "":
++        where_clauses.append("(INSTR(title, ?) > 0 OR INSTR(body, ?) > 0)")
++        params.extend([search_text, search_text])
++
++    # Tags filter: must contain ALL specified tags
++    if tags_filter:
++        # Clean tags: strip whitespace, ignore empty
++        clean_tags = [tag.strip() for tag in tags_filter if tag and tag.strip()]
++        if clean_tags:
++            # We need to check if the JSON array contains each tag.
++            # Since tags are stored as a sorted JSON array string, we can use JSON_CONTAINS
++            # or check if the tag string is present in the JSON array structure.
++            # A robust way in SQLite without custom functions is to check if the tag
++            # exists as a distinct element. Since tags are sorted and unique in storage,
++            # we can check for the tag surrounded by brackets/commas or at boundaries.
++            # However, JSON_CONTAINS is available in modern SQLite builds (3.38+).
++            # To be safe and compatible, we can use a pattern match on the JSON string.
++            # But JSON_CONTAINS is standard enough. Let's try JSON_CONTAINS first.
++            # If JSON_CONTAINS is not available, we might need a fallback, but for this
++            # exercise, we assume a reasonably modern SQLite.
++            # Actually, to be perfectly safe against older SQLite versions that might
++            # lack JSON functions, we can use a LIKE pattern on the JSON string.
++            # Since tags are sorted and unique, a tag "work" in "["work", "research"]"
++            # will appear as ","work"" or ""work"" at start/end.
++            # This is tricky. Let's use JSON_CONTAINS if possible, otherwise fallback.
++            # Given the constraint to preserve persistence and not add deps, and
++            # standard environments usually have JSON1, we'll use JSON_CONTAINS.
++            # Note: JSON_CONTAINS(tags, '"tag"') checks if the array contains the string "tag".
++            for tag in clean_tags:
++                # Escape single quotes for SQL
++                escaped_tag = tag.replace("'", "''")
++                # We look for the exact string value in the JSON array.
++                # JSON_CONTAINS expects a JSON string, so we pass '"tag"'
++                where_clauses.append("json_contains(tags, ?)")
++                params.append(f'"{tag}"')
++
++    where_sql = ""
++    if where_clauses:
++        where_sql = "WHERE " + " AND ".join(where_clauses)
++
++    # Get total count
++    count_query = f"SELECT COUNT(*) FROM notes {where_sql}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++
++    # Get paginated results
++    # We need to order by id ASC as per contract
++    # We need to fetch the rows to convert to Note objects
++    # To avoid fetching all rows, we use LIMIT/OFFSET
++    # However, we need to ensure the order is stable. ORDER BY id ASC is required.
++    # The WHERE clause filters, then we order.
++    
++    # Construct the main query
++    # We need to select all columns to reconstruct the Note object
++    select_query = f"SELECT * FROM notes {where_sql} ORDER BY id ASC LIMIT ? OFFSET ?"
++    query_params = params + [limit, offset]
++    
++    rows = connection.execute(select_query, query_params).fetchall()
+     connection.close()
+ 
+     notes = [_to_note(row) for row in rows]
+-    filtered = []
+-    for note in notes:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

@@ -1,0 +1,40 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -1,5 +1,6 @@
+ from __future__ import annotations
+ 
++import ast
+ import json
+ import os
+ import sqlite3
+@@ -47,13 +48,13 @@
+         id=row["id"],
+         title=row["title"],
+         body=row["body"],
+-        tags=json.loads(tags_value),
++        tags=ast.literal_eval(tags_value),
+     )
+ 
+ 
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+     connection = _connect()
+-    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))
++    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}), separators=(",", ":"))
+     cursor = connection.execute(
+         "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)",
+         (title, body, payload),
+@@ -114,7 +115,7 @@
+     if row is None:
+         connection.close()
+         return None
+-    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))
++    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}), separators=(",", ":"))
+     connection.execute(
+         "UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?",
+         (title, body, payload, note_id),
+@@ -137,4 +138,4 @@
+     connection = _connect()
+     rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+     connection.close()
+-    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json.loads(row["tags"])} for row in rows]
++    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": ast.literal_eval(row["tags"])} for row in rows]

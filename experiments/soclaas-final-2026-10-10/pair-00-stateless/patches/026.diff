@@ -1,0 +1,182 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -54,8 +54,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -106,32 +104,146 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+-    connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
++    # Build base query
++    query = "SELECT id, title, body, tags FROM notes"
++    conditions = []
++    params: list[Any] = []
++
++    # Filter by search text
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        like_pattern = f"%{search_text}%"
++        params.extend([like_pattern, like_pattern])
++
++    # Filter by tags
++    if tags_filter:
++        # Clean tags: strip whitespace, remove empty strings
++        clean_tags = [tag.strip() for tag in tags_filter if tag and tag.strip()]
++        if clean_tags:
++            # We need to ensure the note contains ALL specified tags.
++            # Since tags are stored as a JSON array string, we can use LIKE to check for each tag.
++            # To avoid partial matches (e.g., 'work' matching 'workflow'), we check for the tag
++            # surrounded by quotes or brackets/commas. However, a simpler and robust way for
++            # small tag lists is to check if the JSON string contains the tag as a distinct element.
++            # Given the storage format is a sorted JSON array of strings, e.g., '["a", "b"]',
++            # we can check for '"tag"' but must be careful about substrings.
++            # A safer approach for exact match in JSON array string:
++            # Check if the tag exists as a string value in the JSON array.
++            # We can use a subquery or just multiple LIKE conditions if the list is small.
++            # Given the constraint of typical note counts, multiple LIKEs is acceptable.
++            # To ensure exact match, we look for '"tag"' but ensure it's not part of another word.
++            # Actually, since tags are sorted and unique, and stored as JSON, we can just check
++            # if the tag string is present in the JSON text, but we must be careful.
++            # A robust way: use a subquery to parse JSON? SQLite doesn't have json_each in older versions.
++            # Let's stick to the plan's suggestion: subquery with GROUP BY/HAVING is complex for JSON.
++            # Alternative: Use LIKE with careful patterns. 
++            # Since tags are stored as '["tag1", "tag2"]', we can check for '"tag"' but that might match '"tag1"'.
++            # Better: Check if the tag is in the list by parsing in Python? No, we want SQL.
++            # Let's use a trick: replace the JSON string with a delimiter-separated string and check.
++            # Or, simpler: Since the number of tags per note is small, we can just do:
++            # tags LIKE '%"tag"%' AND tags NOT LIKE '%"tagX"%' ... too complex.
++            # Let's go with the most reliable SQL approach for JSON arrays in SQLite without extensions:
++            # We will filter in Python if the tag list is large? No, the plan says SQL.
++            # Let's use a subquery approach if possible, or just accept that for exact tag matching
++            # in a JSON string, we might need to be careful.
++            # Actually, the simplest correct SQL way for "contains all tags" in a JSON array string
++            # is to check that the string contains each tag as a distinct element.
++            # We can use: tags LIKE '%"tag"%' but this is risky for substring matches.
++            # However, given the tags are sorted and unique, and typically short, 
++            # we can check for '"tag"' and ensure it's not followed/preceded by alphanumeric chars.
++            # But SQLite LIKE doesn't support regex.
++            # Let's use a different strategy: 
++            # We will construct a query that checks for the presence of each tag.
++            # To avoid false positives, we can check for '"tag"' and ensure it's not part of a larger word.
++            # But since we can't use regex, we'll rely on the fact that tags are usually distinct.
++            # A safer bet: Use a subquery to count matching tags? No, we don't have a tags table.
++            # Let's fall back to a hybrid: if tags_filter is provided, we do a SQL query that
++            # selects all notes, and then filter in Python? No, that defeats the purpose.
++            # Let's use the LIKE approach but with a delimiter check.
++            # We can replace the JSON array with a string like ',tag1,tag2,' and check for ',tag,'.
++            # This requires a transformation in SQL which is expensive.
++            # 
++            # Revised Plan: Use a subquery with a generated series? No.
++            # Let's use the simplest correct method: 
++            # We will check if the JSON string contains the tag as a substring, but we will
++            # ensure it's an exact match by checking for '"tag"' and ensuring it's not part of a larger token.
++            # Since we can't do regex, we'll assume tags are distinct enough or use a workaround.
++            # Actually, the best way in SQLite without extensions is to use a subquery that
++            # iterates over the tags? No.
++            # 
++            # Let's use the following approach: 
++            # We will filter by tags using a series of LIKE conditions, but we will check for
++            # '"tag"' and ensure it's not followed by a letter or digit.
++            # But LIKE doesn't support lookahead.
++            # 
++            # Alternative: Use a subquery to parse the JSON array into rows? 
++            # SQLite 3.38+ has json_each. Let's assume a modern SQLite.
++            # If json_each is available, we can do:
++            # SELECT n.* FROM notes n JOIN json_each(n.tags) t ON t.value = ?
++            # GROUP BY n.id HAVING COUNT(DISTINCT t.value) = ?
++            # This is the most robust and performant way if json_each is available.
++            # If not, we fall back to Python filtering for tags.
++            # Given the environment is likely modern, let's try json_each.
++            
++            # Check if json_each is available by trying a simple query? No, we can't do that at runtime easily.
++            # Let's assume json_each is available (standard in SQLite 3.9+).
++            
++            # We will build a query that joins with json_each for each tag filter.
++            # But we need ALL tags to match. So we can join multiple times or use a subquery.
++            # Subquery approach:
++            # SELECT * FROM notes WHERE id IN (
++            #   SELECT note_id FROM (
++            #     SELECT n.id as note_id, t.value as tag
++            #     FROM notes n, json_each(n.tags) t
++            #     WHERE t.value IN (?, ?, ...)
++            #   )
++            #   GROUP BY note_id
++            #   HAVING COUNT(DISTINCT tag) = ?
++            # )
++            # This is efficient and correct.
++            
++            placeholders = ", ".join(["?"] * len(clean_tags))
++            subquery = f"""
++                SELECT note_id FROM (
++                    SELECT n.id as note_id, t.value as tag
++                    FROM notes n, json_each(n.tags) t
++                    WHERE t.value IN ({placeholders})
++                )
++                GROUP BY note_id
++                HAVING COUNT(DISTINCT tag) = {len(clean_tags)}
++            """
++            conditions.append(f"id IN ({subquery})")
++            params.extend(clean_tags)
++
++    # Add conditions to query
++    if conditions:
++        query += " WHERE " + " AND ".join(conditions)
++
++    # Add ordering and pagination
++    query += " ORDER BY id ASC LIMIT ? OFFSET ?"
++    params.extend([limit, offset])
++
++    rows = connection.execute(query, params).fetchall()
++    
++    # Get total count
++    # We need to count all matching notes, not just the paginated ones.
++    # We can reuse the conditions and params (without limit/offset) to get the total.
++    count_query = "SELECT COUNT(*) FROM notes"
++    count_params: list[Any] = []
++    if conditions:
++        count_query += " WHERE " + " AND ".join(conditions)
++        count_params = params[:-2] # Remove limit and offset
++    
++    total_row = connection.execute(count_query, count_params).fetchone()
++    total = total_row[0] if total_row else 0
++    
++    connection.close()
++
++    # Convert rows to NoteRow objects
+     note_rows = [_to_note_row(row) for row in rows]
+     
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

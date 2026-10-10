@@ -1,0 +1,4 @@
+run_id,pair_id,condition,phase,backend,synthetic,status,planned_iterations,completed_iterations,accepted_changes,evaluated_candidates,correctness_pass_rate,repeated_unsuccessful_approaches,baseline_score_ms,final_remeasurement_score_ms,baseline_speedup,input_tokens,output_tokens,cost_usd
+6c413964516c4dbd8223fa9172047701,0,memory,final,chat,False,complete,30,30,2,30,0.36666666666666664,16,3.8559501816583484,0.9954501308455596,3.8735744385135704,1447992,124029,
+db5126313a4f42b1aecaaa1d33a2bd1e,0,stateless,final,chat,False,complete,30,30,1,29,0.034482758620689655,0,3.8766903550019074,2.7470787491703654,1.411204668294526,902663,102922,
+85543afb85e04abab682c3e64412917f,1,memory,final,chat,False,stopped_by_user,30,1,0,1,1,0,4.066537069976827,4.09220315835455,0.9937280512759188,30116,1985,

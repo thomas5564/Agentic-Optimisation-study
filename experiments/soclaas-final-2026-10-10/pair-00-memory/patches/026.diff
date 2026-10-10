@@ -1,0 +1,38 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -251,12 +251,30 @@
+         total_row = connection.execute(count_query, params).fetchone()
+         total = total_row[0]
+ 
+-        # Get paginated notes
+-        notes_query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++        # Get paginated notes using bulk JSON serialization
++        # This reduces Python overhead by serializing in SQL and parsing once in Python
++        notes_query = f"""
++            SELECT json_group_array(json_object(
++                'id', id,
++                'title', title,
++                'body', body,
++                'tags', tags
++            )) as notes_json
++            FROM notes
++            {where_clause}
++            ORDER BY id ASC
++            LIMIT ? OFFSET ?
++        """
+         query_params = params + [limit, offset]
+-        rows = connection.execute(notes_query, query_params).fetchall()
+-
+-        notes = [_to_note(row) for row in rows]
++        result_row = connection.execute(notes_query, query_params).fetchone()
++        
++        notes_json_str = result_row["notes_json"] if result_row else "[]"
++        if notes_json_str is None:
++            notes_json_str = "[]"
++            
++        notes_data = json.loads(notes_json_str)
++        notes = [Note.model_validate(note_data) for note_data in notes_data]
++        
+         return notes, total
+     finally:
+         _release_connection(connection)

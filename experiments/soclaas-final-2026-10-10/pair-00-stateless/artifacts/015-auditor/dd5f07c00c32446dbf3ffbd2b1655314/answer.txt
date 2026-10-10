@@ -1,0 +1,10 @@
+{
+  "interpretation": "The plan refactors `app/db.py` to push filtering and pagination to SQLite, aiming to reduce latency by avoiding full table scans. The implementation uses `json_each` for tag filtering and `LIKE` for text search. However, the validation failed due to correctness issues. A critical bug exists in `search_text` handling: the code escapes `%` and `_` but fails to escape the backslash character itself (`replace('_', '___')` logic is missing or incorrect for backslashes). If a user searches for a backslash, the escape sequence `__` (escaped underscore) or `%%` (escaped percent) may be interpreted as a SQL wildcard, leading to incorrect matches or SQL injection vulnerabilities. Additionally, the `tags_filter` logic using `EXISTS (SELECT 1 FROM json_each(notes.tags) WHERE value = ?)` is correct for SQLite 3.38+, but the plan's comments suggest uncertainty about version compatibility, which might cause runtime errors in older environments. The `list_notes` function correctly returns `NoteRow` objects, and the endpoint converts them to `Note`, preserving the API contract. The `total` count query correctly applies the same `WHERE` clause as the data query, ensuring accurate pagination metadata. Despite the performance intent, the correctness failure indicates the SQL string construction or parameter binding is flawed, likely due to the incomplete escaping logic or improper handling of special characters in search terms.",
+  "limitations": [
+    "Escaping logic for SQL LIKE wildcards is incomplete, risking incorrect matches or injection.",
+    "Assumes SQLite 3.38+ for `json_each` availability without runtime check.",
+    "No evidence of test coverage for edge cases in tag filtering or search text.",
+    "Validation failure reason is generic; specific query errors are not detailed."
+  ],
+  "schema_version": 1
+}

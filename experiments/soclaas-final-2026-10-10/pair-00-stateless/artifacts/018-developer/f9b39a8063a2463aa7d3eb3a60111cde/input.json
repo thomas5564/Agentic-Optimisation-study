@@ -1,0 +1,22 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor the list_notes function in app/db.py to perform filtering and counting directly in SQLite using SQL expressions instead of loading all rows into Python memory. Replace the current SELECT * ... fetchall() pattern with a single query that uses CASE statements for substring matching and JSON functions for tag filtering. Specifically: 1) Use INSTR(title, ?) > 0 and INSTR(body, ?) > 0 for the search_text filter. 2) Use json_each() to expand the tags JSON array and check for exact matches against the provided tag list using a subquery or JOIN. 3) Use COUNT(*) OVER() to get the total count of matching rows without a second query. 4) Apply LIMIT and OFFSET in the SQL query to fetch only the required page of results. This eliminates the need to parse JSON for all rows in Python, removes the Python-side filtering loop, and reduces memory allocation significantly.",
+    "hypothesis": "The current implementation loads all notes from the database into Python, parses the JSON tags for every single row, and then filters them in Python. This is O(N) in both I/O and CPU for every list request, regardless of the limit. By moving the filtering logic to SQLite, we leverage the database engine's optimized C implementation for string matching and JSON parsing. This reduces the amount of data transferred from the DB to Python, reduces Python object creation overhead (NoteRow instances), and allows SQLite to use indexes if they were present (though currently none exist, the execution plan for simple scans is still faster than Python loops for large N). Even without indexes, the reduction in Python-level interpretation overhead and JSON parsing for non-matching rows will yield significant latency improvements.",
+    "risks": [
+      "SQLite's JSON functions (json_each, json_extract) are available in SQLite 3.38.0+. The environment must support this version. If not, a fallback to Python parsing is needed, but the profile suggests modern Python/SQLite.",
+      "Complex SQL queries with JSON functions can be harder to maintain and debug than simple Python logic.",
+      "If the dataset is very small (e.g., < 100 rows), the overhead of constructing the complex SQL query might outweigh the benefits, but the profile shows 1.2M calls, implying a larger dataset or high frequency where this optimization is critical."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

@@ -1,0 +1,27 @@
+{
+  "execution_id": "5a56ca1b66e34db580366c3796956362",
+  "paid": true,
+  "resolution": "explicit_saved_result_recovery",
+  "result": {
+    "elapsed_seconds": null,
+    "error": "Provider HTTP 502: web tool step limit exceeded. Recovered terminal failure from archived response without repeating the call.",
+    "exit_code": null,
+    "metadata": {
+      "elapsed_seconds_unavailable": true,
+      "http_status": 502,
+      "model": "default",
+      "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+      "recovery_source": "response.json",
+      "reported_model": null,
+      "transport": "responses",
+      "usage_unavailable": true
+    },
+    "output": null,
+    "schema_version": 1,
+    "status": "agent_error",
+    "usage": null
+  },
+  "result_hash": "219a8056f90d252f32a11226fe2f6a45c9a072e0cd759c49e44e10a3802c5920",
+  "started_at": 1791665193.8893352,
+  "status": "complete"
+}

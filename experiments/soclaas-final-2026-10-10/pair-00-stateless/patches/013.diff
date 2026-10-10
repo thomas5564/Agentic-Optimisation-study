@@ -1,0 +1,91 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -54,8 +54,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -106,32 +104,57 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    
++    # Build dynamic query with parameters
++    base_query = "SELECT id, title, body, tags FROM notes"
++    conditions = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        # Use % wildcards for substring search
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++
++    if tags_filter:
++        # Filter out empty tags
++        valid_tags = [tag for tag in tags_filter if tag]
++        if valid_tags:
++            # JSON_CONTAINS checks if the JSON array contains the value
++            # We need to check if ALL specified tags are present
++            # SQLite's JSON_CONTAINS is available in newer versions, but for broader compatibility
++            # and exact matching, we can use a subquery or multiple conditions.
++            # However, a simpler and robust way in SQLite without complex JSON functions
++            # is to ensure the tags array contains the specific string.
++            # Since we need ALL tags, we add a condition for each.
++            for tag in valid_tags:
++                # JSON_CONTAINS(tags, '"tag"') checks if the array contains the string "tag"
++                # We must escape the tag for JSON string literal
++                json_tag = json.dumps(tag)
++                conditions.append(f"json_contains(tags, {json_tag})")
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    # Order by ID ascending as per contract
++    query = f"{base_query} {where_clause} ORDER BY id ASC"
++    
++    # Get total count of matching notes
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++
++    # Apply pagination
++    query += " LIMIT ? OFFSET ?"
++    params.extend([limit, offset])
++
++    rows = connection.execute(query, params).fetchall()
+     connection.close()
+ 
+-    # Parse all rows into lightweight NoteRow objects
++    # Convert rows to NoteRow objects
+     note_rows = [_to_note_row(row) for row in rows]
+     
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

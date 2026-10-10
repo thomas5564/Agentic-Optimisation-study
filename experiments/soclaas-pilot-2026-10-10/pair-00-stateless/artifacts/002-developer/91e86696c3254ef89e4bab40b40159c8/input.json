@@ -1,0 +1,23 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor `app/db.py:list_notes` to perform filtering in SQL instead of Python. \n1. Construct a SQL query with `WHERE` clauses for `search_text` (using `title LIKE ? OR body LIKE ?`) and `tags_filter` (using `tags LIKE ?` for each required tag, since tags are stored as a JSON array string like `[\"tag1\", \"tag2\"]`).\n2. Use `sqlite3` parameters to safely inject search terms and tags.\n3. Only convert the filtered rows to `Note` objects using `_to_note`.\n4. Calculate `total` by running a separate `COUNT(*)` query with the same `WHERE` clauses, or by fetching all IDs and counting if the dataset is small, but a separate count query is more robust for correctness. Given the profile shows `fetchall` taking time, a count query is necessary for accurate pagination totals.\n5. Apply `LIMIT` and `OFFSET` in the SQL query.\n\nSpecifically:\n- For `search_text`: `WHERE (title LIKE '%' || ? || '%') OR (body LIKE '%' || ? || '%')`\n- For `tags_filter`: `WHERE tags LIKE ?` for each tag, combined with `AND`. Note: Since tags are stored as `[\"tag1\", \"tag2\"]`, checking `tags LIKE '%\"tag1\"%'` is a safe substring match that avoids partial matches (e.g., 'tag' matching 'tag1').\n- Combine these with `AND` if both are present.\n- Add `ORDER BY id ASC LIMIT ? OFFSET ?`.\n- Run a parallel `SELECT COUNT(*) FROM notes WHERE ...` to get the total.",
+    "hypothesis": "The `list_notes` endpoint is dominated by in-memory filtering and Pydantic validation overhead. The current implementation fetches all notes from SQLite, converts every single row to a Pydantic `Note` model (triggering expensive JSON parsing and validation for every row), and then performs Python-level filtering. By moving the filtering logic (substring search and tag intersection) into the SQL query using `LIKE` and `LIKE '%tag%'` (or similar JSON functions if available, but simpler string matching on the tags column is safer for compatibility), we can drastically reduce the number of rows processed in Python. This eliminates the need to instantiate Pydantic models for non-matching rows and reduces the number of JSON deserialization calls from O(total_notes) to O(matching_notes).",
+    "risks": [
+      "SQL injection if parameters are not properly bound (mitigated by using sqlite3 parameterized queries).",
+      "Incorrect filtering logic if the JSON tags format changes or if substring matching causes false positives (e.g., matching 'cat' in 'category'). Using `'%\"tag\"%'` pattern mitigates this.",
+      "Performance regression if the number of matching rows is very small and the overhead of constructing complex SQL queries outweighs the benefit, though this is unlikely given the profile shows massive overhead in Python-side processing.",
+      "The `total` count query must exactly match the filtering logic of the data query to ensure pagination correctness."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

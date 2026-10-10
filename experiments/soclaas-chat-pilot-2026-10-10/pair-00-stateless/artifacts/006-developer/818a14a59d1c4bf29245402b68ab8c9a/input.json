@@ -1,0 +1,22 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor app/db.py list_notes to use SQL-based filtering and pagination instead of loading all rows into Python. Replace the SELECT * ... ORDER BY id ASC with a dynamic WHERE clause for search_text and tags, and add LIMIT/OFFSET to the SQL query. Use a single SQL query to count total matches for the 'total' field. Update app/main.py list_notes_endpoint to pass query parameters directly to the new SQL logic.",
+    "hypothesis": "The current implementation loads all notes from the database into memory and filters them in Python, which scales poorly with note count. By moving filtering and pagination to SQLite, we reduce memory usage, eliminate Python-side iteration overhead, and leverage SQLite's optimized query planner, significantly reducing latency for list_notes.",
+    "risks": [
+      "Incorrect SQL construction could lead to SQL injection if not parameterized correctly.",
+      "Tag filtering logic must exactly match the Python set-intersection semantics (case-sensitive, exact match).",
+      "Search text must be treated as a literal substring, not a regex, to preserve semantics."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

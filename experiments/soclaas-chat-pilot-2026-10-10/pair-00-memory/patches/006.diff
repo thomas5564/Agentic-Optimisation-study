@@ -1,0 +1,81 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -51,6 +51,35 @@
+     )
+ 
+ 
++def _build_where_clause(
++    search_text: str | None, tags_filter: list[str] | None
++) -> tuple[str, list[Any]]:
++    conditions: list[str] = []
++    params: list[Any] = []
++
++    if search_text is not None and search_text != "":
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        like_pattern = f"%{search_text}%"
++        params.extend([like_pattern, like_pattern])
++
++    if tags_filter:
++        clean_tags = [tag for tag in tags_filter if tag]
++        if clean_tags:
++            tag_conditions = []
++            for tag in clean_tags:
++                tag_conditions.append(
++                    "EXISTS (SELECT 1 FROM json_each(notes.tags) WHERE json_each.value = ?)"
++                )
++                params.append(tag)
++            conditions.append(" AND ".join(tag_conditions))
++
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++
++    return where_clause, params
++
++
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+     connection = _connect()
+     payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))
+@@ -82,30 +111,21 @@
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
++    where_clause, params = _build_where_clause(search_text, tags_filter)
++
++    # Get total count
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0] if total_row else 0
++
++    # Get paginated results
++    query = f"SELECT * FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    query_params = params + [limit, offset]
++    rows = connection.execute(query, query_params).fetchall()
+     connection.close()
+ 
+     notes = [_to_note(row) for row in rows]
+-    filtered = []
+-    for note in notes:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

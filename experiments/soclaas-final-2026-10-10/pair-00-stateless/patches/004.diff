@@ -1,0 +1,138 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -3,10 +3,20 @@
+ import json
+ import os
+ import sqlite3
++from dataclasses import dataclass
+ from pathlib import Path
+ from typing import Any
+ 
+ from app.models import Note
++
++
++@dataclass
++class NoteRow:
++    """Lightweight internal representation of a note row from the database."""
++    id: int
++    title: str
++    body: str
++    tags: list[str]
+ 
+ 
+ def get_db_path() -> Path:
+@@ -41,13 +51,27 @@
+     connection.close()
+ 
+ 
+-def _to_note(row: sqlite3.Row) -> Note:
++def _to_note_row(row: sqlite3.Row) -> NoteRow:
++    """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
++    # Use json.loads for tags as it is standard and fast enough for small lists.
++    # The main optimization is avoiding Pydantic model construction here.
++    tags = json.loads(tags_value)
++    return NoteRow(
++        id=row["id"],
++        title=row["title"],
++        body=row["body"],
++        tags=tags,
++    )
++
++
++def _row_to_note(row: sqlite3.Row) -> Note:
++    """Convert a sqlite3.Row directly to a Pydantic Note. Used for single-item fetches."""
+     return Note(
+         id=row["id"],
+         title=row["title"],
+         body=row["body"],
+-        tags=json.loads(tags_value),
++        tags=json.loads(row["tags"] or "[]"),
+     )
+ 
+ 
+@@ -62,7 +86,7 @@
+     row = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+     connection.commit()
+     connection.close()
+-    return _to_note(row)
++    return _row_to_note(row)
+ 
+ 
+ def get_note(note_id: int) -> Note | None:
+@@ -71,7 +95,7 @@
+     connection.close()
+     if row is None:
+         return None
+-    return _to_note(row)
++    return _row_to_note(row)
+ 
+ 
+ def list_notes(
+@@ -80,17 +104,19 @@
+     tags_filter: list[str] | None = None,
+     offset: int = 0,
+     limit: int = 20,
+-) -> tuple[list[Note], int]:
++) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+     rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+     connection.close()
+ 
+-    notes = [_to_note(row) for row in rows]
++    # Parse all rows into lightweight NoteRow objects
++    note_rows = [_to_note_row(row) for row in rows]
++    
+     filtered = []
+-    for note in notes:
++    for note_row in note_rows:
+         matches_search = True
+         if search_text is not None and search_text != "":
+-            matches_search = (search_text in note.title) or (search_text in note.body)
++            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+ 
+         matches_tags = True
+         if tags_filter:
+@@ -98,10 +124,10 @@
+             if not tag_values:
+                 matches_tags = True
+             else:
+-                matches_tags = all(tag in set(note.tags) for tag in tag_values)
++                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+ 
+         if matches_search and matches_tags:
+-            filtered.append(note)
++            filtered.append(note_row)
+ 
+     total = len(filtered)
+     paginated = filtered[offset: offset + limit]
+@@ -122,7 +148,7 @@
+     updated = connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone()
+     connection.commit()
+     connection.close()
+-    return _to_note(updated)
++    return _row_to_note(updated)
+ 
+ 
+ def delete_note(note_id: int) -> bool:
+--- a/app/main.py
++++ b/app/main.py
+@@ -40,7 +40,17 @@
+     limit: int = Query(default=20, ge=1, le=100),
+ ) -> dict[str, object]:
+     clean_tags = [item.strip() for item in tag if isinstance(item, str) and item.strip()]
+-    items, total = list_notes(search_text=q, tags_filter=clean_tags, offset=offset, limit=limit)
++    # list_notes now returns NoteRow objects
++    note_rows, total = list_notes(search_text=q, tags_filter=clean_tags, offset=offset, limit=limit)
++    
++    # Convert NoteRow to Note (Pydantic) only at the API boundary for serialization
++    items = [Note(
++        id=row.id,
++        title=row.title,
++        body=row.body,
++        tags=row.tags
++    ) for row in note_rows]
++    
+     return {
+         "items": [note.model_dump() for note in items],
+         "total": total,

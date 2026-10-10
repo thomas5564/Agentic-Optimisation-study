@@ -1,0 +1,19 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -49,6 +49,10 @@
+         body=row["body"],
+         tags=json.loads(tags_value),
+     )
++
++
++def _parse_tags(tags_str: str | None) -> list[str]:
++    return json.loads(tags_str or "[]")
+ 
+ 
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+@@ -158,4 +162,4 @@
+     connection = _connect()
+     rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+     connection.close()
+-    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": json.loads(row["tags"])} for row in rows]
++    return [{"id": row["id"], "title": row["title"], "body": row["body"], "tags": _parse_tags(row["tags"])} for row in rows]

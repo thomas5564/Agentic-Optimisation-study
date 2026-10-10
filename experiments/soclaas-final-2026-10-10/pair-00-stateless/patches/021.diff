@@ -1,0 +1,153 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -54,8 +54,6 @@
+ def _to_note_row(row: sqlite3.Row) -> NoteRow:
+     """Convert a sqlite3.Row to a lightweight NoteRow dataclass."""
+     tags_value = row["tags"] or "[]"
+-    # Use json.loads for tags as it is standard and fast enough for small lists.
+-    # The main optimization is avoiding Pydantic model construction here.
+     tags = json.loads(tags_value)
+     return NoteRow(
+         id=row["id"],
+@@ -106,32 +104,117 @@
+     limit: int = 20,
+ ) -> tuple[list[NoteRow], int]:
+     connection = _connect()
+-    rows = connection.execute("SELECT * FROM notes ORDER BY id ASC").fetchall()
+-    connection.close()
+-
+-    # Parse all rows into lightweight NoteRow objects
++    
++    # Build dynamic query parts
++    base_query = "SELECT notes.id, notes.title, notes.body, notes.tags, COUNT(*) OVER() as total_count FROM notes"
++    where_clauses = []
++    params: list[Any] = []
++    
++    # Search text filtering
++    if search_text is not None and search_text != "":
++        where_clauses.append("(notes.title LIKE '%' || ? || '%' OR notes.body LIKE '%' || ? || '%')")
++        params.extend([search_text, search_text])
++    
++    # Tag filtering using json_each
++    if tags_filter:
++        # Filter out empty tags
++        valid_tags = [tag for tag in tags_filter if tag]
++        if valid_tags:
++            # We need to ensure ALL specified tags are present in the note's tags array.
++            # Using json_each to expand the tags array into rows, then grouping by note id.
++            # We join notes with json_each(notes.tags) to get individual tag values.
++            # Then we group by note id and ensure the count of matching tags equals the number of requested tags.
++            
++            # Construct the subquery logic:
++            # 1. Join notes with json_each to get one row per tag.
++            # 2. Filter those rows to only those where the tag value is in our filter list.
++            # 3. Group by note id and count distinct matching tags.
++            # 4. Only keep notes where the count of distinct matching tags equals the number of requested tags.
++            
++            # To do this efficiently in a single query without complex subqueries in WHERE,
++            # we can use a HAVING clause on a grouped query, but we need the main select to also work.
++            # Alternatively, we can use a subquery in the FROM clause or a JOIN with a derived table.
++            
++            # Let's use a JOIN with a derived table that identifies valid note IDs.
++            # Derived table: Select note IDs that have ALL the required tags.
++            # This is tricky in SQL. A simpler approach for "ALL tags present" is:
++            # Count the number of distinct tags from the filter that exist in the note's tags array.
++            # If that count equals the number of filter tags, then all are present.
++            
++            # We can achieve this by joining notes with json_each, filtering by the tag list,
++            # grouping by note id, and having count(distinct value) = len(valid_tags).
++            # However, we also need to return the full note data. 
++            
++            # Strategy: 
++            # 1. Create a CTE or subquery that finds note IDs satisfying the tag condition.
++            # 2. Join this back to the notes table.
++            
++            tag_placeholders = ", ".join(["?" for _ in valid_tags])
++            
++            # Subquery to find note IDs that have ALL the specified tags
++            # We join notes with json_each, filter by the tags, group by note id,
++            # and ensure the count of distinct matching tags equals the number of requested tags.
++            tag_subquery = f"""
++                SELECT je.note_id 
++                FROM json_each(notes.tags) je 
++                WHERE je.value IN ({tag_placeholders}) 
++                GROUP BY je.note_id 
++                HAVING COUNT(DISTINCT je.value) = {len(valid_tags)}
++            """
++            
++            # We need to join this subquery with the main notes table.
++            # But the subquery references 'notes.tags' which is ambiguous if we join notes again.
++            # Let's restructure: 
++            # FROM notes 
++            # JOIN ( ... ) AS valid_notes ON notes.id = valid_notes.note_id
++            
++            # The subquery needs to reference the notes table. 
++            # We can do: 
++            # FROM notes 
++            # JOIN (SELECT id as note_id FROM notes ... ) 
++            # But the inner query also needs to scan notes. 
++            
++            # Let's use a simpler approach: 
++            # Filter the notes in the main query using a WHERE clause with a subquery.
++            # WHERE id IN (SELECT id FROM notes WHERE ...)
++            
++            # Subquery: Select note IDs where the note has ALL the specified tags.
++            # We can use the json_each function inside the subquery.
++            
++            # Note: json_each(notes.tags) returns rows with 'key' and 'value'.
++            # We want to check if for a given note, the set of tags in its 'tags' column 
++            # contains all tags in valid_tags.
++            
++            # Using a correlated subquery in the WHERE clause:
++            # WHERE (SELECT COUNT(DISTINCT je.value) FROM json_each(notes.tags) je WHERE je.value IN ({tag_placeholders})) = {len(valid_tags)}
++            
++            # This is efficient enough and avoids complex joins.
++            where_clauses.append(
++                f"(SELECT COUNT(DISTINCT je.value) FROM json_each(notes.tags) je WHERE je.value IN ({tag_placeholders})) = {len(valid_tags)}"
++            )
++            params.extend(valid_tags)
++    
++    # Construct the final query
++    query = base_query
++    if where_clauses:
++        query += " WHERE " + " AND ".join(where_clauses)
++    
++    query += " ORDER BY notes.id ASC LIMIT ? OFFSET ?"
++    params.extend([limit, offset])
++    
++    rows = connection.execute(query, params).fetchall()
++    connection.close()
++    
++    if not rows:
++        return [], 0
++    
++    # The first row contains the total count in 'total_count'
++    total = rows[0]["total_count"]
++    
++    # Convert rows to NoteRow objects
+     note_rows = [_to_note_row(row) for row in rows]
+     
+-    filtered = []
+-    for note_row in note_rows:
+-        matches_search = True
+-        if search_text is not None and search_text != "":
+-            matches_search = (search_text in note_row.title) or (search_text in note_row.body)
+-
+-        matches_tags = True
+-        if tags_filter:
+-            tag_values = {tag for tag in tags_filter if tag}
+-            if not tag_values:
+-                matches_tags = True
+-            else:
+-                matches_tags = all(tag in set(note_row.tags) for tag in tag_values)
+-
+-        if matches_search and matches_tags:
+-            filtered.append(note_row)
+-
+-    total = len(filtered)
+-    paginated = filtered[offset: offset + limit]
+-    return paginated, total
++    return note_rows, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
