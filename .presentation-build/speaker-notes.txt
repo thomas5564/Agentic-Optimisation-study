@@ -1,0 +1,122 @@
+SLIDE 1
+30 seconds • 0:00–0:30
+
+Our project asks whether an LLM agent can become better at optimizing an application by remembering its own previous attempts. We compare full attempt history against a stateless planner while both conditions keep successful code changes. Today I will explain the task and dataset, then separate the experimental system we have verified from the research results we still need to collect.
+
+Sources (repository-relative paths):
+proposal.pdf, title and research question
+docs/PROJECT_REPORT.md, status dated 2026-10-08
+
+SLIDE 2
+50 seconds • 0:30–1:20
+
+The task is performance optimization under a fixed behavioral contract. Our test application stores notes and supports create, read, update, delete, and list or search operations. There are deliberate opportunities in database access and repeated data processing. Memory could help an agent avoid trying the same failed change again. For example, remembering that a cache became stale after an update could improve its next plan. But accepted changes also alter the program. Old advice may become irrelevant, and a longer history could distract the planner. These are competing hypotheses, not findings. We want to observe the whole trajectory over thirty attempts, rather than compare only a single final answer.
+
+Sources (repository-relative paths):
+proposal.pdf, motivation and long-horizon evaluation
+app/db.py
+docs/SPEC.md
+
+SLIDE 3
+70 seconds • 1:20–2:30
+
+There are two kinds of input and output to distinguish. The optimizer receives the current source code and a measured profile. In the memory condition, the Planner also sees every previous attempt and its outcome. The Developer produces a candidate source-code patch. The caching patch on this slide is an illustration, not a change produced by a live model in our experiments. At the application boundary, suppose note one already exists. We update it with the title Revised, the body Updated, and the tag changed. The response must contain that updated note and its ID. A following read must return those same updated values. If a cache returns the old note, the candidate fails correctness regardless of latency. The runner independently decides whether to retain the patch. The experiment's eventual output is a retained application snapshot and a trajectory of measured performance and correctness across attempts.
+
+Sources (repository-relative paths):
+app/main.py, update_note and get_note routes
+app/models.py, Note and NoteUpdate schemas
+agents/schemas/developer.json
+benchmarks/oracle.py
+docs/SPEC.md
+
+SLIDE 4
+70 seconds • 2:30–3:40
+
+We are not training a model or using an external corpus. Our dataset is a reproducible application fixture together with a fixed HTTP request trace and an independent reference oracle. A seeded generator creates notes with five repeating title prefixes, Unicode text, and one or two unique tags drawn from seven choices. Every workload cycle contains twelve requests. Half exercise list or search, three read individual notes, and one each creates, updates, and deletes a note. Reads and searches follow mutations, so the trace can expose stale state. The standalone development benchmark used one hundred starting notes, twenty cycles per repetition, and five repetitions, giving twelve hundred timed requests. The smaller controller and container smoke checks use ten notes and forty-eight requests per measured snapshot. Neither configuration is a finalized research dataset. We will calibrate the final workload in the live pilot. One application and synthetic data limit generalization.
+
+Sources (repository-relative paths):
+benchmarks/fixtures.py
+benchmarks/workload.py
+configs/pilot.yaml
+configs/mock-paired.yaml
+research/evidence/baseline-2026-10-08/benchmark_summary.json
+
+SLIDE 5
+75 seconds • 3:40–4:55
+
+The treatment is explicit attempt history. Both conditions begin from the same baseline and retain code changes that pass the acceptance rule. Stateless therefore does not mean starting from the original program each time. Its Planner sees the currently accepted code and a fresh profile, but no explicit record of past attempts. At attempt k, the memory Planner sees all k minus one previous attempt records, including failed and rejected attempts. We do not select relevant memories or summarize the history because the proposal asks about continuously growing full memory. Planner, Developer, and Auditor are fresh calls. Only the Planner receives history, so hidden conversation state cannot become an extra treatment. The Developer submits a patch, the independent runner decides correctness and acceptance, and the Auditor interprets the measured outcome. The Auditor cannot overrule the runner. Paired independent runs will use the same frozen model and workload settings, with condition order alternated.
+
+Sources (repository-relative paths):
+proposal.pdf, experimental conditions
+agents/inputs.py
+controller/engine.py
+controller/batch.py
+docs/SPEC.md
+
+SLIDE 6
+60 seconds • 4:55–5:55
+
+We need to separate actual optimization from broken behavior and timing noise. First, the candidate must pass the official correctness suite and the workload oracle. The oracle checks complete responses, not just HTTP status. Second, parent and candidate are measured in repeated real HTTP runs. Each repetition starts a fresh application process and database. Setup, warmups, oracle checks, and profiling are outside request timing. The primary score is the median across repetition means. Acceptance requires relative improvement above epsilon, which still needs calibration in a representative pilot. We also report mean and p95 by operation, including separate list and search reporting alongside the proposed CRUD metrics. Third, every attempt gets an authoritative record. Interrupted work can resume, and checkpoint snapshots are remeasured. This makes rejected changes and uncertainty visible instead of reporting only successful patches.
+
+Sources (repository-relative paths):
+benchmarks/run.py
+benchmarks/oracle.py
+controller/evaluation.py
+controller/journal.py
+controller/resume.py
+analysis/report.py
+docs/SPEC.md
+
+SLIDE 7
+65 seconds • 5:55–7:00
+
+The baseline application, benchmark harness, role controller, full-history treatment, recovery, paired scheduling, and offline analysis are implemented. The verified suite has ninety-two passing tests. We ran three scripted mock attempts in each condition: a comment-only patch, a syntax error, and a no-op. All were rejected, so both conditions retained exactly the baseline code. This checks control flow, not model intelligence. Crucially, the memory Planner received zero, one, then two prior records, while the stateless Planner received none in all three iterations. The completed run resumed without changing archived records. In a real Linux container, the official baseline tests passed, all forty-eight timed requests were valid, profiling worked, and the filesystem isolation checks passed. There have been zero live model calls. Any small latency difference between the identical mock snapshots is noise and cannot support a claim that memory helps.
+
+Sources (repository-relative paths):
+research/evidence/controller-2026-10-08/verification.json
+docs/PROJECT_REPORT.md
+
+SLIDE 8
+60 seconds • 7:00–8:00
+
+The next gate is a real model smoke run, followed by a representative pilot. We still need to choose and configure the model, verify one real iteration, and calibrate the workload and acceptance threshold before freezing final settings. The planned study then runs thirty attempts per condition across independent replicate pairs, with at least three pairs and a target of five. We compare remeasured snapshots at attempts ten, fifteen, twenty, twenty-five, and thirty. The statistical replicate is an independent optimization run, not each HTTP request or iteration. We will examine performance together with correctness and failed attempts, and track the growth of history. The central question remains open: does full history improve the trajectory, and does that effect change as the history becomes longer? The system now supports that experiment, but we have not yet established its answer.
+
+Sources (repository-relative paths):
+proposal.pdf, checkpoints and evaluation
+docs/SPEC.md, replication and pilot protocol
+docs/PLAN.md
+docs/PROJECT_REPORT.md
+
+SLIDE 9
+5 minutes • 8:00–13:00
+
+Invite questions. Useful discussion topics: Why use full history instead of retrieval? That preserves the original treatment and tests history growth directly. Why only one application? It controls the task but limits generalization. Is the model chosen? Not yet. Do mock timings show a memory effect? No, both conditions retained identical code. How will we avoid pseudoreplication? Compare independent run pairs, not individual requests as independent experiments. Use the backup slides for workload counts or timing noise.
+
+Sources (repository-relative paths):
+proposal.pdf
+docs/SPEC.md
+docs/PROJECT_REPORT.md
+
+SLIDE 10
+Backup • use only during questions
+
+The twelve-request cycle is: get a seeded note, list, filtered list, add, get the new note, list its tag, update it, get the updated note, list the old tag, list the new tag, delete it, and list the new tag again. A reference oracle checks IDs, content, tags, counts, ordering, pagination, and mutations. The fixture is seeded through the public API so a candidate's schema remains intact. Two development warmup cycles each contain two read-only requests, for four unmeasured warmup requests per repetition. Smoke uses one warmup cycle. The development benchmark recorded all twelve hundred valid requests. The container check recorded all forty-eight. No external or personal dataset is used.
+
+Sources (repository-relative paths):
+benchmarks/fixtures.py
+benchmarks/workload.py
+benchmarks/reset.py
+benchmarks/oracle.py
+configs/pilot.yaml
+configs/mock-paired.yaml
+
+SLIDE 11
+Backup • use only during questions
+
+These five repetition means come from the standalone macOS baseline benchmark. Their spread motivates calibration and repeated measurement. The primary score is the median of those means, approximately 1.109 milliseconds. The recorded coefficient of variation is 16.07 percent and the relative range is 34.48 percent. These values do not establish a reasonable final epsilon by themselves, especially on a small development workload. The smoke configuration's epsilon of 0.5 is explicitly a control-flow threshold, not a final noise-calibrated choice. Do not compare these host timings with Linux container timings. If asked about broader validity, the current design studies one app and a synthetic workload, and its result will be conditional on model, workload, environment, and full-history context limits.
+
+Sources (repository-relative paths):
+research/evidence/baseline-2026-10-08/benchmark_summary.json
+docs/PROJECT_REPORT.md
+configs/mock-paired.yaml
+docs/SPEC.md

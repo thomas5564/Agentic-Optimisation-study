@@ -138,7 +138,7 @@ Evidence (continuation, 2026-10-08):
 - [x] Expose the agent-visible contract; exclude researcher files, source history, and other sessions.
 - [x] Record CLI version, model, reasoning settings, prompt hashes, tool budget, elapsed time, and available usage.
 - [x] Add mocked subprocess tests for errors and malformed outputs without paid calls.
-- [ ] When live execution is requested, run one complete iteration and inspect its artifacts.
+- [x] When live execution is requested, run one complete iteration and inspect its artifacts (Chat alternative; original CLI limitation documented).
 
 Target interface:
 
@@ -255,9 +255,36 @@ Evidence (continuation, 2026-10-08):
 
 ## Experiment execution — after implementation
 
-- [ ] Run a requested 10-iteration pilot and review noise, runtime, token usage, and remaining optimization headroom.
-- [ ] Freeze model, prompts, epsilon, workload, dataset, replication count, timeouts, and repair budget in configs/final.yaml.
-- [ ] Record the final protocol hash before observing final outcomes.
+Live continuation (2026-10-10): credentials were supplied in the ignored
+`soclaas.env`. The Responses adapter completed a valid three-role smoke; the
+original Codex CLI route failed nested sandbox namespace access. Both conditions
+now use fresh tool-free requests with explicit current source/schema inputs and
+isolated candidate execution. See SPEC.md for the protocol adjustment.
+The paired pilot is running for 10 iterations per condition using
+`configs/soclaas-pilot.yaml`. No final outcomes have been observed.
+
+Pre-final selection rule recorded while the pilot is in progress: retain the
+pilot model/provider, prompts, workload, temperature, output budget and limits.
+Choose final epsilon as the larger of 0.08 and 1.5 times the maximum relative
+range from the two pilot baseline measurements, rounded upward to a whole
+percentage point. If this is not below one, recalibration is required rather
+than inventing a final threshold. Target five independent replicate pairs, each
+30 iterations, with the specified checkpoints and alternating condition order.
+This threshold rule depends on unchanged-baseline noise, not which condition
+performs better. The final config and hash will be written only after both pilots
+complete.
+
+Execution authorization (2026-10-10): the user explicitly requested live
+experiment execution and completion of the entire project. This covers the live
+smoke, paired pilots, final study, and analysis. Do not request authorization again
+for their normal steps. Authentication is still a prerequisite: neither
+`CODEX_API_KEY` nor `OPENAI_API_KEY` was present in the execution environment when
+checked. No credential values were read or recorded, and no live inference calls
+were made during the readiness checks. Final protocol settings remain unfrozen.
+
+- [x] Run a requested 10-iteration pilot and review noise, runtime, token usage, and remaining optimization headroom.
+- [x] Freeze model, prompts, epsilon, workload, dataset, replication count, timeouts, and repair budget in configs/final.yaml.
+- [x] Record the final protocol hash before observing final outcomes.
 - [ ] Start all final runs from the untouched baseline; target 5 replicate pairs, or document a smaller budget-driven count.
 - [ ] Execute 30 iterations with checkpoints at 10/15/20/25/30, serial benchmarks, and recorded condition order.
 - [ ] Remeasure final snapshots, generate analysis, and document limitations and deviations.
@@ -270,6 +297,14 @@ Do not launch the full experiment as a side effect of building the software. Onc
 | --- | --- | --- | --- | --- |
 | 2026-10-08 | 1–2 | Audited code/docs/proposal; repaired baseline artifacts and measurement scaffold | 37 tests; 1,200/1,200 requests; separate profile | Historical setup evidence |
 | 2026-10-08 | 3–6 | Implemented controller, container backend, memory, resume, batches, analysis, protocol freeze | 92 tests; three mock iterations per condition; real container checks; offline plots | Milestone 4 live iteration and research execution remain open |
+| 2026-10-10 | Live execution readiness | Started Docker; reverified recorded image, CLI, isolation, baseline correctness, measurement, and profile | Recheck passed with 48/48 valid requests; initial check retained a startup timeout in one test | API credential unavailable; zero live calls; pilot and final protocol still open |
+
+Readiness evidence is archived in `research/evidence/readiness-2026-10-10/`.
+The initial check had 16 passing tests and one fixture startup timeout. Its
+measurements and profile passed. The fresh recheck passed the complete integration
+check. Preserve both observations; no code change or claim of resolving the
+intermittent startup issue was made. Confirm baseline reliability during the pilot
+before attributing any candidate startup failures to agent changes.
 
 ## Decisions and deviations
 
@@ -318,3 +353,51 @@ Record pilot decisions and protocol changes here, with reason and whether they a
 - Final protocol is deliberately unfilled until real pilot evidence exists. Default
   smoke epsilon is only for exercising acceptance control flow. Current mock
   condition differences are timing noise, not evidence about memory effects.
+
+### Completed Chat pilot and final launch (2026-10-10)
+
+Both fresh Chat pilots completed ten attempts, retaining the baseline. Stateless
+had ten incorrect candidates; memory had nine incorrect candidates and one
+correct candidate with insufficient measured improvement. All 60 role responses
+reported `qwen3.6:35b`. Planner history counts were 0 through 9 for memory and
+zero for stateless; Developer/Auditor received no direct history. One stateless
+audit exhausted its output budget and is retained as failed. No context-limit
+event occurred. The partial Responses pilot remains a separate diagnostic cohort.
+
+Maximum pilot baseline relative range was 0.03916367724610253. The previously
+recorded selection rule gives epsilon 0.08. Five pairs and all other pilot
+settings are frozen in `configs/final.yaml` and `configs/final.protocol.json`,
+with config hash `463cd34538d57637df7d85be20f119f0648e63ce3fe421ed473716371969ec54`.
+The serial 300-attempt final batch has started at
+`/Users/jaymesonkoh/.codex/visualizations/2026/10/09/01a11e69-8712-76f2-a79c-5dacf01d710e/experiments/soclaas-final-2026-10-10`.
+No final conclusion is yet available. Earlier open-credential/smoke notes above
+are historical and superseded by this execution evidence.
+
+### User-requested wrap-up (2026-10-10)
+
+The user requested that the current experiment be wrapped up. The active attempt
+was allowed to commit, then the batch was interrupted before the next model call.
+One complete pair (30 attempts each) and one additional memory attempt are retained:
+61 of 300 planned attempts, with seven scheduled runs not started. The next unpaid
+profile stage was interrupted; its journal remains as evidence. There are no
+unresolved paid calls. The partial run was independently remeasured and labeled
+`stopped_by_user`; neither it nor the batch is labeled complete.
+
+All retained snapshots were remeasured. The complete pair's final scores are
+2.747078749 ms stateless and 0.995450131 ms memory (ratio 2.759634726). The sole
+complete pair cannot establish a replicated memory effect. The first memory
+improvement occurred before any historical input, and stopping followed visible
+interim outcomes. Preserve these limitations in any presentation.
+
+The offline report is `soclaas-final-report-2026-10-10` under the external artifact
+root above. PROJECT_REPORT.md now records the actual findings, dataset, proposal
+alignment and limitations. Integrity checks verified complete ordered memory,
+absence of history from Developer/Auditor, all journal result hashes, baseline
+immutability and reported model identity. No credential matches were found in
+2,882 scanned evidence files. Compact records are
+`research/evidence/live-2026-10-10/final-execution-status.json` and
+`research/evidence/live-2026-10-10/wrap-up-verification.json`.
+
+The final-execution checkboxes remain open for the unperformed five-pair study.
+This is a completed wrap-up of an explicitly stopped experiment, not completion
+of the original full research protocol. No further execution is scheduled.

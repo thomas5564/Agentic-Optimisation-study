@@ -1,0 +1,78 @@
+..........E......                                                        [100%]
+==================================== ERRORS ====================================
+____________ ERROR at setup of test_validation_boundaries[payload2] ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_validation_boundaries_pay2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0xffffa7ede890>
+
+    @pytest.fixture
+    def client(tmp_path, monkeypatch):
+        import os
+        if os.environ.get("NOTES_EVALUATION_ROOT"):
+            from pathlib import Path
+            from benchmarks.config import BenchmarkConfig
+            from benchmarks.runtime import candidate_server
+>           with candidate_server(Path(os.environ["NOTES_EVALUATION_ROOT"]), BenchmarkConfig(), tmp_path / "server.log") as (remote, _):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_notes.py:14: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.13/contextlib.py:141: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+app_root = PosixPath('/workspace')
+config = BenchmarkConfig(seed=7, note_count=100, cycles=20, repetitions=5, warmups=2, timeout_seconds=5.0, startup_timeout_seconds=15.0, concurrency=1)
+log_path = PosixPath('/tmp/pytest-of-unknown/pytest-0/test_validation_boundaries_pay2/server.log')
+profile = None, database = None
+
+    @contextmanager
+    def candidate_server(app_root: Path, config: BenchmarkConfig, log_path: Path, profile: Path | None = None,
+                         database: Path | None = None):
+        if not (app_root / "app" / "main.py").is_file():
+            raise ValueError(f"Candidate app/main.py is missing from {app_root}")
+        with tempfile.TemporaryDirectory(prefix="notes-measure-") as directory:
+            scratch = Path(directory)
+            ready = scratch / "ready"
+            active = scratch / "profile-active"
+            command = [sys.executable, "-m", "benchmarks.server", "--app-root", str(app_root.resolve()), "--ready", str(ready)]
+            if profile:
+                command += ["--profile", str(profile.resolve()), "--profile-active", str(active)]
+            env = {**os.environ, "NOTES_DB_PATH": str(database or scratch / "notes.db"),
+                   "PYTHONPATH": str(PROJECT_ROOT), "PYTHONDONTWRITEBYTECODE": "1"}
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            with log_path.open("w") as log:
+                process = subprocess.Popen(command, cwd=scratch, env=env, stdout=log, stderr=log)
+                try:
+                    deadline = time.monotonic() + config.startup_timeout_seconds
+                    while not ready.exists():
+                        if process.poll() is not None:
+                            raise RuntimeError(f"Candidate import/startup failed; see {log_path}")
+                        if time.monotonic() >= deadline:
+                            raise TimeoutError(f"Candidate startup timed out; see {log_path}")
+                        time.sleep(.02)
+                    with httpx.Client(base_url=f"http://127.0.0.1:{ready.read_text()}",
+                                      timeout=config.timeout_seconds, trust_env=False) as client:
+                        while True:
+                            if process.poll() is not None:
+                                raise RuntimeError(f"Candidate exited at startup; see {log_path}")
+                            remaining = deadline - time.monotonic()
+                            if remaining <= 0:
+>                               raise TimeoutError(f"Candidate startup timed out; see {log_path}")
+E                               TimeoutError: Candidate startup timed out; see /tmp/pytest-of-unknown/pytest-0/test_validation_boundaries_pay2/server.log
+
+/runner/benchmarks/runtime.py:65: TimeoutError
+=============================== warnings summary ===============================
+../usr/local/lib/python3.13/site-packages/_pytest/config/__init__.py:1290
+  /usr/local/lib/python3.13/site-packages/_pytest/config/__init__.py:1290: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+../usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_notes.py::test_validation_boundaries[payload2] - TimeoutErro...
+16 passed, 2 warnings, 1 error in 29.38s

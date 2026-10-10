@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-10",
+  "provider": "https://soclaas-api.comp.nus.edu.sg/v1",
+  "model_alias": "default",
+  "fixed_model_version_known": false,
+  "transport": "responses",
+  "role_tools": [],
+  "tests_passed": 97,
+  "test_warnings": 33,
+  "calibration": {
+    "notes": 2000,
+    "cycles": 100,
+    "repetitions": 5,
+    "successful_requests": 6000,
+    "baseline_score_ms": 3.7930440683352153,
+    "relative_range": 0.030085521987033136,
+    "provisional_pilot_epsilon": 0.08
+  },
+  "pilot_iterations_per_condition": 10,
+  "pilot_root": "/Users/jaymesonkoh/.codex/visualizations/2026/10/09/01a11e69-8712-76f2-a79c-5dacf01d710e/experiments/soclaas-pilot-2026-10-10",
+  "final_protocol_frozen": false,
+  "retained_failed_smokes": [
+    "/tmp/notes-soclaas-smoke-2026-10-10",
+    "/tmp/notes-soclaas-smoke-2026-10-10-homefix",
+    "/tmp/notes-soclaas-responses-smoke-2026-10-10"
+  ]
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from urllib.parse import urlsplit
 from pathlib import Path
 from typing import Literal
 import yaml
@@ -26,6 +27,10 @@ class ExperimentConfig(StrictModel):
     checkpoints: list[int] = Field(default_factory=lambda: [10, 15, 20, 25, 30])
     mock_cases: list[str] = Field(default_factory=lambda: ["noop"])
     model: str | None = None
+    provider_base_url: str | None = None
+    provider_key_env: Literal["CODEX_API_KEY", "SOCLAAS_API_KEY"] = "CODEX_API_KEY"
+    max_response_tokens: int = Field(default=12000, gt=0)
+    temperature: float = Field(default=0.2, ge=0, le=2)
     reasoning: str = "medium"
     image: str | None = None
     agent_network: str = "bridge"
@@ -35,6 +40,10 @@ class ExperimentConfig(StrictModel):
 
     @model_validator(mode="after")
     def validate_settings(self):
+        if self.provider_base_url:
+            url = urlsplit(self.provider_base_url)
+            if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
+                raise ValueError("Provider URL must be HTTPS without credentials, query, or fragment")
         try:
             BenchmarkConfig(**self.benchmark)
         except (TypeError, ValueError) as error:

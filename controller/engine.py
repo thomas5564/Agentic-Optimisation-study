@@ -50,15 +50,17 @@ def decide(validation: dict | None, parent: dict | None, candidate: dict | None,
 def initialize_run(root: Path, config: ExperimentConfig, backend_name: str, condition: str,
                    iterations: int, *, synthetic: bool = False, pair_id: str | None = None,
                    preflight: dict | None = None) -> dict:
-    if condition not in {"memory", "stateless"} or backend_name not in {"mock", "codex"}:
+    if condition not in {"memory", "stateless"} or backend_name not in {"mock", "codex", "responses", "chat"}:
         raise ValueError("Unknown condition or backend")
     if iterations < 1 or iterations > 30:
         raise ValueError("iterations must be between 1 and 30")
-    if config.phase == "final" and (iterations != 30 or backend_name != "codex" or synthetic):
-        raise ValueError("Final runs require 30 iterations and a real Codex backend")
+    if config.phase == "final" and (iterations != 30 or backend_name == "mock" or synthetic):
+        raise ValueError("Final runs require 30 iterations and a real isolated backend")
     if config.phase == "final":
         from controller.freeze import validate_frozen
         validate_frozen(config)
+        if read_json(Path(config.pilot_record)).get("backend", "codex") != backend_name:
+            raise ValueError("Final backend differs from the frozen pilot protocol")
     if config.phase == "pilot" and iterations > 10:
         raise ValueError("Pilot horizon is at most 10")
     if root.resolve().is_relative_to(PROJECT_ROOT):
@@ -113,7 +115,7 @@ class Engine:
             raise ValueError("Runtime/dependencies changed since run creation")
         if bool(getattr(self.evaluator, "synthetic", False)) != manifest["synthetic"]:
             raise ValueError("Cannot mix synthetic and real evaluation")
-        if manifest["backend"] == "codex" and not getattr(self.evaluator, "isolated", False):
+        if manifest["backend"] != "mock" and not getattr(self.evaluator, "isolated", False):
             raise ValueError("Live candidates require container-isolated evaluation")
         baseline = load_snapshot(self.root, manifest["baseline_hash"])
         if content_hash(baseline) != manifest["baseline_files_hash"]:

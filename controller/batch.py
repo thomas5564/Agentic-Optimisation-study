@@ -5,8 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from agents.codex import CodexBackend
-from agents.mock import MockBackend
+from agents.factory import make_backend
 from benchmarks.metrics import write_json
 from benchmarks.run import content_hash
 from controller.config import load_config
@@ -31,8 +30,8 @@ def run_batch(config, backend_name: str, iterations: int, output: Path):
         states = []
         for entry in schedule:
             settings = config.model_copy(update={"benchmark": {**config.benchmark, "seed": entry["seed"]}})
-            backend = MockBackend() if backend_name == "mock" else CodexBackend(settings)
-            preflight = backend.preflight() if backend_name == "codex" else None
+            backend = make_backend(backend_name, settings)
+            preflight = backend.preflight() if backend_name != "mock" else None
             root = output / entry["directory"]
             with run_lock(root):
                 if not (root / "manifest.json").exists():
@@ -42,7 +41,7 @@ def run_batch(config, backend_name: str, iterations: int, output: Path):
                     existing = read_json(root / "manifest.json")
                     if existing["config_hash"] != content_hash(settings.model_dump()) or existing["preflight"] != preflight:
                         raise ValueError("Saved batch run configuration/backend differs")
-            state = Engine(root, backend, Evaluator(settings, isolated=backend_name == "codex")).run()
+            state = Engine(root, backend, Evaluator(settings, isolated=backend_name != "mock")).run()
             states.append({**entry, **state})
             write_json(output / "batch-status.json", {"runs": states, "complete": len(states) == len(schedule) and all(s["status"] == "complete" for s in states)})
             if state["status"] != "complete":
@@ -52,7 +51,7 @@ def run_batch(config, backend_name: str, iterations: int, output: Path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--backend", choices=["mock", "codex"], required=True)
+    parser.add_argument("--backend", choices=["mock", "codex", "responses", "chat"], required=True)
     parser.add_argument("--iterations", type=int, required=True)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)

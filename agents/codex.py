@@ -16,12 +16,26 @@ REQUIRED_FLAGS = ("--ephemeral", "--ignore-user-config", "--ignore-rules", "--ou
 
 
 def codex_arguments(config) -> list[str]:
+    provider = []
+    if config.provider_base_url:
+        settings = {
+            "model_provider": "experiment",
+            "model_providers.experiment.name": "Experiment endpoint",
+            "model_providers.experiment.base_url": config.provider_base_url,
+            "model_providers.experiment.env_key": config.provider_key_env,
+            "model_providers.experiment.wire_api": "responses",
+            "model_providers.experiment.requires_openai_auth": False,
+            "model_providers.experiment.request_max_retries": 0,
+            "model_providers.experiment.stream_max_retries": 0,
+        }
+        for key, value in settings.items():
+            provider.extend(["-c", f"{key}={json.dumps(value)}"])
     return ["codex", "--no-daemon", "--ask-for-approval", "never", "exec",
             "--model", config.model, "--sandbox", "read-only", "--ephemeral",
             "--ignore-user-config", "--ignore-rules", "--skip-git-repo-check",
             "--json", "--color", "never", "--cd", "/workspace",
             "-c", f"model_reasoning_effort={json.dumps(config.reasoning)}",
-            "--output-schema", "/input/schema.json", "--output-last-message", "/result/answer.json", "-"]
+            *provider, "--output-schema", "/input/schema.json", "--output-last-message", "/result/answer.json", "-"]
 
 
 def inspect_cli(config) -> dict:
@@ -48,8 +62,8 @@ class CodexBackend:
     def preflight(self):
         if not self.config.model:
             raise PrerequisiteError("Set an explicit model in the experiment config")
-        if not os.environ.get("CODEX_API_KEY"):
-            raise PrerequisiteError("Set CODEX_API_KEY outside source control; host login/home is never mounted")
+        if not os.environ.get(self.config.provider_key_env):
+            raise PrerequisiteError(f"Set {self.config.provider_key_env} outside source control; host login/home is never mounted")
         from agents.preflight import isolation_probe
         evidence = inspect_cli(self.config)
         evidence["isolation_probe"] = isolation_probe(self.config)
@@ -68,7 +82,9 @@ class CodexBackend:
             name = "notes-role-" + uuid.uuid4().hex
             command = container_command(config.image, name, config.agent_network)
             command += mount(workspace, "/workspace") + mount(incoming, "/input") + mount(outgoing, "/result", False)
-            command += ["--env", "CODEX_API_KEY", config.image, *codex_arguments(config)]
+            command += ["--env", config.provider_key_env, config.image,
+                        "sh", "-c", 'mkdir -p /tmp/home /tmp/codex && exec "$@"', "sh",
+                        *codex_arguments(config)]
             try:
                 result = run_process(command, stdin=prompt_text(role, payload), timeout=config.role_timeout_seconds,
                                      max_bytes=config.max_output_bytes * 8, max_tool_calls=config.max_tool_calls)
@@ -88,7 +104,8 @@ class CodexBackend:
                         compacted = True
                 except (ValueError, AttributeError):
                     pass
-            metadata = {"model": config.model, "reasoning": config.reasoning, "image": config.image}
+            metadata = {"model": config.model, "reasoning": config.reasoning, "image": config.image,
+                        "provider_base_url": config.provider_base_url}
             common = dict(elapsed_seconds=float(result.elapsed), exit_code=result.returncode, usage=usage, metadata=metadata)
             if compacted or "context window" in result.stderr.lower() or "context_length_exceeded" in result.stdout:
                 return RoleResult(status="context_limit", error="Context overflow/compaction detected; full-history protocol stopped", **common)

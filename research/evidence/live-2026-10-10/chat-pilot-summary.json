@@ -1,0 +1,137 @@
+[
+  {
+    "run": "pair-00-memory",
+    "statuses": {
+      "evaluated": 1,
+      "correctness_failed": 9
+    },
+    "accepted": 0,
+    "memory_counts": {
+      "planner": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "developer": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "auditor": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "reported_models": {
+      "qwen3.6:35b": 30
+    },
+    "baseline_noise": {
+      "coefficient_of_variation": 0.01639022671683502,
+      "epsilon": null,
+      "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+      "relative_range": 0.03916367724610253,
+      "repetition_means_ms": [
+        3.8803115866673465,
+        3.7931133808337827,
+        3.9277009491672743,
+        3.7773245425007453,
+        3.8200029599992527
+      ]
+    },
+    "state": {
+      "completed_iterations": 10,
+      "final_remeasurement_score_ms": 3.7961576433377786,
+      "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+      "status": "complete"
+    }
+  },
+  {
+    "run": "pair-00-stateless",
+    "statuses": {
+      "correctness_failed": 10
+    },
+    "accepted": 0,
+    "memory_counts": {
+      "planner": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "developer": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "auditor": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "reported_models": {
+      "qwen3.6:35b": 30
+    },
+    "baseline_noise": {
+      "coefficient_of_variation": 0.010992408423048097,
+      "epsilon": null,
+      "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+      "relative_range": 0.024038782859704656,
+      "repetition_means_ms": [
+        3.8247103758337886,
+        3.8223863724993143,
+        3.9153877783334443,
+        3.890628705834326,
+        3.8909206099997107
+      ]
+    },
+    "state": {
+      "completed_iterations": 10,
+      "final_remeasurement_score_ms": 3.7626067275028654,
+      "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+      "status": "complete"
+    }
+  }
+]

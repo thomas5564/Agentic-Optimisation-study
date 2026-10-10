@@ -1,0 +1,131 @@
+{
+  "runs": [
+    {
+      "run": "pair-00-memory",
+      "attempts": 30,
+      "state": {
+        "completed_iterations": 30,
+        "final_remeasurement_score_ms": 0.9954501308455596,
+        "retained_hash": "c70ad2e6cdf32bceb14a9e8f62351759ff487877ac48cee94fb6d04ac7329da7",
+        "status": "complete"
+      },
+      "reported_models": {
+        "qwen3.6:35b": 90
+      },
+      "planner_memory_counts": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29
+      ],
+      "developer_auditor_history_absent": true,
+      "integrity_verified": true
+    },
+    {
+      "run": "pair-00-stateless",
+      "attempts": 30,
+      "state": {
+        "completed_iterations": 30,
+        "final_remeasurement_score_ms": 2.7470787491703654,
+        "retained_hash": "bb59039e38d8bfb91efe852777331e361c02d872fb355e9c274434429dc20d8b",
+        "status": "complete"
+      },
+      "reported_models": {
+        "qwen3.6:35b": 89
+      },
+      "planner_memory_counts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "developer_auditor_history_absent": true,
+      "integrity_verified": true
+    },
+    {
+      "run": "pair-01-memory",
+      "attempts": 1,
+      "state": {
+        "completed_iterations": 1,
+        "final_remeasurement_score_ms": 4.09220315835455,
+        "planned_iterations": 30,
+        "reason": "User requested wrap-up; active attempt completed, remaining horizon and scheduled runs not executed.",
+        "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+        "status": "stopped_by_user"
+      },
+      "reported_models": {
+        "qwen3.6:35b": 3
+      },
+      "planner_memory_counts": [
+        0
+      ],
+      "developer_auditor_history_absent": true,
+      "integrity_verified": true
+    }
+  ],
+  "credential_scan_files": 2882,
+  "credential_matches": 0,
+  "baseline_integrity_verified": true,
+  "interrupted_unpaid_stage": "pair-01-memory/002-profile: interrupted before any next model call; original journal preserved",
+  "no_unresolved_paid_calls": true,
+  "tests": {
+    "command": ".venv/bin/python -m pytest tests/ -q",
+    "passed": 100,
+    "warnings": 33,
+    "elapsed_seconds": 15.67
+  },
+  "git_diff_check": "passed",
+  "figures_reviewed": true
+}

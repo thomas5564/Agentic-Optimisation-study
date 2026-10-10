@@ -1,0 +1,35 @@
+schema_version: 1
+phase: smoke
+epsilon: 0.5
+baseline: research/baseline
+model: default
+reasoning: none
+image: sha256:385b5ef7719da065679daedf775a6a35567c9be0ddffa3143e659f21ab744238
+agent_network: bridge
+benchmark:
+  seed: 7
+  note_count: 10
+  cycles: 2
+  repetitions: 2
+  warmups: 1
+  concurrency: 1
+  timeout_seconds: 5.0
+  startup_timeout_seconds: 15.0
+role_timeout_seconds: 300
+evaluation_timeout_seconds: 300
+max_input_bytes: 200000
+max_output_bytes: 1000000
+max_tool_calls: 0
+repair_budget: 0
+role_retries: 0
+checkpoints:
+- 10
+- 15
+- 20
+- 25
+- 30
+replicates: 3
+provider_base_url: https://soclaas-api.comp.nus.edu.sg/v1
+provider_key_env: SOCLAAS_API_KEY
+max_response_tokens: 12000
+temperature: 0.2

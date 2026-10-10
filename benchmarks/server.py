@@ -74,6 +74,9 @@ def main():
         # Uvicorn may re-raise SIGTERM after graceful shutdown, before finally.
         app.router.add_event_handler("shutdown", save_profiles)
     with socket.socket() as sock:
+        # The harness supplies the listening socket to Uvicorn. Disable Nagle
+        # explicitly so small split HTTP writes do not wait for delayed ACKs.
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         sock.bind(("127.0.0.1", 0))
         sock.listen(128)
         args.ready.write_text(str(sock.getsockname()[1]))

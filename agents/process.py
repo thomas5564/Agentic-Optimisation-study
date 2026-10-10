@@ -13,7 +13,7 @@ import time
 
 
 def redact(text: str) -> str:
-    for name in ("CODEX_API_KEY", "OPENAI_API_KEY"):
+    for name in ("CODEX_API_KEY", "OPENAI_API_KEY", "SOCLAAS_API_KEY"):
         value = os.environ.get(name)
         if value:
             text = text.replace(value, "[REDACTED]")

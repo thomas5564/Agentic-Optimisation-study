@@ -4,8 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from agents.codex import CodexBackend
-from agents.mock import MockBackend
+from agents.factory import make_backend
 from controller.config import load_config
 from controller.engine import Engine, initialize_run
 from controller.evaluation import Evaluator
@@ -14,7 +13,7 @@ from controller.storage import run_lock
 
 def main():
     parser = argparse.ArgumentParser(description="Run a journaled optimization experiment")
-    parser.add_argument("--backend", choices=["mock", "codex"], required=True)
+    parser.add_argument("--backend", choices=["mock", "codex", "responses", "chat"], required=True)
     parser.add_argument("--condition", choices=["stateless", "memory"], required=True)
     parser.add_argument("--iterations", type=int, required=True)
     parser.add_argument("--config", type=Path, required=True)
@@ -22,11 +21,11 @@ def main():
     args = parser.parse_args()
     try:
         config = load_config(args.config)
-        backend = MockBackend() if args.backend == "mock" else CodexBackend(config)
-        preflight = backend.preflight() if args.backend == "codex" else None
+        backend = make_backend(args.backend, config)
+        preflight = backend.preflight() if args.backend != "mock" else None
         with run_lock(args.output):
             initialize_run(args.output, config, args.backend, args.condition, args.iterations, preflight=preflight)
-        engine = Engine(args.output, backend, Evaluator(config, isolated=args.backend == "codex"))
+        engine = Engine(args.output, backend, Evaluator(config, isolated=args.backend != "mock"))
         state = engine.run()
     except (ValueError, RuntimeError, OSError) as error:
         parser.exit(2, f"{error}\n")

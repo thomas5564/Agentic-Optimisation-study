@@ -1,0 +1,45 @@
+{
+  "backend": "chat",
+  "config_hash": "463cd34538d57637df7d85be20f119f0648e63ce3fe421ed473716371969ec54",
+  "iterations": 30,
+  "max_baseline_relative_range": 0.03916367724610253,
+  "pilot_evidence": [
+    {
+      "baseline_noise": {
+        "coefficient_of_variation": 0.010992408423048097,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.024038782859704656,
+        "repetition_means_ms": [
+          3.8247103758337886,
+          3.8223863724993143,
+          3.9153877783334443,
+          3.890628705834326,
+          3.8909206099997107
+        ]
+      },
+      "condition": "stateless",
+      "manifest_hash": "78f9afa2cee1a4c111fc40f4b938680c4a0f9dd0a1d5094ff4da10af82501810",
+      "run_id": "238ec0cacc7244158b4716c673c10461"
+    },
+    {
+      "baseline_noise": {
+        "coefficient_of_variation": 0.01639022671683502,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.03916367724610253,
+        "repetition_means_ms": [
+          3.8803115866673465,
+          3.7931133808337827,
+          3.9277009491672743,
+          3.7773245425007453,
+          3.8200029599992527
+        ]
+      },
+      "condition": "memory",
+      "manifest_hash": "a2c1a00b38c3337afc5ae25fd122c2fe96bdb1c71ab7b60d510722c985231f6f",
+      "run_id": "4badbc1f3a8d403899e54ee6e2bb6627"
+    }
+  ],
+  "schema_version": 1
+}

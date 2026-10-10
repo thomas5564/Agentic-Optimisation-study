@@ -4,8 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from agents.codex import CodexBackend
-from agents.mock import MockBackend
+from agents.factory import make_backend
 from controller.config import ExperimentConfig
 from controller.engine import Engine
 from controller.evaluation import Evaluator
@@ -24,8 +23,8 @@ def main():
     try:
         manifest = read_json(args.run_dir / "manifest.json")
         config = ExperimentConfig.model_validate(manifest["config"])
-        backend = MockBackend() if manifest["backend"] == "mock" else CodexBackend(config)
-        if manifest["backend"] == "codex":
+        backend = make_backend(manifest["backend"], config)
+        if manifest["backend"] != "mock":
             evidence = backend.preflight()
             if evidence != manifest["preflight"]:
                 raise ValueError("Live backend changed since run creation")
@@ -35,7 +34,7 @@ def main():
         if args.recover_call:
             with run_lock(args.run_dir):
                 Journal(args.run_dir).recover_call(args.recover_call)
-        state = Engine(args.run_dir, backend, Evaluator(config, isolated=manifest["backend"] == "codex")).run()
+        state = Engine(args.run_dir, backend, Evaluator(config, isolated=manifest["backend"] != "mock")).run()
     except (ValueError, RuntimeError, OSError) as error:
         parser.exit(2, f"{error}\n")
     print(json.dumps(state, indent=2))

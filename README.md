@@ -3,8 +3,11 @@
 A COMP 690-158 research testbed comparing stateless and full-history LLM code
 optimization. The corrected notes baseline and local benchmark/profile harness
 are implemented, together with the mock controller, memory treatment, resume,
-replication, analysis, and container backend. Unpaid container checks pass; the
-live-model smoke check and research experiments remain to be run.
+replication, analysis, and container backend. The live SOCLAAS Chat Completions pilot completed
+10 attempts per condition. The study was stopped at the user’s request after 61 of 300 planned
+final-study attempts: one complete 30-attempt pair and one partial memory run.
+The completed pair measured 2.747 ms (stateless) and 0.995 ms (memory); one pair
+does not establish a reliable memory effect. No model calls are running.
 See [the current report](docs/PROJECT_REPORT.md), [specification](docs/SPEC.md),
 and [implementation plan](docs/PLAN.md). Read [development instructions](docs/AGENTS.md)
 before making changes; those instructions are never experimental agent inputs.
@@ -101,13 +104,14 @@ condition comparison. Old tracked `tmp/` and `benchmark-output/` results predate
 the corrected harness and contain semantic failures; they are not valid evidence
 of optimization gains.
 
-Next execution step: an explicitly requested live smoke iteration with a chosen
-model. No real model calls or long-horizon research experiments have run.
+Live execution has stopped at the user’s request. The SOCLAAS setup is described
+below for reproducibility. Calibration and smoke evidence is in `research/evidence/live-2026-10-10/`.
 
 ## Optimization controller, memory, and resume
 
-Milestones 3, 5, and 6 are implemented and tested. Milestone 4's container adapter
-and unpaid integration checks pass; a live model iteration remains unchecked.
+Milestones 1–6 are implemented. Live Chat Completions role execution and
+container evaluation are verified; the original Codex CLI route has a documented
+nested-sandbox limitation.
 The pipeline profiles the accepted snapshot, invokes three fresh roles, validates
 a JSON patch, runs protected correctness tests and measurements, makes a
 deterministic acceptance decision, and atomically records the attempt and memory.
@@ -198,8 +202,42 @@ and captures supported usage fields; unknown usage/cost stays null.
 python -m controller.run --backend codex --condition stateless --iterations 1 --config /path/to/live.yaml --output /tmp/notes-live-smoke
 ```
 
-No live inference has been run or certified. API authentication, model availability,
-actual role behavior, and live context/compaction behavior remain to be checked.
+The original CLI route cannot run shell tools in the current restricted container
+namespaces. Its failed smokes are retained. The direct Responses route below has
+completed a live plan, patch, correctness rejection and valid audit.
+
+### SOCLAAS provider
+
+The Codex adapter also accepts an HTTPS `provider_base_url` and a
+`provider_key_env` of `SOCLAAS_API_KEY`. Credentials stay in the ignored
+`soclaas.env` file and are passed by environment variable into fresh role
+containers. The file must contain `SOCLAAS_BASE_URL`, `SOCLAAS_API_KEY`, and
+`SOCLAAS_MODEL`; it is parsed as data, never executed as a shell script. Only
+nonsecret endpoint/model settings enter the versioned experiment config.
+
+```bash
+python -m agents.credentials --file soclaas.env --module controller.run -- --backend codex --condition stateless --iterations 1 --config configs/soclaas-smoke.yaml --output /tmp/notes-soclaas-smoke
+```
+
+The same wrapper supports `controller.batch` and `controller.resume`. The
+provider must support the Responses API including the Codex tool/streaming
+protocol for the CLI route. The `responses` backend instead sends current source
+and schemas explicitly, with no model tools, no implicit conversation history,
+and isolated candidate evaluation. This route was used for initial compatibility checks.
+
+SOCLAAS's Responses route produced repeated provider-internal tool errors and
+an empty completion. The `chat` backend uses Chat Completions with native strict JSON-schema
+output plus client-side validation, and explicit `tool_choice=none`. It reports the actual
+returned model and normalizes prompt/completion token counts:
+
+```bash
+python -m agents.credentials --file soclaas.env --module controller.batch -- --backend chat --iterations 10 --config configs/soclaas-pilot.yaml --output /path/outside/repository/pilot
+```
+
+A successful basic API request does not certify the complete role loop.
+Provider endpoint and credential-variable name are frozen with the final model
+settings. A provider alias such as `default` is recorded literally and does not
+establish an immutable underlying model version.
 
 ## Offline analysis and final protocol
 
@@ -224,7 +262,7 @@ config before observing final outcomes:
 
 ```bash
 python -m controller.freeze --config /path/to/chosen-pilot-settings.yaml --pilot-runs /path/to/stateless-pilot /path/to/memory-pilot --output configs/final.yaml
-python -m controller.batch --backend codex --iterations 30 --config configs/final.yaml --output /path/to/final-runs
+python -m agents.credentials --file soclaas.env --module controller.batch -- --backend chat --iterations 30 --config configs/final.yaml --output /path/to/final-runs
 ```
 
 Freezing requires real completed pilot evidence, unchanged model/image/workload
@@ -232,4 +270,7 @@ settings, epsilon above the observed baseline relative-range noise, an explicit
 context admission limit, and at least three replicate pairs. The final horizon
 is exactly 30, with checkpoints at 10/15/20/25/30. Batch order alternates conditions
 across pairs, uses the same recorded workload seed within and across pairs, and
-serializes all measurement. Final run data and figures do not yet exist.
+serializes all measurement. The frozen `configs/final.yaml` records five pairs,
+2,000 seeded notes, 100 cycles, five repetitions, and epsilon 0.08. The final
+study stopped early; do not rerun the freeze command over the existing protocol.
+Pilot evidence is in `research/evidence/live-2026-10-10/chat-pilot-summary.json`.

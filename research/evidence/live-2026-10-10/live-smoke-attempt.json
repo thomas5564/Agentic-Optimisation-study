@@ -1,0 +1,197 @@
+{
+  "attempt_id": "15a06fc9d0a3477b9c424a00655ce5c9:001",
+  "audit": {
+    "interpretation": "The plan proposes refactoring `list_notes` to move filtering and sorting from Python to SQL, aiming to reduce latency by minimizing data transfer and object creation. The patch implements this by constructing dynamic SQL with `LIKE` for text search and a correlated subquery using `json_each` for tag filtering. The official validation marked the patch as `correct: false` with status `correctness_failed`, leading to a rejection decision. The primary correctness risk identified in the plan is the potential lack of `json_each` support in older SQLite versions, though the implementation assumes its availability. A secondary logical flaw exists in the tag filtering subquery: `n.id = notes.id` is a correlated reference that may not behave as intended in all SQLite contexts or could be optimized away incorrectly, potentially causing incorrect results or performance degradation. Additionally, the `search_text` filter uses `LIKE` which is case-sensitive by default in SQLite, aligning with the contract, but the implementation does not explicitly handle SQL injection beyond parameterization, which is present. The rejection suggests the validation suite detected a deviation from the expected API contract behavior, likely related to the complex SQL generation or the `json_each` usage not matching the required exact tag matching semantics perfectly under all conditions.",
+    "limitations": [
+      "The interpretation relies on the provided validation status and does not include specific error logs or test case failures.",
+      "The analysis of the SQL subquery logic is theoretical and may not reflect the exact runtime behavior in the validation environment.",
+      "No performance measurements are provided to confirm the hypothesized latency reduction.",
+      "The specific reason for `correctness_failed` is not detailed in the input, limiting precise diagnosis."
+    ],
+    "schema_version": 1
+  },
+  "audit_status": "passed",
+  "candidate_hash": "829ac96d75d410f30b99948d38e87bb7b72c497da9ee7b9243bd9192f82eb319",
+  "candidate_measurement": null,
+  "condition": "stateless",
+  "config_hash": "7c1537f9f6593337ec1c8e07c50c220c70f556ac094e9b778606e58fd8fd01cf",
+  "decision": {
+    "accepted": false,
+    "reason": "correctness_failed",
+    "relative_improvement": null
+  },
+  "iteration": 1,
+  "memory": {
+    "approach": "query",
+    "attempted_change": "Refactor the list_notes function in app/db.py to perform filtering and sorting in SQL. Instead of SELECT * FROM notes ORDER BY id ASC followed by Python-side filtering, construct a dynamic SQL query with WHERE clauses for search_text (using LIKE) and tags (using json_each). The new implementation will: 1) Build a base query selecting id, title, body, tags from notes. 2) Add a WHERE clause for search_text using LIKE if provided. 3) If tags_filter is provided, use a subquery with json_each to ensure all specified tags are present in the note's tags array. 4) Order by id ASC and apply offset/limit. This reduces the number of rows processed in Python, thereby reducing json.loads and _to_note calls.",
+    "audit_status": "passed",
+    "candidate_hash": "829ac96d75d410f30b99948d38e87bb7b72c497da9ee7b9243bd9192f82eb319",
+    "facts": {
+      "acceptance": {
+        "accepted": false,
+        "reason": "correctness_failed",
+        "relative_improvement": null
+      },
+      "after_score_ms": null,
+      "before_score_ms": null,
+      "candidate_counts": null,
+      "correctness": {
+        "correct": false,
+        "status": "correctness_failed"
+      },
+      "status": "correctness_failed"
+    },
+    "hypothesis": "The list_notes endpoint is the primary bottleneck, consuming ~95% of CPU time. The current implementation fetches all notes from SQLite into Python, then performs filtering and sorting in Python. This is inefficient because SQLite is optimized for set-based operations. By moving the filtering (search_text, tags) and sorting (ORDER BY id) into the SQL query, we reduce the amount of data transferred from the database, reduce Python object creation overhead, and leverage SQLite's C-level optimizations. The profile shows 60,160 calls to _to_note and json.loads, which will be significantly reduced by only fetching the relevant rows.",
+    "interpretation": "The plan proposes refactoring `list_notes` to move filtering and sorting from Python to SQL, aiming to reduce latency by minimizing data transfer and object creation. The patch implements this by constructing dynamic SQL with `LIKE` for text search and a correlated subquery using `json_each` for tag filtering. The official validation marked the patch as `correct: false` with status `correctness_failed`, leading to a rejection decision. The primary correctness risk identified in the plan is the potential lack of `json_each` support in older SQLite versions, though the implementation assumes its availability. A secondary logical flaw exists in the tag filtering subquery: `n.id = notes.id` is a correlated reference that may not behave as intended in all SQLite contexts or could be optimized away incorrectly, potentially causing incorrect results or performance degradation. Additionally, the `search_text` filter uses `LIKE` which is case-sensitive by default in SQLite, aligning with the contract, but the implementation does not explicitly handle SQL injection beyond parameterization, which is present. The rejection suggests the validation suite detected a deviation from the expected API contract behavior, likely related to the complex SQL generation or the `json_each` usage not matching the required exact tag matching semantics perfectly under all conditions.",
+    "iteration": 1,
+    "limitations": [
+      "The interpretation relies on the provided validation status and does not include specific error logs or test case failures.",
+      "The analysis of the SQL subquery logic is theoretical and may not reflect the exact runtime behavior in the validation environment.",
+      "No performance measurements are provided to confirm the hypothesized latency reduction.",
+      "The specific reason for `correctness_failed` is not detailed in the input, limiting precise diagnosis."
+    ],
+    "parent_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+    "schema_version": 1
+  },
+  "parent_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+  "parent_measurement": null,
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nfrom pathlib import Path\nfrom typing import Any\n\nfrom app.models import Note\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\ndef _connect() -> sqlite3.Connection:\n    path = get_db_path()\n    path.parent.mkdir(parents=True, exist_ok=True)\n    connection = sqlite3.connect(path)\n    connection.row_factory = sqlite3.Row\n    connection.execute(\"PRAGMA foreign_keys = ON\")\n    return connection\n\n\ndef initialize_db() -> None:\n    connection = _connect()\n    connection.execute(\n        \"\"\"\n        CREATE TABLE IF NOT EXISTS notes (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            title TEXT NOT NULL,\n            body TEXT NOT NULL,\n            tags TEXT NOT NULL DEFAULT '[]'\n        )\n        \"\"\"\n    )\n    connection.commit()\n    connection.close()\n\n\ndef _to_note(row: sqlite3.Row) -> Note:\n    tags_value = row[\"tags\"] or \"[]\"\n    return Note(\n        id=row[\"id\"],\n        title=row[\"title\"],\n        body=row[\"body\"],\n        tags=json.loads(tags_value),\n    )\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    connection = _connect()\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n    cursor = connection.execute(\n        \"INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)\",\n        (title, body, payload),\n    )\n    note_id = cursor.lastrowid\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.close()\n    if row is None:\n        return None\n    return _to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    connection = _connect()\n    \n    # Build base query\n    query = \"SELECT id, title, body, tags FROM notes\"\n    conditions = []\n    params: list[Any] = []\n    \n    # Add search_text filter\n    if search_text is not None and search_text != \"\":\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n    \n    # Add tags_filter using json_each\n    if tags_filter:\n        clean_tags = [tag.strip() for tag in tags_filter if tag and tag.strip()]\n        if clean_tags:\n            # Use a subquery to ensure ALL specified tags are present\n            tag_placeholders = \", \".join([\"?\" for _ in clean_tags])\n            conditions.append(\n                f\"id IN (SELECT n.id FROM notes n WHERE n.id = notes.id \"\n                f\"AND (SELECT COUNT(*) FROM json_each(n.tags) je WHERE je.value IN ({tag_placeholders})) = ?)\"\n            )\n            params.extend(clean_tags)\n            params.append(len(clean_tags))\n    \n    if conditions:\n        query += \" WHERE \" + \" AND \".join(conditions)\n    \n    query += \" ORDER BY id ASC\"\n    \n    # First, get total count\n    count_query = f\"SELECT COUNT(*) FROM notes\"\n    if conditions:\n        count_query += \" WHERE \" + \" AND \".join(conditions)\n    \n    total_row = connection.execute(count_query, params).fetchone()\n    total = total_row[0]\n    \n    # Apply pagination\n    query += \" LIMIT ? OFFSET ?\"\n    params.extend([limit, offset])\n    \n    rows = connection.execute(query, params).fetchall()\n    connection.close()\n    \n    notes = [_to_note(row) for row in rows]\n    return notes, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    if row is None:\n        connection.close()\n        return None\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n    connection.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?\",\n        (title, body, payload, note_id),\n    )\n    updated = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _to_note(updated)\n\n\ndef delete_note(note_id: int) -> bool:\n    connection = _connect()\n    cursor = connection.execute(\"DELETE FROM notes WHERE id = ?\", (note_id,))\n    connection.commit()\n    connection.close()\n    return cursor.rowcount > 0\n\n\ndef _storage_notes() -> list[dict[str, Any]]:\n    connection = _connect()\n    rows = connection.execute(\"SELECT * FROM notes ORDER BY id ASC\").fetchall()\n    connection.close()\n    return [{\"id\": row[\"id\"], \"title\": row[\"title\"], \"body\": row[\"body\"], \"tags\": json.loads(row[\"tags\"])} for row in rows]",
+      "path": "app/db.py"
+    }
+  ],
+  "plan": {
+    "approach": "query",
+    "change": "Refactor the list_notes function in app/db.py to perform filtering and sorting in SQL. Instead of SELECT * FROM notes ORDER BY id ASC followed by Python-side filtering, construct a dynamic SQL query with WHERE clauses for search_text (using LIKE) and tags (using json_each). The new implementation will: 1) Build a base query selecting id, title, body, tags from notes. 2) Add a WHERE clause for search_text using LIKE if provided. 3) If tags_filter is provided, use a subquery with json_each to ensure all specified tags are present in the note's tags array. 4) Order by id ASC and apply offset/limit. This reduces the number of rows processed in Python, thereby reducing json.loads and _to_note calls.",
+    "hypothesis": "The list_notes endpoint is the primary bottleneck, consuming ~95% of CPU time. The current implementation fetches all notes from SQLite into Python, then performs filtering and sorting in Python. This is inefficient because SQLite is optimized for set-based operations. By moving the filtering (search_text, tags) and sorting (ORDER BY id) into the SQL query, we reduce the amount of data transferred from the database, reduce Python object creation overhead, and leverage SQLite's C-level optimizations. The profile shows 60,160 calls to _to_note and json.loads, which will be significantly reduced by only fetching the relevant rows.",
+    "risks": [
+      "SQLite version might not support json_each (requires 3.38+). If not available, the query will fail.",
+      "The SQL query construction is more complex and might introduce bugs if not tested thoroughly.",
+      "The LIKE operator for search_text is case-sensitive by default in SQLite, which matches the requirement, but we need to ensure that the search_text is properly escaped to prevent SQL injection. We are using parameterized queries, so this is safe.",
+      "The json_each approach might be slower for very large datasets if not indexed, but since we are filtering, it should be faster than fetching all rows."
+    ],
+    "schema_version": 1
+  },
+  "retained_hash": "4a97a1bbf4492970f2d33874ba2d2dccbc30f1a551a995490c45f46509a3636b",
+  "retained_score_ms": 1.4754456625003816,
+  "roles": {
+    "auditor": {
+      "elapsed_seconds": 4.806634082924575,
+      "error": null,
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "default",
+        "tools": [],
+        "transport": "responses"
+      },
+      "output": {
+        "interpretation": "The plan proposes refactoring `list_notes` to move filtering and sorting from Python to SQL, aiming to reduce latency by minimizing data transfer and object creation. The patch implements this by constructing dynamic SQL with `LIKE` for text search and a correlated subquery using `json_each` for tag filtering. The official validation marked the patch as `correct: false` with status `correctness_failed`, leading to a rejection decision. The primary correctness risk identified in the plan is the potential lack of `json_each` support in older SQLite versions, though the implementation assumes its availability. A secondary logical flaw exists in the tag filtering subquery: `n.id = notes.id` is a correlated reference that may not behave as intended in all SQLite contexts or could be optimized away incorrectly, potentially causing incorrect results or performance degradation. Additionally, the `search_text` filter uses `LIKE` which is case-sensitive by default in SQLite, aligning with the contract, but the implementation does not explicitly handle SQL injection beyond parameterization, which is present. The rejection suggests the validation suite detected a deviation from the expected API contract behavior, likely related to the complex SQL generation or the `json_each` usage not matching the required exact tag matching semantics perfectly under all conditions.",
+        "limitations": [
+          "The interpretation relies on the provided validation status and does not include specific error logs or test case failures.",
+          "The analysis of the SQL subquery logic is theoretical and may not reflect the exact runtime behavior in the validation environment.",
+          "No performance measurements are provided to confirm the hypothesized latency reduction.",
+          "The specific reason for `correctness_failed` is not detailed in the input, limiting precise diagnosis."
+        ],
+        "schema_version": 1
+      },
+      "schema_version": 1,
+      "status": "ok",
+      "usage": {
+        "input_tokens": 10467,
+        "output_tokens": 366,
+        "total_tokens": 10833
+      }
+    },
+    "developer": {
+      "elapsed_seconds": 9.801501624984667,
+      "error": null,
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "default",
+        "tools": [],
+        "transport": "responses"
+      },
+      "output": {
+        "edits": [
+          {
+            "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nfrom pathlib import Path\nfrom typing import Any\n\nfrom app.models import Note\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\ndef _connect() -> sqlite3.Connection:\n    path = get_db_path()\n    path.parent.mkdir(parents=True, exist_ok=True)\n    connection = sqlite3.connect(path)\n    connection.row_factory = sqlite3.Row\n    connection.execute(\"PRAGMA foreign_keys = ON\")\n    return connection\n\n\ndef initialize_db() -> None:\n    connection = _connect()\n    connection.execute(\n        \"\"\"\n        CREATE TABLE IF NOT EXISTS notes (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            title TEXT NOT NULL,\n            body TEXT NOT NULL,\n            tags TEXT NOT NULL DEFAULT '[]'\n        )\n        \"\"\"\n    )\n    connection.commit()\n    connection.close()\n\n\ndef _to_note(row: sqlite3.Row) -> Note:\n    tags_value = row[\"tags\"] or \"[]\"\n    return Note(\n        id=row[\"id\"],\n        title=row[\"title\"],\n        body=row[\"body\"],\n        tags=json.loads(tags_value),\n    )\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    connection = _connect()\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n    cursor = connection.execute(\n        \"INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)\",\n        (title, body, payload),\n    )\n    note_id = cursor.lastrowid\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.close()\n    if row is None:\n        return None\n    return _to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    connection = _connect()\n    \n    # Build base query\n    query = \"SELECT id, title, body, tags FROM notes\"\n    conditions = []\n    params: list[Any] = []\n    \n    # Add search_text filter\n    if search_text is not None and search_text != \"\":\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n    \n    # Add tags_filter using json_each\n    if tags_filter:\n        clean_tags = [tag.strip() for tag in tags_filter if tag and tag.strip()]\n        if clean_tags:\n            # Use a subquery to ensure ALL specified tags are present\n            tag_placeholders = \", \".join([\"?\" for _ in clean_tags])\n            conditions.append(\n                f\"id IN (SELECT n.id FROM notes n WHERE n.id = notes.id \"\n                f\"AND (SELECT COUNT(*) FROM json_each(n.tags) je WHERE je.value IN ({tag_placeholders})) = ?)\"\n            )\n            params.extend(clean_tags)\n            params.append(len(clean_tags))\n    \n    if conditions:\n        query += \" WHERE \" + \" AND \".join(conditions)\n    \n    query += \" ORDER BY id ASC\"\n    \n    # First, get total count\n    count_query = f\"SELECT COUNT(*) FROM notes\"\n    if conditions:\n        count_query += \" WHERE \" + \" AND \".join(conditions)\n    \n    total_row = connection.execute(count_query, params).fetchone()\n    total = total_row[0]\n    \n    # Apply pagination\n    query += \" LIMIT ? OFFSET ?\"\n    params.extend([limit, offset])\n    \n    rows = connection.execute(query, params).fetchall()\n    connection.close()\n    \n    notes = [_to_note(row) for row in rows]\n    return notes, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    if row is None:\n        connection.close()\n        return None\n    payload = json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n    connection.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?\",\n        (title, body, payload, note_id),\n    )\n    updated = connection.execute(\"SELECT * FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    connection.commit()\n    connection.close()\n    return _to_note(updated)\n\n\ndef delete_note(note_id: int) -> bool:\n    connection = _connect()\n    cursor = connection.execute(\"DELETE FROM notes WHERE id = ?\", (note_id,))\n    connection.commit()\n    connection.close()\n    return cursor.rowcount > 0\n\n\ndef _storage_notes() -> list[dict[str, Any]]:\n    connection = _connect()\n    rows = connection.execute(\"SELECT * FROM notes ORDER BY id ASC\").fetchall()\n    connection.close()\n    return [{\"id\": row[\"id\"], \"title\": row[\"title\"], \"body\": row[\"body\"], \"tags\": json.loads(row[\"tags\"])} for row in rows]",
+            "path": "app/db.py"
+          }
+        ],
+        "schema_version": 1,
+        "summary": "Refactor list_notes in app/db.py to perform filtering and sorting in SQL using parameterized queries with LIKE for search_text and json_each for tags_filter, reducing Python-side processing overhead."
+      },
+      "schema_version": 1,
+      "status": "ok",
+      "usage": {
+        "input_tokens": 8849,
+        "output_tokens": 1481,
+        "total_tokens": 10330
+      }
+    },
+    "planner": {
+      "elapsed_seconds": 17.124865707941353,
+      "error": null,
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "default",
+        "tools": [],
+        "transport": "responses"
+      },
+      "output": {
+        "approach": "query",
+        "change": "Refactor the list_notes function in app/db.py to perform filtering and sorting in SQL. Instead of SELECT * FROM notes ORDER BY id ASC followed by Python-side filtering, construct a dynamic SQL query with WHERE clauses for search_text (using LIKE) and tags (using json_each). The new implementation will: 1) Build a base query selecting id, title, body, tags from notes. 2) Add a WHERE clause for search_text using LIKE if provided. 3) If tags_filter is provided, use a subquery with json_each to ensure all specified tags are present in the note's tags array. 4) Order by id ASC and apply offset/limit. This reduces the number of rows processed in Python, thereby reducing json.loads and _to_note calls.",
+        "hypothesis": "The list_notes endpoint is the primary bottleneck, consuming ~95% of CPU time. The current implementation fetches all notes from SQLite into Python, then performs filtering and sorting in Python. This is inefficient because SQLite is optimized for set-based operations. By moving the filtering (search_text, tags) and sorting (ORDER BY id) into the SQL query, we reduce the amount of data transferred from the database, reduce Python object creation overhead, and leverage SQLite's C-level optimizations. The profile shows 60,160 calls to _to_note and json.loads, which will be significantly reduced by only fetching the relevant rows.",
+        "risks": [
+          "SQLite version might not support json_each (requires 3.38+). If not available, the query will fail.",
+          "The SQL query construction is more complex and might introduce bugs if not tested thoroughly.",
+          "The LIKE operator for search_text is case-sensitive by default in SQLite, which matches the requirement, but we need to ensure that the search_text is properly escaped to prevent SQL injection. We are using parameterized queries, so this is safe.",
+          "The json_each approach might be slower for very large datasets if not indexed, but since we are filtering, it should be faster than fetching all rows."
+        ],
+        "schema_version": 1
+      },
+      "schema_version": 1,
+      "status": "ok",
+      "usage": {
+        "input_tokens": 11969,
+        "output_tokens": 462,
+        "total_tokens": 12431
+      }
+    }
+  },
+  "run_id": "15a06fc9d0a3477b9c424a00655ce5c9",
+  "schema_version": 1,
+  "status": "correctness_failed",
+  "synthetic": false,
+  "validation": {
+    "artifacts": "/private/tmp/notes-soclaas-calibration-2026-10-10/artifacts/001-validation/714799e185e4454ca28f65cab913f81a",
+    "correct": false,
+    "environment": {
+      "dependencies": {
+        "PyYAML": "6.0.3",
+        "fastapi": "0.143.0",
+        "httpx": "0.28.1",
+        "pydantic": "2.14.0",
+        "pytest": "8.4.2",
+        "starlette": "1.7.0",
+        "uvicorn": "0.54.0"
+      },
+      "machine": "aarch64",
+      "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
+      "python": "3.13.16",
+      "sqlite": "3.40.1"
+    },
+    "exit_code": 1,
+    "status": "correctness_failed"
+  }
+}

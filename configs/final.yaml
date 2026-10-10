@@ -1,0 +1,39 @@
+agent_network: bridge
+baseline: research/baseline
+benchmark:
+  concurrency: 1
+  cycles: 100
+  note_count: 2000
+  repetitions: 5
+  seed: 7
+  startup_timeout_seconds: 15.0
+  timeout_seconds: 5.0
+  warmups: 2
+checkpoints:
+- 10
+- 15
+- 20
+- 25
+- 30
+epsilon: 0.08
+evaluation_timeout_seconds: 300.0
+image: sha256:385b5ef7719da065679daedf775a6a35567c9be0ddffa3143e659f21ab744238
+input_token_limit: 200000
+max_input_bytes: 200000
+max_output_bytes: 1000000
+max_response_tokens: 12000
+max_tool_calls: 0
+mock_cases:
+- noop
+model: default
+phase: final
+pilot_record: /Users/jaymesonkoh/Downloads/UNC SEP/COMP691(4248)/Agentic-Optimisation-study/configs/final.protocol.json
+provider_base_url: https://soclaas-api.comp.nus.edu.sg/v1
+provider_key_env: SOCLAAS_API_KEY
+reasoning: none
+repair_budget: 0
+replicates: 5
+role_retries: 0
+role_timeout_seconds: 300.0
+schema_version: 1
+temperature: 0.2

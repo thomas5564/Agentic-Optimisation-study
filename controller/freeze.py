@@ -17,13 +17,14 @@ def freeze(config: ExperimentConfig, pilots: list[Path], output: Path) -> dict:
         raise ValueError("Final config already exists; do not overwrite a frozen protocol")
     evidence = []
     conditions = set()
+    backends = set()
     noises = []
     for root in pilots:
         manifest = read_json(root / "manifest.json")
         state = read_json(root / "state.json")
-        if manifest["phase"] != "pilot" or manifest["backend"] != "codex" or manifest["synthetic"] or state["status"] != "complete":
-            raise ValueError("Final freezing requires completed real Codex pilot runs")
-        for key in ("model", "reasoning", "image", "benchmark", "role_timeout_seconds", "max_tool_calls", "repair_budget", "role_retries"):
+        if manifest["phase"] != "pilot" or manifest["backend"] not in {"codex", "responses", "chat"} or manifest["synthetic"] or state["status"] != "complete":
+            raise ValueError("Final freezing requires completed real pilot runs")
+        for key in ("max_response_tokens", "temperature", "model", "provider_base_url", "provider_key_env", "reasoning", "image", "benchmark", "role_timeout_seconds", "max_tool_calls", "repair_budget", "role_retries"):
             if manifest["config"][key] != config.model_dump()[key]:
                 raise ValueError(f"Pilot and proposed final setting differ: {key}; recalibrate before freezing")
         measurement = read_json(root / "journal" / "baseline-measure.json")["result"]
@@ -32,17 +33,20 @@ def freeze(config: ExperimentConfig, pilots: list[Path], output: Path) -> dict:
             raise ValueError("Pilot lacks repeated baseline noise measurements")
         noises.append(noise["relative_range"])
         conditions.add(manifest["condition"])
+        backends.add(manifest["backend"])
         evidence.append({"run_id": manifest["run_id"], "manifest_hash": content_hash(manifest),
                          "baseline_noise": noise, "condition": manifest["condition"]})
     if conditions != {"memory", "stateless"}:
         raise ValueError("Both pilot conditions are required")
+    if len(backends) != 1:
+        raise ValueError("Pilot conditions must use the same backend")
     if config.epsilon <= max(noises):
         raise ValueError("Final epsilon must be greater than observed baseline relative-range noise")
     record_path = output.with_suffix(".protocol.json").resolve()
     settings = config.model_dump()
     settings.update(phase="final", pilot_record=str(record_path))
     final = ExperimentConfig.model_validate(settings)
-    protocol = {"schema_version": 1, "config_hash": content_hash(final.model_dump()),
+    protocol = {"schema_version": 1, "backend":next(iter(backends)), "config_hash": content_hash(final.model_dump()),
                 "pilot_evidence": evidence, "max_baseline_relative_range": max(noises), "iterations": 30}
     output.parent.mkdir(parents=True, exist_ok=True)
     write_json(record_path, protocol)

@@ -70,6 +70,7 @@ def test_codex_subprocess_outcomes_and_no_host_roots(monkeypatch, tmp_path, mode
     calls = []
     def fake_run(command, **kwargs):
         calls.append(command)
+        assert 'mkdir -p /tmp/home /tmp/codex && exec "$@"' in command
         assert str(Path.home()) not in command
         mounts = [command[i+1] for i,c in enumerate(command) if c == "--mount"]
         assert len(mounts) == 3
@@ -112,3 +113,26 @@ def test_fast_exiting_process_cannot_evade_tool_budget():
     program = 'import json; print(json.dumps({"type":"item.completed","item":{"id":"one","type":"command_execution"}}))'
     result = run_process([sys.executable, "-c", program], max_tool_calls=0)
     assert result.failure == "tool_limit"
+
+
+def test_custom_provider_credentials_stay_out_of_command(monkeypatch, tmp_path):
+    from agents.credentials import load_credentials
+    secret = "private-soclaas-test-credential"
+    file = tmp_path / "credential.env"
+    file.write_text(f'SOCLAAS_BASE_URL=https://example.edu/v1\nSOCLAAS_API_KEY="{secret}"\nSOCLAAS_MODEL=default\n')
+    values = load_credentials(file)
+    monkeypatch.setenv("SOCLAAS_API_KEY", values["SOCLAAS_API_KEY"])
+    settings = config().model_copy(update={"provider_base_url":values["SOCLAAS_BASE_URL"], "provider_key_env":"SOCLAAS_API_KEY"})
+    command = codex_arguments(settings)
+    assert secret not in " ".join(command)
+    assert 'model_providers.experiment.env_key="SOCLAAS_API_KEY"' in command
+    assert 'model_providers.experiment.request_max_retries=0' in command
+    assert redact(secret) == "[REDACTED]"
+    file.write_text('UNEXPECTED=secret\n')
+    with pytest.raises(ValueError):
+        load_credentials(file)
+
+
+def test_provider_url_cannot_archive_embedded_credentials():
+    with pytest.raises(ValueError, match="HTTPS without credentials"):
+        ExperimentConfig(epsilon=.2, benchmark={}, provider_base_url="https://user:secret@example.edu/v1")

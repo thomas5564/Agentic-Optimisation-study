@@ -1,144 +1,174 @@
-# Project status and proposal alignment
+# Experiment report and proposal alignment
 
-Updated 2026-10-08 after completing the remaining software implementation and its
-mock/unpaid integration checks. The original proposal's research design remains
-intact. There are no live-model results or claims that memory improves performance.
+Updated 2026-10-10. **Execution stopped at the user's request after completing the
+active attempt.** The study contains one complete 30-attempt pair and one additional
+memory attempt: 61 of the planned 300 final-study attempts. Seven scheduled runs
+were not started. Software implementation is complete, but the proposed replicated
+research study is incomplete. No further model calls are scheduled.
 
-## Milestone status
+## Observed results: the one complete pair
 
-| Milestone | Status | Evidence |
-| --- | --- | --- |
-| 1: Correct baseline | Complete | API contract, pinned runtime, immutable source archive, persistence/semantic tests |
-| 2: Measurement/profile harness | Complete | Real HTTP, deterministic fixtures, oracle, resets/warm-ups, raw metrics, independent endpoint profiling |
-| 3: Mock iteration | Complete | Typed role schemas, patch validation, protected evaluation, deterministic acceptance, exact rollback, factual records |
-| 4: Codex backend | Implemented; live iteration open | Actual CLI flags checked; image built; real container boundary and baseline integration passed; no paid call |
-| 5: Memory/long horizon | Implemented and mock-verified | Three iterations per condition; complete ordered history only reaches memory Planner; context limits stop explicitly |
-| 6: Resume/replication/analysis | Complete as software | Crash-recovery tests, idempotent memory, paired schedules, checkpoints/final remeasurement, offline figures/CSV |
-| Research execution | Not started | Live smoke, model pilots, final protocol freeze, and 30-iteration study remain open |
+| Measure | Stateless | Memory |
+| --- | ---: | ---: |
+| Completed attempts | 30 | 30 |
+| Accepted changes | 1 | 2 |
+| Correct candidates / evaluated candidates | 1 / 29 | 11 / 30 |
+| Initial baseline score (ms) | 3.876690 | 3.855950 |
+| Final independent score (ms) | 2.747079 | 0.995450 |
+| Baseline / final speedup | 1.411× | 3.874× |
+| Input tokens, all roles | 902,663 | 1,447,992 |
+| Output tokens, all roles | 102,922 | 124,029 |
+| Exact repeated unsuccessful approaches | 0 | 16 |
 
-Milestone 4 is deliberately not marked fully complete because its live integration
-acceptance check has not run. Software completion is distinct from producing the
-proposal's research findings.
+The final stateless/memory latency ratio is **2.760×** for this pair. This is a
+descriptive observation, not evidence of a reliable causal memory benefit. There
+is only one complete independent pair; uncertainty across replicate pairs cannot
+be estimated. Memory's largest improvement occurred on its first attempt, before
+any history existed, so that initial advantage cannot be attributed to memory.
+The conditions also ran sequentially on one machine. The user-requested stop
+occurred after interim results were visible; it was not a pre-registered stopping
+rule, and no significance claim is made.
 
-## What was implemented in this continuation
+Stateless accepted attempt 4 (27.3% improvement relative to its measured parent),
+reducing unnecessary internal object construction. Memory accepted attempt 1
+(71.0%), moving filtering and pagination into SQLite while preserving literal,
+case-sensitive matching, and attempt 14 (11.7% additional measured improvement).
+Checkpoints at 10/15/20/25/30 and separate final remeasurements are archived for
+both complete runs. Rejected candidates never became the next parent.
 
-The controller exports clean accepted snapshots to fresh role workspaces. Planner
-receives the current profile; Developer returns a typed complete-file patch;
-the runner applies allowlisted app edits, checks correctness, and measures parent
-and candidate with alternating batch order. Only a valid improvement greater
-than epsilon is accepted. Auditor interpretation cannot change any factual
-measurement or acceptance decision. Failed, rejected, malformed, timed-out, and
-no-op attempts remain in the record. Infrastructure failures pause the same iteration.
+Stateless recorded 26 correctness failures, two syntax failures, one malformed
+Planner output, and one evaluated correct candidate. Its malformed plan did not
+produce an evaluated candidate, explaining the correctness denominator of 29.
+Memory recorded 19 correctness failures and 11 evaluated correct candidates.
+All attempts, including failed audits, remain in the evidence. The repeat count
+uses the predeclared exact normalized change-text/category rule; it is not a
+semantic measure of whether the model learned from failures.
 
-Every role workspace contains only current app and public contract. Role mounts
-are read-only; the runner applies Developer's structured output. Live roles use
-fresh containers and ephemeral Codex homes, never resumed conversations. Evaluator
-containers have no network or credentials; the protected official tests talk to
-separate candidate HTTP processes instead of importing candidate code into pytest.
-The host project, Git, researcher notes, sibling runs, and prior sessions are not
-mounted for agents. Explicit disabling of SQLite durability is also rejected.
+The additional memory run completed one attempt before stopping. It is retained
+as partial evidence, independently remeasured, and excluded from the complete-pair
+comparison. The remaining horizon has not been extrapolated.
 
-Both conditions retain accepted code. At iteration k, memory Planner receives
-exactly k−1 complete prior-attempt entries; stateless receives none. Developer and
-Auditor receive no direct history. Memory is serialized deterministically, with
-entry counts and hashes, and is never retrieved selectively or summarized.
-Input admission limits are conservative byte checks, not measured token usage.
-An overflow or detected CLI compaction ends the run explicitly.
+## Problem, inputs and outputs
 
-Each run archives its configuration, environment, full runner source, prompts,
-content-addressed snapshots, exact role inputs/outputs, patches, raw timings,
-attempt records, and checkpoint/final measurements. Atomic journals hash completed
-results. Attempt records are authoritative; memory is materialized from them,
-preventing duplicate append after interruption. Unknown role-call outcomes require
-explicit saved-result recovery or abandonment, never an automatic repeated call.
+The proposal asks whether complete prior-attempt memory helps an LLM optimize an
+evolving application over a long horizon. Each attempt has a Planner, Developer,
+protected correctness/performance evaluation, and Auditor. Both conditions retain
+accepted code; only the memory Planner receives all previous attempt records.
 
-Batch scheduling alternates condition order by replicate pair while sharing the
-recorded workload seed. Analysis exports attempts, requests, repetitions,
-per-operation latency, checkpoints, correctness/acceptance counts, repeat-family
-classification, and available usage/cost. It separates protocol, implementation,
-environment, phase, backend, and synthetic/measured cohorts. Uncertainty is across
-independent runs; unavailable values stay null. Figures clearly label mock data
-and carried measurements. Final configuration freezing is gated on completed real
-pilot evidence from both conditions and an epsilon above observed baseline noise.
+Example application input: `POST /notes` with
+`{"title":"Study","body":"Review SQLite","tags":["course"]}`.
+The expected output is HTTP 201 with the same fields plus a generated integer
+`id`. A later `GET /notes/{id}` must return the persisted note. Optimization must
+preserve this behavior, Unicode, error bodies, case-sensitive search/tag matching,
+pagination, SQL parameterization, and persistence after restart.
 
-## Actual verification
+An optimization input consists of current source, the public API contract,
+profile evidence, and (only for memory Planner) prior outcomes. The Developer's
+output is a schema-validated complete-file patch. The runner accepts it only if
+correctness passes and measured latency improves by more than the frozen 8%.
 
-- `.venv/bin/python -m pytest tests/ -q`: **92 passed**, 33 existing deprecation
-  warnings, 15.27 seconds. Tests include all mock failure/acceptance cases,
-  interrupted commit boundaries, unresolved/recoverable calls, memory routing,
-  context overflow, schema/path attacks, real candidate correctness failure,
-  paired order, duplicate-run detection, and missing/all-failed analysis fixtures.
-- `.venv/bin/python -m controller.batch --backend mock --iterations 3 --config configs/mock-paired.yaml --output /tmp/notes-mock-verified-2026-10-08`:
-  both conditions completed three attempts with real measurement. Both recorded
-  a rejected comment-only change, a syntax failure, and a no-op. The baseline
-  remained unchanged; no optimization gain is claimed.
-- Planner memory counts were **0,0,0** for stateless and **0,1,2** for memory.
-  Developer/Auditor inputs had no prior-attempt entries.
-- `.venv/bin/python -m controller.resume --run-dir /tmp/notes-mock-verified-2026-10-08/pair-00-memory`:
-  completed successfully; hashes of every archived JSON file were unchanged.
-- Docker **29.6.1**, host/container Codex CLI **0.162.0-alpha.2**. The minimal
-  image was built and its immutable ID recorded in `configs/isolation-check.yaml`:
-  `sha256:385b5ef7719da065679daedf775a6a35567c9be0ddffa3143e659f21ab744238`.
-- `agents.preflight`: actual host/sibling sentinel, fresh-history, and read-only
-  app/contract/schema checks passed, with only the new output directory writable.
-- `controller.check_environment`: protected baseline tests, **48/48 valid timed
-  requests**, and endpoint profiling passed inside the container, with **zero live
-  model calls**. Container runtime: Python 3.13.16, Linux aarch64, SQLite 3.40.1.
-- `analysis.report` regenerated CSV/HTML/PNG artifacts entirely offline. The plots
-  were visually inspected and mark mock results explicitly.
-- `pip check` and `git diff --check` passed.
+## Dataset and measurement
 
-[Verification manifest](../research/evidence/controller-2026-10-08/verification.json)
-records the exact external run/report paths and source hashes. Research runs remain
-outside the development checkout; researcher summaries are never agent inputs.
-Earlier development runs were retained rather than overwritten.
+The dataset is synthetic and reproducible, not an external text corpus: 2,000
+initial notes from seed 7, five title prefixes, Unicode body content, and one or
+two unique tags selected from seven. Each 12-request cycle contains one Add,
+three Get, one Update, one Delete, and six List/Search operations, including reads
+after mutations. Each measurement uses 100 cycles per repetition and five
+repetitions: **6,000 timed requests per snapshot**. Concurrency is one.
 
-The original milestone 2 macOS baseline measurement still stands as historical
-setup evidence: five repetitions, 1,200 valid requests, score 1.109207 ms, sample
-CV 16.07%, relative range 34.48%. It is not directly comparable to container timings.
-The standalone benchmark and local mock evaluator are not security sandboxes.
+Each repetition starts a fresh process and database, seeds through the candidate
+API, verifies the fixture, and performs two fixed read-only warmup cycles before
+timing. A reference-state oracle checks response semantics. The primary score is
+the median of five repetition means; per-operation means/p95 and raw requests are
+also exported. Seeding, warmups, profiling and oracle work are excluded from request
+latency. Profiling runs separately and covers endpoint work rather than all ASGI
+or network overhead. Benchmarks execute serially in network-disabled containers.
 
-## Proposal alignment and deliberate choices
+The unchanged baseline's pilot relative ranges were 2.404% and 3.916%. The
+pre-recorded rule selected epsilon 8%. Model/provider, prompts, workload, budgets,
+timeouts and five-pair replication target were frozen before final outcomes in
+`configs/final.yaml` and `configs/final.protocol.json`. Frozen config hash:
+`463cd34538d57637df7d85be20f119f0648e63ce3fe421ed473716371969ec54`.
 
-| Proposal requirement | Current treatment |
+## Pilot and provider compatibility
+
+Both fresh Chat pilots completed ten attempts. Stateless had zero correct or
+accepted candidates; memory had one correct candidate, whose 1.53% improvement
+was below threshold, and no accepted changes. The original baseline was retained
+in both. Pilot input/output tokens were 297,502/41,897 for stateless and
+332,062/24,840 for memory. One stateless audit exhausted the output budget.
+Pilot data is separate from final-study data.
+
+The supplied `soclaas.env` is ignored by Git and parsed as data, never executed.
+The active backend sends fresh Chat Completions requests with native strict JSON
+schemas, client-side validation, `tool_choice=none`, temperature 0.2, and a
+12,000-token output limit. No reasoning parameter is sent. The configured model is
+`default`; all 179 responses in the complete final pair reported `qwen3.6:35b`.
+This provider alias/name is not an immutable weight version. Pricing was not
+reported, so dollar cost remains unknown.
+
+The original Codex CLI route could not use nested sandbox namespaces. An initial
+Responses pilot then encountered provider-internal tool errors and was halted.
+Its eight completed attempts and unresolved ninth attempt are preserved as a
+separate diagnostic cohort. Neither failed route is pooled with the Chat study.
+No sandbox was disabled to bypass the CLI limitation.
+
+Calibration also corrected the harness listener's TCP_NODELAY setting to remove
+approximately 40 ms of transport overhead. Application baseline source was not
+changed. Earlier socket timings and a noisy 500-note calibration are separate
+from the final 2,000-note protocol.
+
+## Integrity, verification and proposal alignment
+
+The complete memory run's Planner input counts were exactly 0 through 29;
+stateless counts were all zero. Developer and Auditor had no direct prior-attempt
+history. No history was filtered, summarized or truncated. Input admission limits
+are conservative byte limits, not measured token counts. Current source and the
+public contract are explicit model inputs; host files, researcher documents and
+run archives are not exposed as tools. Candidate evaluation has no network or
+credentials. The runner controls tests, measurements and acceptance.
+
+| Proposal requirement | Delivered treatment |
 | --- | --- |
-| Persistent notes CRUD application with realistic optimization opportunities | Preserved, verified baseline; not optimized during controller construction |
-| Planner, Developer, Auditor | Typed fresh invocations; mock implemented; Codex adapter built, actual inference pending |
-| Full continuously accumulating memory | All accepted/rejected/failed attempt entries go only to memory Planner |
-| Otherwise identical stateless process | Same pipeline, base prompts, model/config, tools, budgets, and accepted-code retention |
-| Compilation/correctness plus Add/Update/Delete/Get timings and counts | Runner-owned syntax/startup/tests plus separate CRUD measurements and raw failure counts |
-| Fixed workload and profile feedback | Runner-owned deterministic seed/trace/oracle, serial measurements, separate profiling |
-| Up to 30 iterations, checkpoints every five from 10 | Implemented horizon/checkpoints at 10/15/20/25/30; final runs require exactly 30 |
-| Compare trajectories and overall condition performance | Offline run-level analysis implemented; real final data still required |
+| Persistent notes CRUD application | Immutable correct baseline; list/search disclosed as an extension |
+| Planner / Developer / Auditor | Fresh live role requests with structured outputs |
+| Full continuously accumulating memory | All prior attempts delivered only to memory Planner |
+| Otherwise identical conditions | Same source retention, model, prompts, tools, budgets and workload |
+| Correctness and latency evidence | Protected tests, oracle, per-operation/raw measurements |
+| 30 iterations; checkpoints 10/15/20/25/30 | Completed for one pair; additional run stopped after one attempt |
+| Replicated comparison | Five pairs planned; only one complete pair, so research completion remains open |
 
-Developer's read-only workspace plus structured patch output is a stricter,
-reviewable implementation of the proposed implementation role, applied identically
-to both conditions. The existing browser UI remains ancillary. List/search is
-reported as an explicit extension to the proposal's four CRUD operations.
+The proposal's successful/failed ratio is reported as successful/total, retaining
+raw counts. Its repeated memory/memory formula is interpreted as stateless/memory
+speedup. These clarifications were recorded before execution. The structured-patch
+Developer and direct API backend are documented implementation choices applied
+identically to both conditions.
 
-The proposal's successful/failed ratio is undefined when failures are zero; use
-successful/total while retaining raw counts. Its final memory/memory runtime
-formula is interpreted as stateless/memory speedup. These prior documented
-clarifications remain unchanged. Repeat classification is deliberately conservative:
-same approach category plus exact case-folded, whitespace-normalized change text
-after a rejection; it does not claim semantic equivalence between different plans.
+The full automated suite passed 100 tests (33 existing deprecation warnings);
+the full suite was rerun after the final request-format change and again passed
+all 100 tests in 15.67 seconds. Real container readiness, baseline correctness, isolation, mock failure
+paths and interrupted-state recovery were also verified. Final wrap-up checks
+are recorded in `research/evidence/live-2026-10-10/wrap-up-verification.json`.
 
-## Remaining checks and execution work
+## Evidence and reproducibility
 
-1. Choose an explicit model and supply CODEX_API_KEY outside source control, then
-   explicitly request/run one live smoke iteration. Authentication, actual role
-   behavior, model usage reporting, and live compaction handling remain unverified.
-2. Run authorized live pilots, inspect optimization headroom, workload length,
-   runtime/cost, and noise on the chosen fixed execution environment. Smoke epsilon
-   is not a final threshold. The default agent bridge network permits inference but
-   is not an API-domain egress allowlist; use controlled egress where private services
-   are exposed. Candidate evaluation itself has no network.
-3. Freeze the final protocol from real paired pilot evidence, then run the agreed
-   independent replicate pairs for the full 30-iteration horizon and produce the
-   proposal's research conclusions from those observations.
+The permanent external artifact root is
+`/Users/jaymesonkoh/.codex/visualizations/2026/10/09/01a11e69-8712-76f2-a79c-5dacf01d710e/experiments/`.
 
-The code does not certify arbitrary candidate programs against every possible
-benchmark shortcut; path restrictions, durability checks, external correctness
-checks, deterministic response validation, and the archived patch/audit provide
-complementary evidence. Real model behavior and final comparisons still require
-review during the live smoke/pilot stage.
+- `soclaas-final-2026-10-10/`: exact role inputs/outputs, patches, source snapshots,
+  raw timings, journals, manifests, checkpoints and explicit user-stop record.
+- `soclaas-final-report-2026-10-10/`: offline HTML, figures and CSVs, including the
+  explicitly incomplete additional run; paired comparison uses complete pairs only.
+- `soclaas-chat-pilot-2026-10-10/` and `soclaas-chat-pilot-report-2026-10-10/`:
+  separate completed paired pilots and analysis.
+- Repository `research/evidence/live-2026-10-10/`: compact execution, integrity and
+  verification records. The frozen baseline remains in `research/baseline/`.
+
+Regenerate the base analysis without model calls using
+`python -m analysis.report --runs-dir <final-run-root> --output <new-report-root>`.
+The presentation layer and complete-pair-only figures can then be reproduced
+with `PYTHONPATH=. python research/evidence/live-2026-10-10/render-wrap-up.py`
+on this machine. Do not overwrite the frozen protocol or pool diagnostic, pilot
+and final cohorts.
+The original presentation in `output/presentations/` describes pre-experiment
+progress and has not been revised into a final-results presentation.

@@ -188,3 +188,31 @@ The real container boundary and baseline integration have passed unpaid checks.
 Milestone 4's live inference check is still open. Final protocol configuration
 must be frozen from completed real pilot evidence; final research execution is
 not a side effect of implementation or a mock smoke command.
+
+## SOCLAAS live protocol adjustment (2026-10-10)
+
+Live execution is explicitly authorized. SOCLAAS provides a Responses endpoint
+and a `default` model alias. The direct `responses` backend supplies all current
+app/contract source and the role output schema in each fresh request, with no
+tools or prior response identifier. Only memory Planner receives attempt history.
+Temperature is 0.2, output limit 12,000 tokens, and no reasoning parameter is sent.
+Official candidate execution remains isolated in network-disabled containers.
+The original Codex CLI route failed nested namespace access; it is not used in
+the paired experiment. This backend change applies identically to both conditions.
+Final freeze binds provider, backend, model, temperature, and output budget.
+
+The harness now explicitly enables TCP_NODELAY on its supplied server socket to
+avoid delayed-ACK overhead. Application source remains unchanged. Earlier
+measurements form a separate calibration cohort. The pilot workload is 2,000
+notes, 100 cycles, five repetitions, two warmups, concurrency one, and seed seven.
+Each repetition measures 1,200 requests, giving 6,000 per snapshot measurement.
+Final settings remain subject to the paired pilot and recorded freeze.
+
+The initial Responses pilot was halted after repeated provider-internal tool
+errors. A fresh pilot uses backend `chat`, native Chat Completions JSON schemas
+(`strict=true`), and `tool_choice=none`. The `default` alias was retained and
+Chat responses identify `qwen3.6:35b`; this is a reported model identity, not a
+weight hash. No partial Responses pilot data may be pooled with the Chat study.
+The same explicit source/memory boundaries, temperature and budgets apply. The
+compatibility probes and original incomplete pilot are retained as diagnostic
+evidence. Native schema enforcement was verified before the fresh pilot.

@@ -1,0 +1,1465 @@
+{
+  "cli": {
+    "docker_server": "29.6.1",
+    "global_help": "Codex CLI\n\nIf no subcommand is specified, options will be forwarded to the interactive CLI.\n\nUsage: codex [OPTIONS] [PROMPT]\n       codex [OPTIONS] <COMMAND> [ARGS]\n\nCommands:\n  agents            Browse all agent sessions on the shared local app-server daemon\n  exec              Run Codex non-interactively [aliases: e]\n  review            Run a code review non-interactively\n  login             Manage login\n  logout            Remove stored authentication credentials\n  mcp               Manage external MCP servers for Codex\n  plugin            Manage Codex plugins\n  app-server        [experimental] Run the app server or related tooling\n  remote-control    [experimental] Manage the app-server daemon with remote control enabled\n  completion        Generate shell completion scripts\n  update            Update Codex to the latest version\n  doctor            Diagnose local Codex installation, config, auth, and runtime health\n  sandbox           Run commands within a Codex-provided sandbox\n  debug             Debugging tools\n  apply             Apply the latest diff produced by Codex agent as a `git apply` to your local\n                    working tree [aliases: a]\n  resume            Resume a previous interactive session (picker by default; use --last to continue\n                    the most recent)\n  queue             Queue a message for an existing session\n  archive           Archive a saved session by id or session name\n  delete            Permanently delete a saved session by id or session name\n  migrate-rollouts  Inspect or migrate legacy local sessions to paginated thread history\n  unarchive         Unarchive a saved session by id or session name\n  fork              Fork a previous interactive session (picker by default; use --last to fork the\n                    most recent)\n  cloud             [EXPERIMENTAL] Browse tasks from Codex Cloud and apply changes locally\n  exec-server       [EXPERIMENTAL] Run the standalone exec-server service\n  features          Inspect feature flags\n  help              Print this message or the help of the given subcommand(s)\n\nArguments:\n  [PROMPT]\n          Optional user prompt to start the session\n\nOptions:\n  -c, --config <key=value>\n          Override a configuration value that would otherwise be loaded from `~/.codex/config.toml`.\n          Use a dotted path (`foo.bar.baz`) to override nested values. The `value` portion is parsed\n          as TOML. If it fails to parse as TOML, the raw string is used as a literal.\n          \n          Examples: - `-c model=\"o3\"` - `-c 'sandbox_permissions=[\"disk-full-read-access\"]'` - `-c\n          shell_environment_policy.inherit=all`\n\n      --enable <FEATURE>\n          Enable a feature (repeatable). Equivalent to `-c features.<name>=true`\n\n      --disable <FEATURE>\n          Disable a feature (repeatable). Equivalent to `-c features.<name>=false`\n\n      --remote <ADDR>\n          Connect the TUI to a remote app server endpoint.\n          \n          Accepted forms: `ws://host:port`, `wss://host:port`, `unix://`, or `unix://PATH`.\n\n      --remote-auth-token-env <ENV_VAR>\n          Name of the environment variable containing the bearer token to send to a remote app\n          server websocket\n\n      --strict-config\n          Error out when config.toml contains fields that are not recognized by this version of\n          Codex\n\n  -i, --image <FILE>...\n          Optional image(s) to attach to the initial prompt\n\n  -m, --model <MODEL>\n          Model the agent should use\n\n      --oss\n          Use open-source provider\n\n      --local-provider <OSS_PROVIDER>\n          Specify which local provider to use (lmstudio or ollama). If not specified with --oss,\n          will use config default or show selection\n\n  -p, --profile <CONFIG_PROFILE_V2>\n          Layer $CODEX_HOME/<name>.config.toml on top of the base user config\n\n  -s, --sandbox <SANDBOX_MODE>\n          Select the sandbox policy to use when executing model-generated shell commands\n          \n          [possible values: read-only, workspace-write, danger-full-access]\n\n      --approve-for-me\n          Route approval requests through automatic review using the workspace-write sandbox\n\n      --dangerously-bypass-approvals-and-sandbox\n          Skip all confirmation prompts and execute commands without sandboxing. EXTREMELY\n          DANGEROUS. Intended solely for running in environments that are externally sandboxed\n\n      --dangerously-bypass-hook-trust\n          Run enabled hooks without requiring persisted hook trust for this invocation. DANGEROUS.\n          Intended only for automation that already vets hook sources\n\n  -C, --cd <DIR>\n          Tell the agent to use the specified directory as its working root\n\n      --worktree\n          Run the session in a new managed Git worktree\n\n      --add-dir <DIR>\n          Additional directories that should be writable alongside the primary workspace\n\n  -a, --ask-for-approval <APPROVAL_POLICY>\n          Configure when the model requires human approval before executing a command\n\n          Possible values:\n          - on-request: The model decides when to ask the user for approval\n          - never:      Never ask for user approval Execution failures are immediately returned to\n            the model\n\n      --search\n          Enable live web search. When enabled, the native Responses `web_search` tool is available\n          to the model (no per\u2011call approval)\n\n      --no-alt-screen\n          Disable alternate screen mode\n          \n          Runs the TUI in inline mode, preserving terminal scrollback history.\n\n      --no-daemon\n          Run without the shared background server, even if it is already running\n\n  -h, --help\n          Print help (see a summary with '-h')\n\n  -V, --version\n          Print version\n",
+    "help": "Run Codex non-interactively\n\nUsage: codex exec [OPTIONS] [PROMPT]\n       codex exec [OPTIONS] <COMMAND> [ARGS]\n\nCommands:\n  resume  Resume a previous session by id or pick the most recent with --last\n  fork    Fork a previous session by id into a new session\n  review  Run a code review against the current repository\n  help    Print this message or the help of the given subcommand(s)\n\nArguments:\n  [PROMPT]\n          Initial instructions for the agent. If not provided as an argument (or if `-` is used),\n          instructions are read from stdin. If stdin is piped and a prompt is also provided, stdin\n          is appended as a `<stdin>` block\n\nOptions:\n  -c, --config <key=value>\n          Override a configuration value that would otherwise be loaded from `~/.codex/config.toml`.\n          Use a dotted path (`foo.bar.baz`) to override nested values. The `value` portion is parsed\n          as TOML. If it fails to parse as TOML, the raw string is used as a literal.\n          \n          Examples: - `-c model=\"o3\"` - `-c 'sandbox_permissions=[\"disk-full-read-access\"]'` - `-c\n          shell_environment_policy.inherit=all`\n\n      --enable <FEATURE>\n          Enable a feature (repeatable). Equivalent to `-c features.<name>=true`\n\n      --disable <FEATURE>\n          Disable a feature (repeatable). Equivalent to `-c features.<name>=false`\n\n      --strict-config\n          Error out when config.toml contains fields that are not recognized by this version of\n          Codex\n\n  -i, --image <FILE>...\n          Optional image(s) to attach to the initial prompt\n\n  -m, --model <MODEL>\n          Model the agent should use\n\n      --oss\n          Use open-source provider\n\n      --local-provider <OSS_PROVIDER>\n          Specify which local provider to use (lmstudio or ollama). If not specified with --oss,\n          will use config default or show selection\n\n  -p, --profile <CONFIG_PROFILE_V2>\n          Layer $CODEX_HOME/<name>.config.toml on top of the base user config\n\n  -s, --sandbox <SANDBOX_MODE>\n          Select the sandbox policy to use when executing model-generated shell commands\n          \n          [possible values: read-only, workspace-write, danger-full-access]\n\n      --approve-for-me\n          Route approval requests through automatic review using the workspace-write sandbox\n\n      --dangerously-bypass-approvals-and-sandbox\n          Skip all confirmation prompts and execute commands without sandboxing. EXTREMELY\n          DANGEROUS. Intended solely for running in environments that are externally sandboxed\n\n      --dangerously-bypass-hook-trust\n          Run enabled hooks without requiring persisted hook trust for this invocation. DANGEROUS.\n          Intended only for automation that already vets hook sources\n\n  -C, --cd <DIR>\n          Tell the agent to use the specified directory as its working root\n\n      --worktree\n          Run the session in a new managed Git worktree\n\n      --add-dir <DIR>\n          Additional directories that should be writable alongside the primary workspace\n\n      --thread-source <SOURCE>\n          Source classification for newly created or forked threads\n\n      --cyber-access-program <PROGRAM>\n          Request an experimental Cyber access program for this turn (OpenAI provider only). Omit to\n          use server defaults. Not supported with review; fork requires a prompt\n          \n          [possible values: standard, daybreak_blue, daybreak_red]\n\n      --skip-git-repo-check\n          Allow running Codex outside a Git repository\n\n      --ephemeral\n          Run without persisting session files to disk\n\n      --ignore-user-config\n          Do not load `$CODEX_HOME/config.toml`; auth still uses `CODEX_HOME`\n\n      --ignore-rules\n          Do not load user or project execpolicy `.rules` files\n\n      --output-schema <FILE>\n          Path to a JSON Schema file describing the model's final response shape\n\n      --color <COLOR>\n          Specifies color settings for use in the output\n          \n          [default: auto]\n          [possible values: always, never, auto]\n\n      --json\n          Print events to stdout as JSONL\n\n  -o, --output-last-message <FILE>\n          Specifies file where the last message from the agent should be written\n\n  -h, --help\n          Print help (see a summary with '-h')\n\n  -V, --version\n          Print version\n",
+    "image_id": "sha256:385b5ef7719da065679daedf775a6a35567c9be0ddffa3143e659f21ab744238",
+    "version": "codex-cli 0.162.0-alpha.2\n"
+  },
+  "isolation": {
+    "app_contract_inputs_readonly": true,
+    "history_absent": true,
+    "host_and_sibling_denied": true,
+    "output_writable": true
+  },
+  "live_model_calls": 0,
+  "measurement": {
+    "aggregate": {
+      "counts": {
+        "completed": 48,
+        "failed": 0,
+        "latency_ms": {
+          "max": 3.0465840000033495,
+          "mean": 0.7738055833357294,
+          "median": 0.6655414999841014,
+          "min": 0.4930830000375863,
+          "p95": 1.0080000000129985
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 48,
+        "timed_out": 0,
+        "total": 48
+      },
+      "noise": {
+        "coefficient_of_variation": 0.07015358499588657,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.09921215135027646,
+        "repetition_means_ms": [
+          0.7354201250109327,
+          0.812191041660526
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 4,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.7936249999715983,
+            "mean": 0.7282917499935593,
+            "median": 0.7145209999919189,
+            "min": 0.6905000000188011,
+            "p95": 0.7936249999715983
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 4,
+          "timed_out": 0,
+          "total": 4
+        },
+        "delete": {
+          "completed": 4,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.669249999987187,
+            "mean": 0.5438332500204979,
+            "median": 0.5065000000286091,
+            "min": 0.4930830000375863,
+            "p95": 0.669249999987187
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 4,
+          "timed_out": 0,
+          "total": 4
+        },
+        "get": {
+          "completed": 12,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.7098749999840948,
+            "mean": 0.6017846666660868,
+            "median": 0.5860834999964482,
+            "min": 0.5518330000313654,
+            "p95": 0.7098749999840948
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 12,
+          "timed_out": 0,
+          "total": 12
+        },
+        "list_search": {
+          "completed": 24,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.0465840000033495,
+            "mean": 0.9077413750044153,
+            "median": 0.6809170000110498,
+            "min": 0.604459000044244,
+            "p95": 2.7340830000071037
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 24,
+          "timed_out": 0,
+          "total": 24
+        },
+        "update": {
+          "completed": 4,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.8503329999598463,
+            "mean": 0.7617397499899425,
+            "median": 0.7532084999866129,
+            "min": 0.690209000026698,
+            "p95": 0.8503329999598463
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 4,
+          "timed_out": 0,
+          "total": 4
+        }
+      },
+      "score_ms": 0.7738055833357294,
+      "valid": true
+    },
+    "artifacts": "/tmp/notes-soclaas-nodelay-calibration-2026-10-10/measurement",
+    "complete": true,
+    "environment": {
+      "dependencies": {
+        "PyYAML": "6.0.3",
+        "fastapi": "0.143.0",
+        "httpx": "0.28.1",
+        "pydantic": "2.14.0",
+        "pytest": "8.4.2",
+        "starlette": "1.7.0",
+        "uvicorn": "0.54.0"
+      },
+      "machine": "aarch64",
+      "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
+      "python": "3.13.16",
+      "sqlite": "3.40.1"
+    },
+    "runs": [
+      {
+        "counts": {
+          "completed": 24,
+          "failed": 0,
+          "latency_ms": {
+            "max": 2.7340830000071037,
+            "mean": 0.7354201250109327,
+            "median": 0.6288330000074893,
+            "min": 0.4930830000375863,
+            "p95": 1.0080000000129985
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 24,
+          "timed_out": 0,
+          "total": 24
+        },
+        "error": null,
+        "fixture_status": "passed",
+        "logical_fixture_hash": "bf88e36776c28166e2576dfbfb0c41fba4175c1b6187e347b6a8e2b8dd2b0e26",
+        "official_tests": null,
+        "per_operation": {
+          "add": {
+            "completed": 2,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.69995899997366,
+              "mean": 0.6952294999962305,
+              "median": 0.6952294999962305,
+              "min": 0.6905000000188011,
+              "p95": 0.69995899997366
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 2,
+            "timed_out": 0,
+            "total": 2
+          },
+          "delete": {
+            "completed": 2,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.518708000015522,
+              "mean": 0.5058955000265541,
+              "median": 0.5058955000265541,
+              "min": 0.4930830000375863,
+              "p95": 0.518708000015522
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 2,
+            "timed_out": 0,
+            "total": 2
+          },
+          "get": {
+            "completed": 6,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.6298750000155451,
+              "mean": 0.572222166681513,
+              "median": 0.5592915000249832,
+              "min": 0.5518330000313654,
+              "p95": 0.6298750000155451
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 6,
+            "timed_out": 0,
+            "total": 6
+          },
+          "list_search": {
+            "completed": 12,
+            "failed": 0,
+            "latency_ms": {
+              "max": 2.7340830000071037,
+              "mean": 0.8624096666759821,
+              "median": 0.6399789999989025,
+              "min": 0.604459000044244,
+              "p95": 2.7340830000071037
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 12,
+            "timed_out": 0,
+            "total": 12
+          },
+          "update": {
+            "completed": 2,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.7753749999892534,
+              "mean": 0.7327920000079757,
+              "median": 0.7327920000079757,
+              "min": 0.690209000026698,
+              "p95": 0.7753749999892534
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 2,
+            "timed_out": 0,
+            "total": 2
+          }
+        },
+        "requests": [
+          {
+            "elapsed_ms": 0.6298750000155451,
+            "error": null,
+            "name": "cycle_0_0_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.8243749999792271,
+            "error": null,
+            "name": "cycle_0_1_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 1.0080000000129985,
+            "error": null,
+            "name": "cycle_0_2_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6905000000188011,
+            "error": null,
+            "name": "cycle_0_3_add",
+            "operation": "add",
+            "status_code": 201,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.5518330000313654,
+            "error": null,
+            "name": "cycle_0_4_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6460000000174659,
+            "error": null,
+            "name": "cycle_0_5_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.7753749999892534,
+            "error": null,
+            "name": "cycle_0_6_update",
+            "operation": "update",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.5667080000080205,
+            "error": null,
+            "name": "cycle_0_7_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6277909999994336,
+            "error": null,
+            "name": "cycle_0_8_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6102500000224609,
+            "error": null,
+            "name": "cycle_0_9_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.518708000015522,
+            "error": null,
+            "name": "cycle_0_10_delete",
+            "operation": "delete",
+            "status_code": 204,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6637920000116537,
+            "error": null,
+            "name": "cycle_0_11_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.5518749999851025,
+            "error": null,
+            "name": "cycle_1_0_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 2.7340830000071037,
+            "error": null,
+            "name": "cycle_1_1_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.7677500000227155,
+            "error": null,
+            "name": "cycle_1_2_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.69995899997366,
+            "error": null,
+            "name": "cycle_1_3_add",
+            "operation": "add",
+            "status_code": 201,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.581167000007099,
+            "error": null,
+            "name": "cycle_1_4_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6339579999803391,
+            "error": null,
+            "name": "cycle_1_5_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.690209000026698,
+            "error": null,
+            "name": "cycle_1_6_update",
+            "operation": "update",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.5518750000419459,
+            "error": null,
+            "name": "cycle_1_7_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6170000000338405,
+            "error": null,
+            "name": "cycle_1_8_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.604459000044244,
+            "error": null,
+            "name": "cycle_1_9_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.4930830000375863,
+            "error": null,
+            "name": "cycle_1_10_delete",
+            "operation": "delete",
+            "status_code": 204,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6114579999803027,
+            "error": null,
+            "name": "cycle_1_11_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          }
+        ],
+        "score_ms": 0.7354201250109327,
+        "startup_status": "passed",
+        "warmups": [
+          {
+            "counts": {
+              "completed": 2,
+              "failed": 0,
+              "latency_ms": {
+                "max": 0.8484580000072128,
+                "mean": 0.7678119999923183,
+                "median": 0.7678119999923183,
+                "min": 0.6871659999774238,
+                "p95": 0.8484580000072128
+              },
+              "semantic_mismatches": 0,
+              "success_rate": 1.0,
+              "successful": 2,
+              "timed_out": 0,
+              "total": 2
+            },
+            "per_operation": {
+              "add": {
+                "completed": 0,
+                "failed": 0,
+                "latency_ms": {
+                  "max": null,
+                  "mean": null,
+                  "median": null,
+                  "min": null,
+                  "p95": null
+                },
+                "semantic_mismatches": 0,
+                "success_rate": null,
+                "successful": 0,
+                "timed_out": 0,
+                "total": 0
+              },
+              "delete": {
+                "completed": 0,
+                "failed": 0,
+                "latency_ms": {
+                  "max": null,
+                  "mean": null,
+                  "median": null,
+                  "min": null,
+                  "p95": null
+                },
+                "semantic_mismatches": 0,
+                "success_rate": null,
+                "successful": 0,
+                "timed_out": 0,
+                "total": 0
+              },
+              "get": {
+                "completed": 1,
+                "failed": 0,
+                "latency_ms": {
+                  "max": 0.6871659999774238,
+                  "mean": 0.6871659999774238,
+                  "median": 0.6871659999774238,
+                  "min": 0.6871659999774238,
+                  "p95": 0.6871659999774238
+                },
+                "semantic_mismatches": 0,
+                "success_rate": 1.0,
+                "successful": 1,
+                "timed_out": 0,
+                "total": 1
+              },
+              "list_search": {
+                "completed": 1,
+                "failed": 0,
+                "latency_ms": {
+                  "max": 0.8484580000072128,
+                  "mean": 0.8484580000072128,
+                  "median": 0.8484580000072128,
+                  "min": 0.8484580000072128,
+                  "p95": 0.8484580000072128
+                },
+                "semantic_mismatches": 0,
+                "success_rate": 1.0,
+                "successful": 1,
+                "timed_out": 0,
+                "total": 1
+              },
+              "update": {
+                "completed": 0,
+                "failed": 0,
+                "latency_ms": {
+                  "max": null,
+                  "mean": null,
+                  "median": null,
+                  "min": null,
+                  "p95": null
+                },
+                "semantic_mismatches": 0,
+                "success_rate": null,
+                "successful": 0,
+                "timed_out": 0,
+                "total": 0
+              }
+            },
+            "requests": [
+              {
+                "elapsed_ms": 0.6871659999774238,
+                "error": null,
+                "name": "warm_get",
+                "operation": "get",
+                "status_code": 200,
+                "valid": true
+              },
+              {
+                "elapsed_ms": 0.8484580000072128,
+                "error": null,
+                "name": "warm_list",
+                "operation": "list_search",
+                "status_code": 200,
+                "valid": true
+              }
+            ],
+            "score_ms": 0.7678119999923183,
+            "workload_elapsed_ms": 1.5969590000395328
+          }
+        ],
+        "workload_elapsed_ms": 18.111082999951122
+      },
+      {
+        "counts": {
+          "completed": 24,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.0465840000033495,
+            "mean": 0.812191041660526,
+            "median": 0.6957090000128119,
+            "min": 0.49429200004169616,
+            "p95": 0.9600840000416611
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 24,
+          "timed_out": 0,
+          "total": 24
+        },
+        "error": null,
+        "fixture_status": "passed",
+        "logical_fixture_hash": "bf88e36776c28166e2576dfbfb0c41fba4175c1b6187e347b6a8e2b8dd2b0e26",
+        "official_tests": null,
+        "per_operation": {
+          "add": {
+            "completed": 2,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.7936249999715983,
+              "mean": 0.761353999990888,
+              "median": 0.761353999990888,
+              "min": 0.7290830000101778,
+              "p95": 0.7936249999715983
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 2,
+            "timed_out": 0,
+            "total": 2
+          },
+          "delete": {
+            "completed": 2,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.669249999987187,
+              "mean": 0.5817710000144416,
+              "median": 0.5817710000144416,
+              "min": 0.49429200004169616,
+              "p95": 0.669249999987187
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 2,
+            "timed_out": 0,
+            "total": 2
+          },
+          "get": {
+            "completed": 6,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.7098749999840948,
+              "mean": 0.6313471666506606,
+              "median": 0.6194789999653949,
+              "min": 0.5859169999666847,
+              "p95": 0.7098749999840948
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 6,
+            "timed_out": 0,
+            "total": 6
+          },
+          "list_search": {
+            "completed": 12,
+            "failed": 0,
+            "latency_ms": {
+              "max": 3.0465840000033495,
+              "mean": 0.9530730833328486,
+              "median": 0.7699374999958764,
+              "min": 0.6484580000005735,
+              "p95": 3.0465840000033495
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 12,
+            "timed_out": 0,
+            "total": 12
+          },
+          "update": {
+            "completed": 2,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.8503329999598463,
+              "mean": 0.7906874999719093,
+              "median": 0.7906874999719093,
+              "min": 0.7310419999839723,
+              "p95": 0.8503329999598463
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 2,
+            "timed_out": 0,
+            "total": 2
+          }
+        },
+        "requests": [
+          {
+            "elapsed_ms": 0.6300409999653311,
+            "error": null,
+            "name": "cycle_0_0_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.8638749999931861,
+            "error": null,
+            "name": "cycle_0_1_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.8607920000258673,
+            "error": null,
+            "name": "cycle_0_2_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.7290830000101778,
+            "error": null,
+            "name": "cycle_0_3_add",
+            "operation": "add",
+            "status_code": 201,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6089169999654587,
+            "error": null,
+            "name": "cycle_0_4_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.677375000009306,
+            "error": null,
+            "name": "cycle_0_5_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.8503329999598463,
+            "error": null,
+            "name": "cycle_0_6_update",
+            "operation": "update",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.5859169999666847,
+            "error": null,
+            "name": "cycle_0_7_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6844590000127937,
+            "error": null,
+            "name": "cycle_0_8_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.9600840000416611,
+            "error": null,
+            "name": "cycle_0_9_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.669249999987187,
+            "error": null,
+            "name": "cycle_0_10_delete",
+            "operation": "delete",
+            "status_code": 204,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.8424999999760985,
+            "error": null,
+            "name": "cycle_0_11_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.7098749999840948,
+            "error": null,
+            "name": "cycle_1_0_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 3.0465840000033495,
+            "error": null,
+            "name": "cycle_1_1_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.8329159999789226,
+            "error": null,
+            "name": "cycle_1_2_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.7936249999715983,
+            "error": null,
+            "name": "cycle_1_3_add",
+            "operation": "add",
+            "status_code": 201,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6670829999961825,
+            "error": null,
+            "name": "cycle_1_4_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.7069590000128301,
+            "error": null,
+            "name": "cycle_1_5_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.7310419999839723,
+            "error": null,
+            "name": "cycle_1_6_update",
+            "operation": "update",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.5862500000262116,
+            "error": null,
+            "name": "cycle_1_7_get",
+            "operation": "get",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6484580000005735,
+            "error": null,
+            "name": "cycle_1_8_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6639999999720203,
+            "error": null,
+            "name": "cycle_1_9_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.49429200004169616,
+            "error": null,
+            "name": "cycle_1_10_delete",
+            "operation": "delete",
+            "status_code": 204,
+            "valid": true
+          },
+          {
+            "elapsed_ms": 0.6488749999675747,
+            "error": null,
+            "name": "cycle_1_11_list_search",
+            "operation": "list_search",
+            "status_code": 200,
+            "valid": true
+          }
+        ],
+        "score_ms": 0.812191041660526,
+        "startup_status": "passed",
+        "warmups": [
+          {
+            "counts": {
+              "completed": 2,
+              "failed": 0,
+              "latency_ms": {
+                "max": 0.893125000004602,
+                "mean": 0.8293335000075786,
+                "median": 0.8293335000075786,
+                "min": 0.7655420000105551,
+                "p95": 0.893125000004602
+              },
+              "semantic_mismatches": 0,
+              "success_rate": 1.0,
+              "successful": 2,
+              "timed_out": 0,
+              "total": 2
+            },
+            "per_operation": {
+              "add": {
+                "completed": 0,
+                "failed": 0,
+                "latency_ms": {
+                  "max": null,
+                  "mean": null,
+                  "median": null,
+                  "min": null,
+                  "p95": null
+                },
+                "semantic_mismatches": 0,
+                "success_rate": null,
+                "successful": 0,
+                "timed_out": 0,
+                "total": 0
+              },
+              "delete": {
+                "completed": 0,
+                "failed": 0,
+                "latency_ms": {
+                  "max": null,
+                  "mean": null,
+                  "median": null,
+                  "min": null,
+                  "p95": null
+                },
+                "semantic_mismatches": 0,
+                "success_rate": null,
+                "successful": 0,
+                "timed_out": 0,
+                "total": 0
+              },
+              "get": {
+                "completed": 1,
+                "failed": 0,
+                "latency_ms": {
+                  "max": 0.7655420000105551,
+                  "mean": 0.7655420000105551,
+                  "median": 0.7655420000105551,
+                  "min": 0.7655420000105551,
+                  "p95": 0.7655420000105551
+                },
+                "semantic_mismatches": 0,
+                "success_rate": 1.0,
+                "successful": 1,
+                "timed_out": 0,
+                "total": 1
+              },
+              "list_search": {
+                "completed": 1,
+                "failed": 0,
+                "latency_ms": {
+                  "max": 0.893125000004602,
+                  "mean": 0.893125000004602,
+                  "median": 0.893125000004602,
+                  "min": 0.893125000004602,
+                  "p95": 0.893125000004602
+                },
+                "semantic_mismatches": 0,
+                "success_rate": 1.0,
+                "successful": 1,
+                "timed_out": 0,
+                "total": 1
+              },
+              "update": {
+                "completed": 0,
+                "failed": 0,
+                "latency_ms": {
+                  "max": null,
+                  "mean": null,
+                  "median": null,
+                  "min": null,
+                  "p95": null
+                },
+                "semantic_mismatches": 0,
+                "success_rate": null,
+                "successful": 0,
+                "timed_out": 0,
+                "total": 0
+              }
+            },
+            "requests": [
+              {
+                "elapsed_ms": 0.7655420000105551,
+                "error": null,
+                "name": "warm_get",
+                "operation": "get",
+                "status_code": 200,
+                "valid": true
+              },
+              {
+                "elapsed_ms": 0.893125000004602,
+                "error": null,
+                "name": "warm_list",
+                "operation": "list_search",
+                "status_code": 200,
+                "valid": true
+              }
+            ],
+            "score_ms": 0.8293335000075786,
+            "workload_elapsed_ms": 1.7208340000252065
+          }
+        ],
+        "workload_elapsed_ms": 19.973250000020926
+      }
+    ],
+    "schema_version": 1,
+    "synthetic": false
+  },
+  "passed": true,
+  "profile": {
+    "artifacts": "/tmp/notes-soclaas-nodelay-calibration-2026-10-10/profile",
+    "environment": {
+      "dependencies": {
+        "PyYAML": "6.0.3",
+        "fastapi": "0.143.0",
+        "httpx": "0.28.1",
+        "pydantic": "2.14.0",
+        "pytest": "8.4.2",
+        "starlette": "1.7.0",
+        "uvicorn": "0.54.0"
+      },
+      "machine": "aarch64",
+      "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
+      "python": "3.13.16",
+      "sqlite": "3.40.1"
+    },
+    "run": {
+      "counts": {
+        "completed": 24,
+        "failed": 0,
+        "latency_ms": {
+          "max": 3.2342089999701784,
+          "mean": 1.066309000004632,
+          "median": 0.9791454999970028,
+          "min": 0.7363750000308755,
+          "p95": 1.2896250000267173
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 24,
+        "timed_out": 0,
+        "total": 24
+      },
+      "error": null,
+      "fixture_status": "passed",
+      "logical_fixture_hash": "bf88e36776c28166e2576dfbfb0c41fba4175c1b6187e347b6a8e2b8dd2b0e26",
+      "official_tests": null,
+      "per_operation": {
+        "add": {
+          "completed": 2,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.022500000033233,
+            "mean": 1.0016665000307512,
+            "median": 1.0016665000307512,
+            "min": 0.9808330000282695,
+            "p95": 1.022500000033233
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 2,
+          "timed_out": 0,
+          "total": 2
+        },
+        "delete": {
+          "completed": 2,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.7559580000133792,
+            "mean": 0.7461665000221274,
+            "median": 0.7461665000221274,
+            "min": 0.7363750000308755,
+            "p95": 0.7559580000133792
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 2,
+          "timed_out": 0,
+          "total": 2
+        },
+        "get": {
+          "completed": 6,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.9396250000008877,
+            "mean": 0.8371319999961694,
+            "median": 0.8225619999961964,
+            "min": 0.775874999987991,
+            "p95": 0.9396250000008877
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 6,
+          "timed_out": 0,
+          "total": 6
+        },
+        "list_search": {
+          "completed": 12,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.2342089999701784,
+            "mean": 1.231236083332495,
+            "median": 1.028083499988952,
+            "min": 0.9099580000224705,
+            "p95": 3.2342089999701784
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 12,
+          "timed_out": 0,
+          "total": 12
+        },
+        "update": {
+          "completed": 2,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.2896250000267173,
+            "mean": 1.1490625000192267,
+            "median": 1.1490625000192267,
+            "min": 1.0085000000117361,
+            "p95": 1.2896250000267173
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 2,
+          "timed_out": 0,
+          "total": 2
+        }
+      },
+      "requests": [
+        {
+          "elapsed_ms": 0.8752090000143653,
+          "error": null,
+          "name": "cycle_0_0_get",
+          "operation": "get",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 3.2342089999701784,
+          "error": null,
+          "name": "cycle_0_1_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.2438750000001164,
+          "error": null,
+          "name": "cycle_0_2_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.022500000033233,
+          "error": null,
+          "name": "cycle_0_3_add",
+          "operation": "add",
+          "status_code": 201,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.8067910000022493,
+          "error": null,
+          "name": "cycle_0_4_get",
+          "operation": "get",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.999750000005406,
+          "error": null,
+          "name": "cycle_0_5_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.2896250000267173,
+          "error": null,
+          "name": "cycle_0_6_update",
+          "operation": "update",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.9396250000008877,
+          "error": null,
+          "name": "cycle_0_7_get",
+          "operation": "get",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.0318340000026183,
+          "error": null,
+          "name": "cycle_0_8_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.9774579999657362,
+          "error": null,
+          "name": "cycle_0_9_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.7559580000133792,
+          "error": null,
+          "name": "cycle_0_10_delete",
+          "operation": "delete",
+          "status_code": 204,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.1494160000324882,
+          "error": null,
+          "name": "cycle_0_11_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.775874999987991,
+          "error": null,
+          "name": "cycle_1_0_get",
+          "operation": "get",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.2220419999948717,
+          "error": null,
+          "name": "cycle_1_1_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.0552080000252317,
+          "error": null,
+          "name": "cycle_1_2_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.9808330000282695,
+          "error": null,
+          "name": "cycle_1_3_add",
+          "operation": "add",
+          "status_code": 201,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.7869589999813797,
+          "error": null,
+          "name": "cycle_1_4_get",
+          "operation": "get",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.9531249999668034,
+          "error": null,
+          "name": "cycle_1_5_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.0085000000117361,
+          "error": null,
+          "name": "cycle_1_6_update",
+          "operation": "update",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.8383329999901434,
+          "error": null,
+          "name": "cycle_1_7_get",
+          "operation": "get",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.9736250000287328,
+          "error": null,
+          "name": "cycle_1_8_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.9099580000224705,
+          "error": null,
+          "name": "cycle_1_9_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 0.7363750000308755,
+          "error": null,
+          "name": "cycle_1_10_delete",
+          "operation": "delete",
+          "status_code": 204,
+          "valid": true
+        },
+        {
+          "elapsed_ms": 1.024332999975286,
+          "error": null,
+          "name": "cycle_1_11_list_search",
+          "operation": "list_search",
+          "status_code": 200,
+          "valid": true
+        }
+      ],
+      "score_ms": null,
+      "startup_status": "passed",
+      "warmups": [
+        {
+          "counts": {
+            "completed": 2,
+            "failed": 0,
+            "latency_ms": {
+              "max": 0.7632909999983895,
+              "mean": 0.7199579999905836,
+              "median": 0.7199579999905836,
+              "min": 0.6766249999827778,
+              "p95": 0.7632909999983895
+            },
+            "semantic_mismatches": 0,
+            "success_rate": 1.0,
+            "successful": 2,
+            "timed_out": 0,
+            "total": 2
+          },
+          "per_operation": {
+            "add": {
+              "completed": 0,
+              "failed": 0,
+              "latency_ms": {
+                "max": null,
+                "mean": null,
+                "median": null,
+                "min": null,
+                "p95": null
+              },
+              "semantic_mismatches": 0,
+              "success_rate": null,
+              "successful": 0,
+              "timed_out": 0,
+              "total": 0
+            },
+            "delete": {
+              "completed": 0,
+              "failed": 0,
+              "latency_ms": {
+                "max": null,
+                "mean": null,
+                "median": null,
+                "min": null,
+                "p95": null
+              },
+              "semantic_mismatches": 0,
+              "success_rate": null,
+              "successful": 0,
+              "timed_out": 0,
+              "total": 0
+            },
+            "get": {
+              "completed": 1,
+              "failed": 0,
+              "latency_ms": {
+                "max": 0.6766249999827778,
+                "mean": 0.6766249999827778,
+                "median": 0.6766249999827778,
+                "min": 0.6766249999827778,
+                "p95": 0.6766249999827778
+              },
+              "semantic_mismatches": 0,
+              "success_rate": 1.0,
+              "successful": 1,
+              "timed_out": 0,
+              "total": 1
+            },
+            "list_search": {
+              "completed": 1,
+              "failed": 0,
+              "latency_ms": {
+                "max": 0.7632909999983895,
+                "mean": 0.7632909999983895,
+                "median": 0.7632909999983895,
+                "min": 0.7632909999983895,
+                "p95": 0.7632909999983895
+              },
+              "semantic_mismatches": 0,
+              "success_rate": 1.0,
+              "successful": 1,
+              "timed_out": 0,
+              "total": 1
+            },
+            "update": {
+              "completed": 0,
+              "failed": 0,
+              "latency_ms": {
+                "max": null,
+                "mean": null,
+                "median": null,
+                "min": null,
+                "p95": null
+              },
+              "semantic_mismatches": 0,
+              "success_rate": null,
+              "successful": 0,
+              "timed_out": 0,
+              "total": 0
+            }
+          },
+          "requests": [
+            {
+              "elapsed_ms": 0.6766249999827778,
+              "error": null,
+              "name": "warm_get",
+              "operation": "get",
+              "status_code": 200,
+              "valid": true
+            },
+            {
+              "elapsed_ms": 0.7632909999983895,
+              "error": null,
+              "name": "warm_list",
+              "operation": "list_search",
+              "status_code": 200,
+              "valid": true
+            }
+          ],
+          "score_ms": 0.7199579999905836,
+          "workload_elapsed_ms": 1.504999999951906
+        }
+      ],
+      "workload_elapsed_ms": 26.160209000011037
+    },
+    "schema_version": 1,
+    "score_ms": null,
+    "text": "Sat Oct 10 20:30:28 2026    /result/application.prof\n\n         5248 function calls in 0.008 seconds\n\n   Ordered by: cumulative time\n   List reduced from 86 to 40 due to restriction <40>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n       12    0.000    0.000    0.005    0.000 /workspace/app/main.py:35(list_notes_endpoint)\n       12    0.000    0.000    0.005    0.000 /workspace/app/db.py:77(list_notes)\n      136    0.000    0.000    0.003    0.000 /workspace/app/db.py:44(_to_note)\n      136    0.000    0.000    0.003    0.000 /usr/local/lib/python3.13/site-packages/pydantic/main.py:270(__init__)\n      136    0.000    0.000    0.003    0.000 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}\n      136    0.002    0.000    0.002    0.000 /workspace/app/models.py:13(validate_tags)\n       24    0.000    0.000    0.002    0.000 /workspace/app/db.py:19(_connect)\n       54    0.001    0.000    0.001    0.000 {method 'execute' of 'sqlite3.Connection' objects}\n        6    0.000    0.000    0.001    0.000 /workspace/app/main.py:27(read_note)\n        6    0.000    0.000    0.001    0.000 /workspace/app/db.py:68(get_note)\n       24    0.000    0.000    0.001    0.000 {built-in method _sqlite3.connect}\n       24    0.000    0.000    0.001    0.000 /runner/benchmarks/server.py:24(finish)\n       24    0.001    0.000    0.001    0.000 {method 'disable' of '_lsprof.Profiler' objects}\n      136    0.000    0.000    0.001    0.000 /usr/local/lib/python3.13/json/__init__.py:304(loads)\n        2    0.000    0.000    0.000    0.000 /workspace/app/main.py:22(create_note_endpoint)\n        2    0.000    0.000    0.000    0.000 /workspace/app/db.py:54(create_note)\n        2    0.000    0.000    0.000    0.000 /workspace/app/main.py:52(update_note_endpoint)\n        2    0.000    0.000    0.000    0.000 /workspace/app/db.py:111(update_note)\n       24    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/pathlib/_local.py:329(parent)\n      136    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/json/decoder.py:340(decode)\n       24    0.000    0.000    0.000    0.000 /workspace/app/db.py:12(get_db_path)\n        2    0.000    0.000    0.000    0.000 /workspace/app/main.py:60(delete_note_endpoint)\n        2    0.000    0.000    0.000    0.000 /workspace/app/db.py:128(delete_note)\n       24    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/pathlib/_local.py:717(mkdir)\n       48    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/pathlib/_local.py:289(drive)\n       24    0.000    0.000    0.000    0.000 {method 'close' of 'sqlite3.Connection' objects}\n       24    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/functools.py:544(decorating_function)\n       24    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/functools.py:36(update_wrapper)\n       48    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/pathlib/_local.py:498(__init__)\n       24    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/pathlib/_local.py:257(_parse_path)\n       24    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/pathlib/_local.py:245(_from_parsed_parts)\n       24    0.000    0.000    0.000    0.000 <frozen os>:811(getenv)\n       12    0.000    0.000    0.000    0.000 {method 'fetchall' of 'sqlite3.Cursor' objects}\n       24    0.000    0.000    0.000    0.000 <frozen _collections_abc>:808(get)\n       24    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/pathlib/_abc.py:460(is_dir)\n       48    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/pathlib/_local.py:117(__init__)\n       72    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/pathlib/_local.py:166(__fspath__)\n       24    0.000    0.000    0.000    0.000 <frozen os>:712(__getitem__)\n      272    0.000    0.000    0.000    0.000 {method 'match' of 're.Pattern' objects}\n        6    0.000    0.000    0.000    0.000 {method 'commit' of 'sqlite3.Connection' objects}\n\n\n",
+    "valid": true
+  },
+  "schema_version": 1,
+  "validation": {
+    "artifacts": "/tmp/notes-soclaas-nodelay-calibration-2026-10-10/validation",
+    "correct": true,
+    "environment": {
+      "dependencies": {
+        "PyYAML": "6.0.3",
+        "fastapi": "0.143.0",
+        "httpx": "0.28.1",
+        "pydantic": "2.14.0",
+        "pytest": "8.4.2",
+        "starlette": "1.7.0",
+        "uvicorn": "0.54.0"
+      },
+      "machine": "aarch64",
+      "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
+      "python": "3.13.16",
+      "sqlite": "3.40.1"
+    },
+    "exit_code": 0,
+    "status": "passed"
+  }
+}
