@@ -170,5 +170,8 @@ The presentation layer and complete-pair-only figures can then be reproduced
 with `PYTHONPATH=. python research/evidence/live-2026-10-10/render-wrap-up.py`
 on this machine. Do not overwrite the frozen protocol or pool diagnostic, pilot
 and final cohorts.
-The original presentation in `output/presentations/` describes pre-experiment
-progress and has not been revised into a final-results presentation.
+The updated eight-minute presentation is
+`output/presentations/memory-guided-optimization-updated-8min-2026-10-10.pptx`.
+It covers the input/output example, frozen dataset, live progress and preliminary
+complete-pair results, with timed speaker notes and explicit replication limits.
+The older presentation remains available as historical pre-experiment progress.
