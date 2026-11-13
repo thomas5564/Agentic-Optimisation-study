@@ -12,6 +12,65 @@ See [the current report](docs/PROJECT_REPORT.md), [specification](docs/SPEC.md),
 and [implementation plan](docs/PLAN.md). Read [development instructions](docs/AGENTS.md)
 before making changes; those instructions are never experimental agent inputs.
 
+## Latest results: stateless vs full memory vs memory + LRU (testbed v2)
+A follow-up study adds a third arm, **memory + LRU**: the Planner sees at most K = 6 prior attempts,
+and the least recently used are evicted. It runs on **testbed v2**, a new baseline with several
+independent slow spots and about 7.7× room for improvement. Each arm ran 30 iterations with SOCLAAS
+`qwen3.6:35b`, one replicate per study, so the results are descriptive. The full write-up is
+[research/testbed-v2/RESULTS.md](research/testbed-v2/RESULTS.md), and all run data is committed,
+so nothing needs to be rerun.
+
+Two studies were run:
+- **Without a scope rule (2026-11-12).** Each arm's first plan rewrote every data operation at
+  once and took 83–98% of its total gain in iteration 1, so the arms could not be told apart.
+- **With the strict one-operation rule (2026-11-13).** Each patch may change only one of the five
+  data operations; this is enforced before testing (`lru_memory --strict-scope`). The gain then
+  comes in steps, and the arms separate.
+
+| Strict-rule study | Final latency | Speedup | Accepted steps | Error rate | Converged by iteration | Input tokens |
+|---|---|---|---|---|---|---|
+| memory + LRU (K=6) | **0.560 ms** | **8.0×** | 5 | 7% | **5** | 1.06M |
+| full memory | 0.584 ms | 7.8× | 6 | 40% | 21 | 1.30M |
+| stateless | 0.737 ms | 6.2× | 7 | 43% | 19 | 0.90M |
+
+- **Memory helped.** Stateless finished 1.26–1.32× slower. It spent iterations 4–15 retrying one
+  function and never fixed `create_note`.
+- **LRU matched full memory with 19% fewer input tokens,** and converged fastest. Its low error
+  rate comes with 20 no-op attempts after iteration 5.
+- **K = 6 is the largest cache that can't overflow a 32k context** with the largest observed memory
+  entry. Full memory exceeded that budget from iteration 13.
+
+**Speedup per iteration (log scale)**
+![Speedup over baseline per iteration](experiments/lru-v2-figures/latency-comparison.png)
+
+**Latency per iteration (log scale)**
+![Retained latency per iteration](experiments/lru-v2-figures/latency-log.png)
+
+**Attempt outcomes and error rate**
+![Attempt outcomes](experiments/lru-v2-figures/outcomes.png)
+
+**Iterations to convergence** (latency stays within 5% of its final value)
+![Iterations to convergence](experiments/lru-v2-figures/convergence.png)
+
+**Why K = 6: Planner prompt size vs the 32k budget**
+![Planner prompt size vs budget](experiments/lru-v2-figures/lru-capacity.png)
+
+**Input tokens per arm**
+![Input tokens per arm](experiments/lru-v2-figures/tokens.png)
+
+**Where to look:**
+- **Write-up, with all tables and caveats:**
+  [research/testbed-v2/RESULTS.md](research/testbed-v2/RESULTS.md).
+- **Interactive reports** (open in a browser after cloning):
+  `experiments/soclaas-lru-v2-strict-2026-11-13-report/index.html` and
+  `experiments/soclaas-lru-v2-unconstrained-2026-11-12-report/index.html`.
+- **Raw data per iteration:** `experiments/soclaas-lru-v2-<study>/<arm>/`. This has `attempts/`
+  (plan, patch, test result, decision, tokens), `patches/`, and `artifacts/` (prompts, model
+  replies, test logs).
+- **How the testbed and the LRU arm work:**
+  [research/testbed-v2/README.md](research/testbed-v2/README.md) and
+  [lru_memory/README.md](lru_memory/README.md).
+
 ## Setup
 
 Verified with Python 3.13.2 on macOS arm64. Python 3.11+ is declared; other
