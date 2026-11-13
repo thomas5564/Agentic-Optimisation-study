@@ -7,6 +7,7 @@ complete memory.
 """
 from __future__ import annotations
 
+from contextlib import nullcontext
 from pathlib import Path
 
 from agents.mock import MockBackend
@@ -16,7 +17,7 @@ from benchmarks.run import content_hash
 from benchmarks.runtime import PROJECT_ROOT
 from controller.engine import Engine, initialize_run
 from controller.storage import read_json
-from lru_memory.policy import POLICY_NOTE, planner_schema, replay
+from lru_memory.policy import DEVELOPER_NOTE, NOTES, POLICY_NOTE, changed_operations, planner_schema, replay, scope_prompts
 
 SOURCE = Path(__file__).parent
 ARMS = ("stateless", "memory", "memory_lru")
@@ -30,15 +31,35 @@ def is_lru(root: Path) -> bool:
     return (root / "lru.json").exists()
 
 
-def initialize_lru_run(root: Path, config, backend_name: str, iterations: int, capacity: int, **kwargs) -> dict:
-    if config.phase == "final":
-        raise ValueError("The frozen final protocol covers only stateless and memory; freeze a new three-arm config first")
-    if type(capacity) is not int or capacity < 1:
-        raise ValueError("LRU capacity must be a positive integer")
+def is_scoped(root: Path) -> bool:
+    return (root / "scope.json").exists()
+
+
+def check_new_run(root: Path):
     if root.resolve().is_relative_to(PROJECT_ROOT):
         raise ValueError("Run artifacts must live outside the development repository")
     if (root / "manifest.json").exists():
         raise ValueError("Run already exists; use lru_memory.resume")
+
+
+def write_scope(root: Path, scope: str | None):
+    if scope is None:
+        return
+    if scope not in NOTES:
+        raise ValueError(f"Unknown scope {scope}")
+    check_new_run(root)
+    # Sidecar before the manifest, as with lru.json, so a scoped run never looks unscoped.
+    write_json(root / "scope.json", {"schema_version": 1, "scope": scope, "note": NOTES[scope],
+                                     **({"developer_note": DEVELOPER_NOTE} if scope == "strict" else {})})
+
+
+def initialize_lru_run(root: Path, config, backend_name: str, iterations: int, capacity: int, scope: str | None = None, **kwargs) -> dict:
+    if config.phase == "final":
+        raise ValueError("The frozen final protocol covers only stateless and memory; freeze a new three-arm config first")
+    if type(capacity) is not int or capacity < 1:
+        raise ValueError("LRU capacity must be a positive integer")
+    check_new_run(root)
+    write_scope(root, scope)
     source = lru_source()
     # Sidecar first: a crash before the manifest leaves no run that could pass as full memory.
     write_json(root / "lru.json", {"schema_version": 1, "policy": "lru", "capacity": capacity,
@@ -46,11 +67,15 @@ def initialize_lru_run(root: Path, config, backend_name: str, iterations: int, c
     return initialize_run(root, config, backend_name, "memory", iterations, **kwargs)
 
 
-def initialize_arm(root: Path, config, backend_name: str, arm: str, iterations: int, capacity: int | None, **kwargs) -> dict:
+def initialize_arm(root: Path, config, backend_name: str, arm: str, iterations: int, capacity: int | None,
+                   scope: str | None = None, **kwargs) -> dict:
     if arm == "memory_lru":
-        return initialize_lru_run(root, config, backend_name, iterations, capacity, **kwargs)
+        return initialize_lru_run(root, config, backend_name, iterations, capacity, scope, **kwargs)
     if arm not in ARMS:
         raise ValueError(f"Unknown arm {arm}")
+    if config.phase == "final" and scope:
+        raise ValueError("The frozen final protocol has no scope rule; freeze a new three-arm config first")
+    write_scope(root, scope)
     return initialize_run(root, config, backend_name, arm, iterations, **kwargs)
 
 
@@ -68,7 +93,44 @@ def make_arm_backend(name: str, config, arm: str):
     return LruMockBackend() if name == "mock" and arm == "memory_lru" else make_backend(name, config)
 
 
-class LruEngine(Engine):
+class ArmEngine(Engine):
+    """Adds the optional scope note to Planner evidence and, for the strict scope, rejects patches that
+    change more than one public data operation before they are tested. Otherwise the unmodified engine."""
+    def __init__(self, root: Path, backend, evaluator, crash_hook=None):
+        super().__init__(root, backend, evaluator, crash_hook)
+        self.scope = read_json(self.root / "scope.json") if is_scoped(self.root) else None
+        self.parent_files = None
+
+    def verify(self):
+        super().verify()
+        if self.scope and (self.scope["note"] != NOTES.get(self.scope["scope"])
+                           or self.scope.get("developer_note") != (DEVELOPER_NOTE if self.strict else None)):
+            raise ValueError("Scope note changed since run creation; resume requires the recorded note")
+
+    @property
+    def strict(self) -> bool:
+        return bool(self.scope) and self.scope["scope"] == "strict"
+
+    def run(self) -> dict:
+        with scope_prompts() if self.strict else nullcontext():
+            return super().run()
+
+    def evaluation(self, key: str, operation: str, files: dict, required: bool = False):
+        if operation == "validate" and not required and self.strict:
+            changed = changed_operations(self.parent_files, files)
+            if len(changed) > 1:
+                return {"correct": False, "status": "scope_exceeded", "detail": f"Changed {len(changed)} operations: {', '.join(changed)}"}
+        return super().evaluation(key, operation, files, required)
+
+    def ask(self, iteration: int, role: str, payload: dict, files: dict, case: str) -> dict:
+        if role == "developer":
+            self.parent_files = files  # the parent the Developer edits; checked against its candidate
+        if role == "planner" and self.scope:
+            payload = {**payload, "evidence": {**payload["evidence"], "scope_policy": {k: self.scope[k] for k in ("scope", "note")}}}
+        return super().ask(iteration, role, payload, files, case)
+
+
+class LruEngine(ArmEngine):
     def __init__(self, root: Path, backend, evaluator, crash_hook=None):
         super().__init__(root, backend, evaluator, crash_hook)
         self.lru = read_json(self.root / "lru.json")
@@ -116,4 +178,4 @@ class LruEngine(Engine):
 
 
 def engine_for(root: Path, backend, evaluator):
-    return (LruEngine if is_lru(root) else Engine)(root, backend, evaluator)
+    return (LruEngine if is_lru(root) else ArmEngine if is_scoped(root) else Engine)(root, backend, evaluator)

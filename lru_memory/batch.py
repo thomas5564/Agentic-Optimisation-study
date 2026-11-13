@@ -10,7 +10,7 @@ from benchmarks.run import content_hash
 from controller.config import load_config
 from controller.evaluation import Evaluator
 from controller.storage import read_json, run_lock
-from lru_memory.engine import ARMS, engine_for, initialize_arm, is_lru, make_arm_backend
+from lru_memory.engine import ARMS, engine_for, initialize_arm, is_lru, is_scoped, make_arm_backend
 
 
 def schedule(replicates: int, seed: int) -> list[dict]:
@@ -19,14 +19,15 @@ def schedule(replicates: int, seed: int) -> list[dict]:
             for arm in ARMS[rep % len(ARMS):] + ARMS[:rep % len(ARMS)]]
 
 
-def run_batch(config, backend_name: str, iterations: int, capacity: int, output: Path):
+def run_batch(config, backend_name: str, iterations: int, capacity: int, output: Path, scope: str | None = None):
     if config.phase == "final":
         raise ValueError("The frozen final protocol covers only stateless and memory; freeze a new three-arm config first")
     output.mkdir(parents=True, exist_ok=True)
     manifest_path = output / "batch.json"
     batch = {"schema_version": 1, "arms": list(ARMS), "lru_capacity": capacity,
              "config_hash": content_hash(config.model_dump()), "backend": backend_name, "iterations": iterations,
-             "schedule": schedule(config.replicates, config.benchmark.get("seed", 7))}
+             "schedule": schedule(config.replicates, config.benchmark.get("seed", 7)),
+             **({"scope": scope} if scope else {})}
     with run_lock(output):
         if manifest_path.exists() and read_json(manifest_path) != batch:
             raise ValueError("Batch protocol changed; use a new output directory")
@@ -42,11 +43,11 @@ def run_batch(config, backend_name: str, iterations: int, capacity: int, output:
                 if not (root / "manifest.json").exists():
                     initialize_arm(root, settings, backend_name, arm, iterations,
                                    capacity if arm == "memory_lru" else None,
-                                   pair_id=entry["pair_id"], preflight=preflight)
+                                   scope=scope, pair_id=entry["pair_id"], preflight=preflight)
                 else:
                     existing = read_json(root / "manifest.json")
                     if (existing["config_hash"] != content_hash(settings.model_dump()) or existing["preflight"] != preflight
-                            or is_lru(root) != (arm == "memory_lru")):
+                            or is_lru(root) != (arm == "memory_lru") or is_scoped(root) != bool(scope)):
                         raise ValueError("Saved batch run configuration/backend differs")
             state = engine_for(root, backend, Evaluator(settings, isolated=backend_name != "mock")).run()
             states.append({**entry, **state})
@@ -61,11 +62,15 @@ def main():
     parser.add_argument("--backend", choices=["mock", "codex", "responses", "chat"], required=True)
     parser.add_argument("--iterations", type=int, required=True)
     parser.add_argument("--capacity", type=int, required=True, help="LRU entry capacity K for the memory_lru arm")
+    scope = parser.add_mutually_exclusive_group()
+    scope.add_argument("--single-change", action="store_const", dest="scope", const="single", help="Tell every arm's Planner to propose exactly one optimization")
+    scope.add_argument("--strict-scope", action="store_const", dest="scope", const="strict", help="Reject patches that change more than one public data operation")
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     try:
-        states = run_batch(load_config(args.config), args.backend, args.iterations, args.capacity, args.output)
+        states = run_batch(load_config(args.config), args.backend, args.iterations, args.capacity, args.output,
+                           args.scope)
     except (ValueError, RuntimeError, OSError) as error:
         parser.exit(2, f"{error}\n")
     print(json.dumps(states, indent=2))

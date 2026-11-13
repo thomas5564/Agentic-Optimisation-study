@@ -1,0 +1,294 @@
+{
+  "accepted_steps": 6,
+  "baseline": {
+    "fixes": [],
+    "noise": {
+      "coefficient_of_variation": 0.015621422513364602,
+      "epsilon": null,
+      "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+      "relative_range": 0.040666830996086506,
+      "repetition_means_ms": [
+        4.927136354478232,
+        4.981312028636846,
+        4.928587580895207,
+        5.084925455060632,
+        4.883176187286153
+      ]
+    },
+    "per_operation_mean_ms": {
+      "add": 4.593899516854435,
+      "delete": 5.137114330660552,
+      "get": 4.473820813155423,
+      "list_search": 4.5515662718486665,
+      "update": 9.070456337183714
+    },
+    "score_ms": 4.928587580895207,
+    "wall_seconds": 60.2
+  },
+  "benchmark": {
+    "concurrency": 1,
+    "cycles": 100,
+    "note_count": 2000,
+    "repetitions": 5,
+    "seed": 7,
+    "startup_timeout_seconds": 15.0,
+    "timeout_seconds": 5.0,
+    "warmups": 2
+  },
+  "config": "configs/lru-soclaas-pilot.yaml",
+  "epsilon": 0.08,
+  "fixes": {
+    "connection": {
+      "approach": "cache",
+      "description": "Reuse a per-thread connection; create the schema once instead of on every call"
+    },
+    "construct": {
+      "approach": "serialization",
+      "description": "Build notes from trusted stored rows without re-validating them"
+    },
+    "get_lookup": {
+      "approach": "query",
+      "description": "Fetch one note by primary key instead of scanning every note"
+    },
+    "list_sql": {
+      "approach": "query",
+      "description": "Filter, count and paginate in SQL instead of in Python"
+    },
+    "no_vacuum": {
+      "approach": "other",
+      "description": "Do not VACUUM the database after every delete"
+    },
+    "tag_index": {
+      "approach": "index",
+      "description": "Indexed tag table for tag filters (builds on list_sql)"
+    },
+    "write_create": {
+      "approach": "query",
+      "description": "create_note: use lastrowid instead of rescanning all notes"
+    },
+    "write_delete": {
+      "approach": "query",
+      "description": "delete_note: use rowcount instead of rescanning all notes"
+    },
+    "write_update": {
+      "approach": "query",
+      "description": "update_note: use rowcount instead of rescanning all notes before and after"
+    }
+  },
+  "greedy_path": [
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 4.788824755717845,
+        "construct": 5.03904725832399,
+        "get_lookup": 3.9297751137443506,
+        "list_sql": 3.1495925164199434,
+        "no_vacuum": 4.8748066649811035,
+        "write_create": 4.69547245457458,
+        "write_delete": 4.604904434042207,
+        "write_update": 4.326271694832637
+      },
+      "candidate_ms": 3.1495925164199434,
+      "fix": "list_sql",
+      "parent_ms": 4.928587580895207,
+      "relative_improvement": 0.3609543373787698,
+      "step": 1
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 3.0787611111494093,
+        "construct": 3.2747599030456818,
+        "get_lookup": 2.2236264419431486,
+        "no_vacuum": 3.141891313716769,
+        "write_create": 2.9111677413069024,
+        "write_delete": 2.906153868243564,
+        "write_update": 2.5336985319154337
+      },
+      "candidate_ms": 2.2236264419431486,
+      "fix": "get_lookup",
+      "parent_ms": 3.1495925164199434,
+      "relative_improvement": 0.293995515181537,
+      "step": 2
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 2.148682506328138,
+        "construct": 2.2788938248413615,
+        "no_vacuum": 2.1692422637715936,
+        "write_create": 1.9428579524780314,
+        "write_delete": 1.9500677357427776,
+        "write_update": 1.5632457674170535
+      },
+      "candidate_ms": 1.5632457674170535,
+      "fix": "write_update",
+      "parent_ms": 2.2236264419431486,
+      "relative_improvement": 0.29698363990896415,
+      "step": 3
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 1.471433437933835,
+        "construct": 1.5854323192615993,
+        "no_vacuum": 1.4877897867700085,
+        "write_create": 1.2449605590275798,
+        "write_delete": 1.232785255415365
+      },
+      "candidate_ms": 1.232785255415365,
+      "fix": "write_delete",
+      "parent_ms": 1.5632457674170535,
+      "relative_improvement": 0.2113938312768998,
+      "step": 4
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 1.151309220197921,
+        "construct": 1.2478401345045615,
+        "no_vacuum": 1.1728753847031232,
+        "write_create": 0.9255170519463718
+      },
+      "candidate_ms": 0.9255170519463718,
+      "fix": "write_create",
+      "parent_ms": 1.232785255415365,
+      "relative_improvement": 0.2492471435063236,
+      "step": 5
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 0.8400410826046331,
+        "construct": 0.9253145868812377,
+        "no_vacuum": 0.8751507131576849
+      },
+      "candidate_ms": 0.8400410826046331,
+      "fix": "connection",
+      "parent_ms": 0.9255170519463718,
+      "relative_improvement": 0.09235482929458932,
+      "step": 6
+    },
+    {
+      "accepted_at_epsilon": false,
+      "alternatives": {
+        "construct": 0.8422183610188464,
+        "no_vacuum": 0.8256344754287662
+      },
+      "candidate_ms": 0.8256344754287662,
+      "fix": "no_vacuum",
+      "parent_ms": 0.8400410826046331,
+      "relative_improvement": 0.01714988406423848,
+      "step": 7
+    },
+    {
+      "accepted_at_epsilon": false,
+      "alternatives": {
+        "construct": 0.8209932350049106
+      },
+      "candidate_ms": 0.8209932350049106,
+      "fix": "construct",
+      "parent_ms": 0.8256344754287662,
+      "relative_improvement": 0.005621422750600781,
+      "step": 8
+    }
+  ],
+  "reference": {
+    "fixes": [
+      "connection",
+      "construct",
+      "get_lookup",
+      "list_sql",
+      "no_vacuum",
+      "tag_index",
+      "write_create",
+      "write_delete",
+      "write_update"
+    ],
+    "noise": {
+      "coefficient_of_variation": 0.011105989464087954,
+      "epsilon": null,
+      "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+      "relative_range": 0.025564587347919308,
+      "repetition_means_ms": [
+        0.6456601673077481,
+        0.6502286165292995,
+        0.6465106177104948,
+        0.6623399305196168,
+        0.6575396526992942
+      ]
+    },
+    "per_operation_mean_ms": {
+      "add": 0.8036488266661763,
+      "delete": 0.7867269963026047,
+      "get": 0.5442811470323553,
+      "list_search": 0.6281202607400095,
+      "update": 0.8375287349335849
+    },
+    "score_ms": 0.6502286165292995,
+    "wall_seconds": 15.5
+  },
+  "requires": {
+    "tag_index": "list_sql"
+  },
+  "schema_version": 1,
+  "single_fix_ablation": {
+    "connection": {
+      "fixes": [
+        "connection"
+      ],
+      "improvement_vs_baseline": 0.028357581737844712,
+      "score_ms": 4.788824755717845
+    },
+    "construct": {
+      "fixes": [
+        "construct"
+      ],
+      "improvement_vs_baseline": -0.02241203501322777,
+      "score_ms": 5.03904725832399
+    },
+    "get_lookup": {
+      "fixes": [
+        "get_lookup"
+      ],
+      "improvement_vs_baseline": 0.2026569378664539,
+      "score_ms": 3.9297751137443506
+    },
+    "list_sql": {
+      "fixes": [
+        "list_sql"
+      ],
+      "improvement_vs_baseline": 0.3609543373787698,
+      "score_ms": 3.1495925164199434
+    },
+    "no_vacuum": {
+      "fixes": [
+        "no_vacuum"
+      ],
+      "improvement_vs_baseline": 0.010912034133790285,
+      "score_ms": 4.8748066649811035
+    },
+    "write_create": {
+      "fixes": [
+        "write_create"
+      ],
+      "improvement_vs_baseline": 0.04729856627165477,
+      "score_ms": 4.69547245457458
+    },
+    "write_delete": {
+      "fixes": [
+        "write_delete"
+      ],
+      "improvement_vs_baseline": 0.06567462615612231,
+      "score_ms": 4.604904434042207
+    },
+    "write_update": {
+      "fixes": [
+        "write_update"
+      ],
+      "improvement_vs_baseline": 0.1222086198482787,
+      "score_ms": 4.326271694832637
+    }
+  },
+  "total_speedup": 7.579776490309425
+}

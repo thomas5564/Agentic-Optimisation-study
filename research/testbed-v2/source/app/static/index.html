@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notes Manager</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">COMP 690</p>
+          <h1>Notes Manager</h1>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel form-panel">
+          <h2 id="form-title">Create note</h2>
+          <form id="note-form">
+            <input type="hidden" id="note-id" />
+
+            <label>
+              Title
+              <input id="title" name="title" type="text" required maxlength="200" />
+            </label>
+
+            <label>
+              Body
+              <textarea id="body" name="body" rows="6" required maxlength="5000"></textarea>
+            </label>
+
+            <label>
+              Tags
+              <input id="tags" name="tags" type="text" placeholder="work, research, ideas" />
+            </label>
+
+            <div class="button-row">
+              <button type="submit" class="primary">Save note</button>
+              <button type="button" id="reset-form" class="secondary">Clear</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel list-panel">
+          <div class="toolbar">
+            <input id="search" type="search" placeholder="Search title or body" />
+            <input id="tag-filter" type="text" placeholder="Filter by tag" />
+            <select id="limit-select">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+
+          <div id="status" class="status" aria-live="polite"></div>
+          <div id="notes-list" class="notes-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

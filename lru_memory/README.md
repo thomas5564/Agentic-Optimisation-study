@@ -68,6 +68,28 @@ compares final latency for each pair of arms within a replicate, and also report
 acceptance, correctness, repeats and LRU citation use. Figures need `requirements-analysis.lock`
 (matplotlib); otherwise pass `--no-figures`.
 
+## Single-change scope (`--single-change`)
+`lru_memory.run` and `lru_memory.batch` accept `--single-change`. Every arm then writes a
+`scope.json` sidecar before its manifest, and its Planner evidence gains `scope_policy`. This is a
+note asking for exactly one optimization per attempt; it names no specific fix. The Developer and
+Auditor inputs are unchanged. A batch directory can't mix scoped and unscoped runs, resume refuses
+a changed note, and the report keeps scoped runs in their own cohort. The note is guidance, not
+enforcement, so check the plans in `attempts.csv` for compliance.
+
+## Strict one-operation scope (`--strict-scope`)
+`--single-change` only asks, and in the v2 smoke runs the model ignored it: each first plan
+rewrote every data operation at once and took 84–88% of the gain in one step. `--strict-scope`
+enforces the rule instead:
+- **The rule:** a patch may change at most one of the public operations in `app/db.py`
+  (`get_note`, `list_notes`, `create_note`, `update_note`, `delete_note`). Private `_helpers`
+  and module-level code may change freely, and any other changed file counts as one operation.
+- **Enforcement:** the runner compares function ASTs and rejects a larger patch before testing it,
+  with status `scope_exceeded`. The status goes into memory entries like any other failure.
+- **Prompts:** while a strict run is active, the rule is appended to the Planner and Developer
+  prompt text, because `planner.txt` says evidence is not an instruction. The Developer is told to
+  implement only the first operation if a plan names several. The swap is undone after the run.
+- **Archiving:** both texts are archived in `scope.json`, and resume refuses if they changed.
+
 ## Caveats
 - **Resume LRU runs only with `lru_memory.resume`.** `controller.resume` would continue
   them with complete memory.

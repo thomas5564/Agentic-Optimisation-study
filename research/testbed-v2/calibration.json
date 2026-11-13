@@ -1,0 +1,329 @@
+{
+  "accepted_steps": 6,
+  "baseline": {
+    "fixes": [],
+    "noise": {
+      "coefficient_of_variation": 0.007923703404697387,
+      "epsilon": null,
+      "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+      "relative_range": 0.02148175717676932,
+      "repetition_means_ms": [
+        4.826735436993961,
+        4.931584222261638,
+        4.897602080309298,
+        4.881494440487586,
+        4.866729254814952
+      ]
+    },
+    "per_operation_mean_ms": {
+      "add": 4.421364324865863,
+      "delete": 5.0211646754760295,
+      "get": 4.396858311103036,
+      "list_search": 4.496450784577367,
+      "update": 8.958140402566642
+    },
+    "score_ms": 4.881494440487586,
+    "wall_seconds": 58.5
+  },
+  "benchmark": {
+    "concurrency": 1,
+    "cycles": 100,
+    "note_count": 2000,
+    "repetitions": 5,
+    "seed": 7,
+    "startup_timeout_seconds": 15.0,
+    "timeout_seconds": 5.0,
+    "warmups": 2
+  },
+  "config": "configs/lru-soclaas-pilot.yaml",
+  "epsilon": 0.08,
+  "fixes": {
+    "connection": {
+      "approach": "cache",
+      "description": "Reuse a per-thread connection; create the schema once instead of on every call"
+    },
+    "construct": {
+      "approach": "serialization",
+      "description": "Build notes from trusted stored rows without re-validating them"
+    },
+    "get_lookup": {
+      "approach": "query",
+      "description": "Fetch one note by primary key instead of scanning every note"
+    },
+    "list_sql": {
+      "approach": "query",
+      "description": "Filter, count and paginate in SQL instead of in Python"
+    },
+    "no_vacuum": {
+      "approach": "other",
+      "description": "Do not VACUUM the database after every delete"
+    },
+    "tag_index": {
+      "approach": "index",
+      "description": "Indexed tag table for tag filters (builds on list_sql)"
+    },
+    "write_lookups": {
+      "approach": "query",
+      "description": "Use lastrowid/rowcount instead of rescanning all notes around writes"
+    }
+  },
+  "greedy_path": [
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 4.8539299867115915,
+        "construct": 5.019048931523382,
+        "get_lookup": 3.978865510337831,
+        "list_sql": 3.2270188544255993,
+        "no_vacuum": 4.836455596863137,
+        "write_lookups": 3.6589992036654926
+      },
+      "candidate_ms": 3.2270188544255993,
+      "fix": "list_sql",
+      "parent_ms": 4.881494440487586,
+      "relative_improvement": 0.33892808979553607,
+      "step": 1
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 3.07298792564931,
+        "construct": 3.23149218398612,
+        "get_lookup": 2.213562014318692,
+        "no_vacuum": 3.1019049133950225,
+        "tag_index": 3.148971094439427,
+        "write_lookups": 1.9348812178941444
+      },
+      "candidate_ms": 1.9348812178941444,
+      "fix": "write_lookups",
+      "parent_ms": 3.2270188544255993,
+      "relative_improvement": 0.4004121744623187,
+      "step": 2
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 1.8447487128044788,
+        "construct": 1.9543721263956588,
+        "get_lookup": 0.9162475017365068,
+        "no_vacuum": 1.874439282498012,
+        "tag_index": 1.8499231479169491
+      },
+      "candidate_ms": 0.9162475017365068,
+      "fix": "get_lookup",
+      "parent_ms": 1.9348812178941444,
+      "relative_improvement": 0.5264580103094298,
+      "step": 3
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "connection": 0.8326585238683037,
+        "construct": 0.9136085080293318,
+        "no_vacuum": 0.8608849987892123,
+        "tag_index": 0.8350572185008787
+      },
+      "candidate_ms": 0.8326585238683037,
+      "fix": "connection",
+      "parent_ms": 0.9162475017365068,
+      "relative_improvement": 0.09122969253371178,
+      "step": 4
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "construct": 0.8303366502514109,
+        "no_vacuum": 0.8110465605083542,
+        "tag_index": 0.7453857289510779
+      },
+      "candidate_ms": 0.7453857289510779,
+      "fix": "tag_index",
+      "parent_ms": 0.8326585238683037,
+      "relative_improvement": 0.10481222784074834,
+      "step": 5
+    },
+    {
+      "accepted_at_epsilon": true,
+      "alternatives": {
+        "construct": 0.7404919407175233,
+        "no_vacuum": 0.6316479123779573
+      },
+      "candidate_ms": 0.6316479123779573,
+      "fix": "no_vacuum",
+      "parent_ms": 0.7453857289510779,
+      "relative_improvement": 0.1525892060385632,
+      "step": 6
+    },
+    {
+      "accepted_at_epsilon": false,
+      "alternatives": {
+        "construct": 0.6352246951428242
+      },
+      "candidate_ms": 0.6352246951428242,
+      "fix": "construct",
+      "parent_ms": 0.6316479123779573,
+      "relative_improvement": -0.0056626210500743636,
+      "step": 7
+    }
+  ],
+  "reference": {
+    "fixes": [
+      "connection",
+      "construct",
+      "get_lookup",
+      "list_sql",
+      "no_vacuum",
+      "tag_index",
+      "write_lookups"
+    ],
+    "noise": {
+      "coefficient_of_variation": 0.0030294979926171217,
+      "epsilon": null,
+      "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+      "relative_range": 0.0069362898239842645,
+      "repetition_means_ms": [
+        0.6369735793365786,
+        0.6380581294069998,
+        0.6352246951428242,
+        0.6336497228282193,
+        0.6338781719872107
+      ]
+    },
+    "per_operation_mean_ms": {
+      "add": 0.7827189941890538,
+      "delete": 0.6930238523054868,
+      "get": 0.5360426194965839,
+      "list_search": 0.6187217007779205,
+      "update": 0.8304814072325826
+    },
+    "score_ms": 0.6352246951428242,
+    "wall_seconds": 15.2
+  },
+  "requires": {
+    "tag_index": "list_sql"
+  },
+  "schema_version": 1,
+  "single_fix_ablation": {
+    "connection": {
+      "fixes": [
+        "connection"
+      ],
+      "improvement_vs_baseline": 0.0056467244021364115,
+      "score_ms": 4.8539299867115915
+    },
+    "construct": {
+      "fixes": [
+        "construct"
+      ],
+      "improvement_vs_baseline": -0.028178766300521726,
+      "score_ms": 5.019048931523382
+    },
+    "get_lookup": {
+      "fixes": [
+        "get_lookup"
+      ],
+      "improvement_vs_baseline": 0.18490831878517847,
+      "score_ms": 3.978865510337831
+    },
+    "list_sql": {
+      "fixes": [
+        "list_sql"
+      ],
+      "improvement_vs_baseline": 0.33892808979553607,
+      "score_ms": 3.2270188544255993
+    },
+    "no_vacuum": {
+      "fixes": [
+        "no_vacuum"
+      ],
+      "improvement_vs_baseline": 0.009226445748026016,
+      "score_ms": 4.836455596863137
+    },
+    "tag_index": {
+      "fixes": [
+        "list_sql",
+        "tag_index"
+      ],
+      "improvement_vs_baseline": 0.3549165869530534,
+      "score_ms": 3.148971094439427
+    },
+    "write_lookups": {
+      "fixes": [
+        "write_lookups"
+      ],
+      "improvement_vs_baseline": 0.2504346264706562,
+      "score_ms": 3.6589992036654926
+    }
+  },
+  "total_speedup": 7.684673593160651,
+  "validation": [
+    {
+      "correct": true,
+      "fixes": [],
+      "status": "passed"
+    },
+    {
+      "correct": true,
+      "fixes": [
+        "connection",
+        "construct",
+        "get_lookup",
+        "list_sql",
+        "no_vacuum",
+        "tag_index",
+        "write_lookups"
+      ],
+      "status": "passed"
+    },
+    {
+      "correct": true,
+      "fixes": [
+        "connection"
+      ],
+      "status": "passed"
+    },
+    {
+      "correct": true,
+      "fixes": [
+        "get_lookup"
+      ],
+      "status": "passed"
+    },
+    {
+      "correct": true,
+      "fixes": [
+        "list_sql"
+      ],
+      "status": "passed"
+    },
+    {
+      "correct": true,
+      "fixes": [
+        "list_sql",
+        "tag_index"
+      ],
+      "status": "passed"
+    },
+    {
+      "correct": true,
+      "fixes": [
+        "write_lookups"
+      ],
+      "status": "passed"
+    },
+    {
+      "correct": true,
+      "fixes": [
+        "no_vacuum"
+      ],
+      "status": "passed"
+    },
+    {
+      "correct": true,
+      "fixes": [
+        "construct"
+      ],
+      "status": "passed"
+    }
+  ]
+}

@@ -171,3 +171,121 @@ def test_report_labels_three_arms(tmp_path):
     assert summary["lru_capacity"] == 1
     assert summary["replicate_comparisons"][0]["memory_over_memory_lru_speedup"] == 1
     assert summary["lru_usage"][0]["evictions"] == 2
+
+
+def scoped_run(root, arm, cases=None, iterations=2):
+    initialize_arm(root, config(cases), "mock", arm, iterations, 2 if arm == "memory_lru" else None,
+                   scope="single", synthetic=True, pair_id="0")
+    engine = engine_for(root, RecordingLruBackend(), SyntheticEvaluator())
+    assert engine.run()["status"] == "complete"
+    return engine
+
+
+@pytest.mark.parametrize("arm", ["stateless", "memory", "memory_lru"])
+def test_scope_note_reaches_only_the_planner_in_every_arm(tmp_path, arm):
+    from lru_memory.policy import SCOPE_NOTE
+    engine = scoped_run(tmp_path, arm)
+    for role, payload, _ in engine.backend.calls:
+        policy = payload["evidence"].get("scope_policy")
+        assert policy == ({"scope": "single", "note": SCOPE_NOTE} if role == "planner" else None)
+        if role == "planner":
+            assert ("memory_policy" in payload["evidence"]) == (arm == "memory_lru")
+
+
+def test_unscoped_runs_have_no_scope_note(tmp_path):
+    engine = create(tmp_path, iterations=2)
+    assert not (tmp_path / "scope.json").exists()
+    assert all("scope_policy" not in p["evidence"] for _, p, _ in engine.backend.calls)
+
+
+def test_scope_note_drift_blocks_resume(tmp_path):
+    from benchmarks.metrics import write_json
+    engine = scoped_run(tmp_path, "memory", iterations=1)
+    write_json(tmp_path / "scope.json", {**read_json(tmp_path / "scope.json"), "note": "changed"})
+    with pytest.raises(ValueError, match="Scope note changed"):
+        engine_for(tmp_path, engine.backend, engine.evaluator).run()
+
+
+def test_batch_refuses_to_toggle_scope(tmp_path, monkeypatch):
+    class Done:
+        def __init__(self, root, backend, evaluator):
+            pass
+        def run(self):
+            return {"status": "complete", "completed_iterations": 1}
+    monkeypatch.setattr(batch, "engine_for", Done)
+    batch.run_batch(config(), "mock", 1, 2, tmp_path, "single")
+    assert all((tmp_path / d / "scope.json").exists() for d in ("rep-00-stateless", "rep-00-memory", "rep-00-memory_lru"))
+    with pytest.raises(ValueError, match="Batch protocol changed"):
+        batch.run_batch(config(), "mock", 1, 2, tmp_path)
+
+
+def test_report_separates_scoped_cohorts(tmp_path):
+    runs = tmp_path / "runs"
+    for scope in (None, "single"):
+        root = runs / f"memory-{scope}"
+        initialize_arm(root, config(["faster"]), "mock", "memory", 1, None, scope=scope, synthetic=True, pair_id="0")
+        engine_for(root, LruMockBackend(), SyntheticEvaluator()).run()
+    result = report(runs, tmp_path / "report", make_figures=False)
+    assert len(result["cohorts"]) == 2
+    assert {read_json(tmp_path / "report" / c / "summary.json")["scope"] for c in result["cohorts"]} == {None, "single"}
+
+
+DB = '''import sqlite3
+
+SCHEMA = ()
+
+
+def _helper():
+    return 1
+
+
+def get_note(note_id):
+    return None
+
+
+def list_notes():
+    return []
+'''
+
+
+def test_changed_operations_counts_public_functions_and_other_files():
+    from lru_memory.policy import changed_operations
+    parent = {"app/db.py": DB, "app/main.py": "x = 1\n"}
+    assert changed_operations(parent, {**parent, "app/db.py": DB.replace("return 1", "return 2").replace("()", "('t',)")}) == []
+    both = DB.replace("return None", "return 0").replace("return []", "return [0]")
+    assert changed_operations(parent, {**parent, "app/db.py": both}) == ["get_note", "list_notes"]
+    assert changed_operations(parent, {**parent, "app/db.py": DB.replace("return None", "return 0"), "app/main.py": "x = 2\n"}) == ["get_note", "app/main.py"]
+    assert changed_operations(parent, {**parent, "app/db.py": "def get_note(:\n"}) == []  # left to syntax validation
+
+
+def test_strict_scope_rejects_before_validation(tmp_path):
+    from lru_memory.engine import ArmEngine
+    initialize_arm(tmp_path, config(), "mock", "stateless", 1, None, scope="strict", synthetic=True)
+    engine = engine_for(tmp_path, LruMockBackend(), SyntheticEvaluator())
+    assert isinstance(engine, ArmEngine)
+    calls = []
+    engine.evaluator.validate = lambda files, directory: calls.append(files) or {"correct": True, "status": "passed"}
+    engine.parent_files = {"app/db.py": DB}
+    two = {"app/db.py": DB.replace("return None", "return 0").replace("return []", "return [0]")}
+    result = engine.evaluation("001-validation", "validate", two)
+    assert result["status"] == "scope_exceeded" and not result["correct"] and calls == []
+    one = {"app/db.py": DB.replace("return None", "return 0")}
+    assert engine.evaluation("001-validation", "validate", one)["correct"] and len(calls) == 1
+
+
+def test_strict_scope_puts_rule_in_planner_and_developer_prompts(tmp_path):
+    import agents.inputs
+    import controller.engine
+    from lru_memory.policy import DEVELOPER_NOTE, STRICT_NOTE
+    original = agents.inputs.prompt_text
+    seen = {}
+    class PromptRecorder(LruMockBackend):
+        def invoke(self, role, payload, workspace, artifacts, case="noop"):
+            seen[role] = agents.inputs.prompt_text(role, payload)
+            return super().invoke(role, payload, workspace, artifacts, case)
+    initialize_arm(tmp_path, config(), "mock", "memory", 1, None, scope="strict", synthetic=True)
+    assert engine_for(tmp_path, PromptRecorder(), SyntheticEvaluator()).run()["status"] == "complete"
+    assert STRICT_NOTE in seen["planner"] and DEVELOPER_NOTE in seen["developer"]
+    assert "SCOPE RULE" not in seen["auditor"]
+    assert seen["planner"].index("SCOPE RULE") < seen["planner"].index("CURRENT INPUT JSON")
+    assert agents.inputs.prompt_text is original and controller.engine.prompt_text is original

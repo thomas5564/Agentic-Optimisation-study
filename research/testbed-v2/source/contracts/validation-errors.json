@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/notes",
+        "json": {}
+      },
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "title"
+            ],
+            "msg": "Field required",
+            "input": {}
+          },
+          {
+            "type": "missing",
+            "loc": [
+              "body",
+              "body"
+            ],
+            "msg": "Field required",
+            "input": {}
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/notes",
+        "json": {
+          "title": "",
+          "body": "B"
+        }
+      },
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "string_too_short",
+            "loc": [
+              "body",
+              "title"
+            ],
+            "msg": "String should have at least 1 character",
+            "input": "",
+            "ctx": {
+              "min_length": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/notes",
+        "json": {
+          "title": "T",
+          "body": "B",
+          "tags": [
+            1
+          ]
+        }
+      },
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "string_type",
+            "loc": [
+              "body",
+              "tags",
+              0
+            ],
+            "msg": "Input should be a valid string",
+            "input": 1
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/notes",
+        "params": {
+          "limit": 0
+        }
+      },
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "greater_than_equal",
+            "loc": [
+              "query",
+              "limit"
+            ],
+            "msg": "Input should be greater than or equal to 1",
+            "input": "0",
+            "ctx": {
+              "ge": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/notes",
+        "params": {
+          "limit": 101
+        }
+      },
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "less_than_equal",
+            "loc": [
+              "query",
+              "limit"
+            ],
+            "msg": "Input should be less than or equal to 100",
+            "input": "101",
+            "ctx": {
+              "le": 100
+            }
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/notes",
+        "params": {
+          "offset": -1
+        }
+      },
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "greater_than_equal",
+            "loc": [
+              "query",
+              "offset"
+            ],
+            "msg": "Input should be greater than or equal to 0",
+            "input": "-1",
+            "ctx": {
+              "ge": 0
+            }
+          }
+        ]
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/notes/not-an-integer"
+      },
+      "status_code": 422,
+      "response": {
+        "detail": [
+          {
+            "type": "int_parsing",
+            "loc": [
+              "path",
+              "note_id"
+            ],
+            "msg": "Input should be a valid integer, unable to parse string as an integer",
+            "input": "not-an-integer"
+          }
+        ]
+      }
+    }
+  ]
+}

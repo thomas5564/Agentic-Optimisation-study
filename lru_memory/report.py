@@ -16,7 +16,7 @@ from analysis.report import cohort_key, export_csv, load_runs, stats, summarize
 from benchmarks.metrics import write_json
 from controller.engine import score
 from controller.storage import read_json
-from lru_memory.engine import ARMS, is_lru
+from lru_memory.engine import ARMS, is_lru, is_scoped
 from lru_memory.policy import replay
 
 COLORS = {"stateless": "#2765b0", "memory": "#c05c21", "memory_lru": "#2e8b57"}
@@ -26,6 +26,7 @@ COMPARISONS = (("stateless", "memory"), ("stateless", "memory_lru"), ("memory", 
 def label_runs(runs):
     # Relabel in memory only; archived manifests are never rewritten.
     for run in runs:
+        run["scope"] = read_json(run["root"] / "scope.json")["scope"] if is_scoped(run["root"]) else None
         if is_lru(run["root"]):
             run["lru"] = read_json(run["root"] / "lru.json")
             run["manifest"] = {**run["manifest"], "condition": "memory_lru"}
@@ -112,7 +113,8 @@ def report(runs_dir: Path, output: Path, make_figures=True):
     for run in runs:
         # LRU capacity is part of the protocol: different K values are separate cohorts.
         run["capacity"] = run.get("lru", {}).get("capacity")
-        groups[cohort_key(run["manifest"])].append(run)
+        # So is the scope rule: scoped and unscoped runs are never pooled.
+        groups[cohort_key(run["manifest"]) + (f"-{run['scope']}" if run["scope"] else "")].append(run)
     output.mkdir(parents=True, exist_ok=True)
     links = []
     for key, members in sorted(groups.items()):
@@ -129,7 +131,8 @@ def report(runs_dir: Path, output: Path, make_figures=True):
         comparisons = compare(summary["runs"])
         lru_rows = [lru_stats(m) for m in members if "lru" in m]
         result = {"schema_version": 1, "lru_report_source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-                  "analysis": summary, "lru_capacity": next(iter(capacities), None), "arms": arms,
+                  "analysis": summary, "lru_capacity": next(iter(capacities), None),
+                  "scope": members[0]["scope"], "arms": arms,
                   "replicate_comparisons": comparisons,
                   "comparison_summary": {k: stats([c[k] for c in comparisons]) for k in comparisons[0] if k != "pair_id"} if comparisons else {},
                   "lru_usage": lru_rows,
