@@ -1,0 +1,11 @@
+{
+  "approach": "query",
+  "change": "Modify the `list_notes` function in `/workspace/app/db.py` to use a single SQL query that retrieves both the count and the paginated data, eliminating the separate `COUNT(*)` query. Replace the current two-query approach (one for total count, one for data) with a single query using a window function (`COUNT(*) OVER()`) to get the total alongside the limited rows. This reduces the number of SQLite executions from 2 to 1 for the list endpoint.",
+  "hypothesis": "The profile shows `list_notes` is the dominant hot spot, consuming 0.280s cumulative time, with `execute` called 2000 times (likely 1000 requests * 2 queries each). By reducing the number of SQL executions per `list_notes` call from 2 to 1, we halve the SQLite execution overhead for this endpoint. Since the data retrieval is the primary cost, removing the redundant count query should significantly reduce latency without changing the result semantics.",
+  "risks": [
+    "The window function approach requires SQLite 3.25.0+, which is standard in modern environments but should be verified.",
+    "The `total` value returned by the window function is per-row, so we must extract it from the first row of the result set and ignore it for subsequent rows to maintain the correct API response structure.",
+    "If the query becomes too complex or the dataset is extremely large, the window function might have different performance characteristics than a separate count, though for typical note sizes it should be faster or neutral."
+  ],
+  "schema_version": 1
+}

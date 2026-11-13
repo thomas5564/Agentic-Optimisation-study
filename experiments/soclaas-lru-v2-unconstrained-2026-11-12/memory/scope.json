@@ -1,0 +1,5 @@
+{
+  "note": "Propose exactly one optimization: one change to one hot spot or mechanism (for example one function, one query, or one caching decision). Do not combine independent optimizations; later attempts can address other hot spots. If several are possible, choose the one the profile suggests is most valuable.",
+  "schema_version": 1,
+  "scope": "single"
+}

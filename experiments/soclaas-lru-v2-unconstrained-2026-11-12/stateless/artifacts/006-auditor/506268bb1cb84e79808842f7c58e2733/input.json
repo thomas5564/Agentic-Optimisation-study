@@ -1,0 +1,266 @@
+{
+  "decision": {
+    "accepted": false,
+    "reason": "insufficient_improvement",
+    "relative_improvement": 0.012842475271236565
+  },
+  "evidence": {
+    "candidate": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 3.6829170003329637,
+          "mean": 0.6287231508311683,
+          "median": 0.5019164996156178,
+          "min": 0.2739589999691816,
+          "p95": 1.261417000023357
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.005184139158276616,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.012756861566408482,
+        "repetition_means_ms": [
+          0.6303642358034267,
+          0.6301110158369738,
+          0.6263837250139659,
+          0.6243681216513627,
+          0.6323886558501121
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.0857909992409986,
+            "mean": 0.44409083199934685,
+            "median": 0.43670800050676917,
+            "min": 0.4134579994570231,
+            "p95": 0.47433400050067576
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.5917079997743713,
+            "mean": 0.31083478999789804,
+            "median": 0.3010000000358559,
+            "min": 0.2739589999691816,
+            "p95": 0.35200000002078013
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.6964160002098652,
+            "mean": 0.3683194973188317,
+            "median": 0.3625004997047654,
+            "min": 0.32529200052522356,
+            "p95": 0.40670799990039086
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.620999999839114,
+            "mean": 0.8709054053382109,
+            "median": 0.8465830001114227,
+            "min": 0.47579100009897957,
+            "p95": 1.2879580008302582
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.6829170003329637,
+            "mean": 0.4593612639910134,
+            "median": 0.44218749962965376,
+            "min": 0.4140839992032852,
+            "p95": 0.5224579999776324
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.6301110158369738,
+      "valid": true
+    },
+    "parent": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 5.456833999232913,
+          "mean": 0.6372898350067165,
+          "median": 0.503791499795625,
+          "min": 0.27099999988422496,
+          "p95": 1.2702080002782168
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.009026792518811264,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.022020078969293505,
+        "repetition_means_ms": [
+          0.6324112575164994,
+          0.6402305600098165,
+          0.6307328541750697,
+          0.6447660266682457,
+          0.6383084766639513
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 2.2968749999563443,
+            "mean": 0.45044720201258315,
+            "median": 0.43927100023211096,
+            "min": 0.41158299973176327,
+            "p95": 0.47733300016261637
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.5477090007843799,
+            "mean": 0.31116366801325057,
+            "median": 0.300729499940644,
+            "min": 0.27099999988422496,
+            "p95": 0.35208300050726393
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 4.58062500001688,
+            "mean": 0.3750337453366228,
+            "median": 0.3628750000643777,
+            "min": 0.3252910000810516,
+            "p95": 0.40741700013313675
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 5.456833999232913,
+            "mean": 0.8834326656763855,
+            "median": 0.8557704995837412,
+            "min": 0.4792079998878762,
+            "p95": 1.305000000684231
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.6831249999522697,
+            "mean": 0.4601699199865834,
+            "median": 0.44358349941830966,
+            "min": 0.41574999977456173,
+            "p95": 0.5104589999973541
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.6383084766639513,
+      "valid": true
+    },
+    "validation": {
+      "correct": true,
+      "status": "passed"
+    }
+  },
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nimport threading\nfrom pathlib import Path\n\nfrom app.models import Note\n\nSCHEMA = (\n    \"\"\"\n    CREATE TABLE IF NOT EXISTS notes (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        title TEXT NOT NULL,\n        body TEXT NOT NULL,\n        tags TEXT NOT NULL DEFAULT '[]'\n    )\n    \"\"\",\n)\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\nclass _DB:\n    \"\"\"Thread-local SQLite connection manager.\n\n    Uses a single persistent connection per thread to avoid the overhead of\n    opening/closing connections for every request. This is safe for the default\n    single-threaded uvicorn worker. A lock is used to serialize writes to ensure\n    durability and prevent SQLite busy errors during concurrent access within\n    the same thread (though unlikely in single-threaded mode, it's good practice\n    for the commit/rollback cycle).\n    \"\"\"\n\n    def __init__(self) -> None:\n        self._local = threading.local()\n        self._lock = threading.Lock()\n\n    def _get_connection(self) -> sqlite3.Connection:\n        if not hasattr(self._local, \"connection\") or self._local.connection is None:\n            path = get_db_path()\n            path.parent.mkdir(parents=True, exist_ok=True)\n            conn = sqlite3.connect(path, timeout=30)\n            conn.row_factory = sqlite3.Row\n            conn.execute(\"PRAGMA foreign_keys = ON\")\n            conn.execute(\"PRAGMA journal_mode = WAL\")\n            conn.execute(\"PRAGMA case_sensitive_like = ON\")\n            for statement in SCHEMA:\n                conn.execute(statement)\n            conn.commit()\n            self._local.connection = conn\n        return self._local.connection\n\n    def execute(self, sql: str, params: tuple = ()) -> sqlite3.Cursor:\n        conn = self._get_connection()\n        with self._lock:\n            return conn.execute(sql, params)\n\n    def commit(self) -> None:\n        conn = self._get_connection()\n        with self._lock:\n            conn.commit()\n\n    def close(self) -> None:\n        conn = getattr(self._local, \"connection\", None)\n        if conn:\n            conn.close()\n            self._local.connection = None\n\n\n# Global singleton instance\ndb = _DB()\n\n\ndef initialize_db() -> None:\n    \"\"\"Initialize the database schema. Called at startup.\"\"\"\n    db.execute(\"SELECT 1\")  # Ensure connection is established and schema is ready\n\n\ndef _normalize_tags(tags: list[str]) -> str:\n    return json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n\n\ndef _make_note(note_id: int, title: str, body: str, tags: list[str]) -> Note:\n    \"\"\"Construct a Note object from database row data.\n\n    Uses model_construct to bypass validation overhead since data is trusted\n    from the application's own SQLite database.\n    \"\"\"\n    return Note.model_construct(id=note_id, title=title, body=body, tags=tags)\n\n\ndef _to_note(row: sqlite3.Row) -> Note:\n    \"\"\"Convert a SQLite row to a Note object.\n\n    Parses the JSON tags string exactly once.\n    \"\"\"\n    tags_str = row[\"tags\"]\n    tags = json.loads(tags_str) if tags_str else []\n    return _make_note(row[\"id\"], row[\"title\"], row[\"body\"], tags)\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    payload = _normalize_tags(tags)\n    cursor = db.execute(\n        \"INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)\",\n        (title, body, payload),\n    )\n    note_id = cursor.lastrowid\n    db.commit()\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    return _to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    if row is None:\n        return None\n    return _to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    wanted = [tag for tag in tags_filter or [] if tag]\n\n    # Build query for matching notes\n    conditions = []\n    params: list[object] = []\n\n    if search_text:\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n\n    if wanted:\n        # Use json_each for robust tag filtering\n        # We need to ensure the note has ALL the wanted tags\n        conditions.append(\"id IN (SELECT n.id FROM notes n JOIN json_each(n.tags) j WHERE j.value IN (\" + \",\".join([\"?\"] * len(wanted)) + \") GROUP BY n.id HAVING COUNT(DISTINCT j.value) = ?)\")\n        params.extend(wanted)\n        params.append(len(wanted))\n\n    where_clause = \" WHERE \" + \" AND \".join(conditions) if conditions else \"\"\n\n    # Count query\n    count_sql = f\"SELECT COUNT(*) FROM notes{where_clause}\"\n    total_row = db.execute(count_sql, params).fetchone()\n    total = total_row[0]\n\n    # Data query\n    data_sql = f\"SELECT id, title, body, tags FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?\"\n    data_params = params + [limit, offset]\n    rows = db.execute(data_sql, data_params).fetchall()\n\n    notes = [_to_note(row) for row in rows]\n    return notes, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    payload = _normalize_tags(tags)\n    cursor = db.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?\",\n        (title, body, payload, note_id),\n    )\n    db.commit()\n    if cursor.rowcount == 0:\n        return None\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    return _to_note(row)\n\n\ndef delete_note(note_id: int) -> bool:\n    cursor = db.execute(\n        \"DELETE FROM notes WHERE id = ?\",\n        (note_id,),\n    )\n    db.commit()\n    return cursor.rowcount > 0\n",
+      "path": "app/db.py"
+    }
+  ],
+  "plan": {
+    "approach": "serialization",
+    "change": "Replace the JSON serialization/deserialization cycle in the database layer with direct Python object construction. Specifically, modify `_make_note` to accept a Python list for tags instead of a JSON string, and update `list_notes` and `get_note` to parse the JSON tags string exactly once per row using `json.loads` before passing to `_make_note`. Remove the redundant `json.loads` calls inside `_make_note` and `_to_note`. Additionally, optimize `_normalize_tags` to avoid sorting if the input list is already sorted and unique, or simply rely on the fact that Pydantic validation in the API layer already produces sorted, unique tags, so the DB layer can skip re-sorting if it trusts the input (though to be safe and preserve semantics, we will keep the normalization but optimize the round-trip). The primary change is eliminating the double JSON parse: once in `_make_note` from the DB string, and once in `_to_note` which calls `_make_note`. Actually, `_to_note` calls `_make_note` which does `json.loads`. The DB returns a string. So we parse once. The issue is that `list_notes` builds a list of Note objects. The profile shows high time in `json.loads` and `model_validate`. We can optimize by constructing the Note dict directly with the parsed tags, avoiding the intermediate string-to-dict-to-dict flow if possible, but the biggest win is ensuring we don't parse JSON more than necessary. Looking at the profile: `json.loads` is called 1848 times. This matches the number of rows fetched. This is expected. However, `model_validate` is also called 1848 times. The `json.loads` is inside `_make_note`. `_to_note` calls `_make_note`. So for every row, we parse JSON once. This seems optimal for the data shape. Wait, look at `list_notes_endpoint`. It calls `note.model_dump()` for each item. This is serialization. The profile shows `model_dump` 1348 times. This is for the response. The `json.loads` is for deserialization from DB. The `json.dumps` is for storing tags. The bottleneck is likely the sheer number of Python object creations and Pydantic validations. A better optimization is to use `Note.model_construct` instead of `model_validate` for the read path, since the data is already trusted from the database (assuming no DB corruption). `model_validate` performs validation which is expensive. `model_construct` bypasses validation. This is safe because the data comes from our own DB. This will significantly reduce the time in `model_validate` and `validate_python`.",
+    "hypothesis": "The `list_notes` endpoint spends significant time in Pydantic's `model_validate` because it validates every field for every row fetched from the database. Since the data originates from the application's own SQLite database and has already been validated upon insertion/update, we can safely bypass validation during reads by using `Note.model_construct` (or direct dict construction if Pydantic v2 allows, but `model_construct` is the standard way). This will eliminate the overhead of type checking, coercion, and validator execution for read operations, reducing the per-request latency for list operations.",
+    "risks": [
+      "If the database schema or data types change unexpectedly (e.g., via external tools), `model_construct` will not catch type errors, potentially leading to downstream issues if the API contract assumes specific types. However, the contract requires preserving semantics, and the DB is managed by the app.",
+      "Using `model_construct` requires Pydantic v2. The environment uses Pydantic v2 (inferred from `pydantic_core` in profile).",
+      "This change only affects read paths. Write paths still use validation, preserving data integrity."
+    ],
+    "schema_version": 1
+  },
+  "role": "auditor",
+  "schema_version": 1
+}

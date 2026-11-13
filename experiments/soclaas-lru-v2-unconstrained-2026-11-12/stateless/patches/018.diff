@@ -1,0 +1,131 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -94,10 +94,6 @@
+     return Note.model_validate({"id": note_id, "title": title, "body": body, "tags": tags})
+ 
+ 
+-def _to_note(row: sqlite3.Row, tags: list[str]) -> Note:
+-    return _make_note(row["id"], row["title"], row["body"], tags)
+-
+-
+ def _get_tags_for_note(conn: sqlite3.Connection, note_id: int) -> list[str]:
+     cursor = conn.execute(
+         "SELECT tag FROM note_tags WHERE note_id = ? ORDER BY tag",
+@@ -141,6 +137,10 @@
+     return _to_note(row, tags)
+ 
+ 
++def _to_note(row: sqlite3.Row, tags: list[str]) -> Note:
++    return _make_note(row["id"], row["title"], row["body"], tags)
++
++
+ def list_notes(
+     *,
+     search_text: str | None = None,
+@@ -172,31 +172,87 @@
+     total_row = db.execute(count_sql, params).fetchone()
+     total = total_row[0]
+ 
+-    # Data query
+-    data_sql = f"SELECT id, title, body FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Data query with LEFT JOIN to fetch tags in a single round-trip
++    # We select note fields and the tag. Tags will be NULL if none exist.
++    # We order by note_id then tag to facilitate grouping in Python.
++    data_sql = f"""
++        SELECT notes.id, notes.title, notes.body, note_tags.tag
++        FROM notes
++        LEFT JOIN note_tags ON notes.id = note_tags.note_id
++        {where_clause}
++        ORDER BY notes.id ASC, note_tags.tag ASC
++        LIMIT ? OFFSET ?
++    """
+     data_params = params + [limit, offset]
+     rows = db.execute(data_sql, data_params).fetchall()
+ 
+-    # Fetch tags for each note
+-    conn = db._get_connection()
+-    note_ids = [row["id"] for row in rows]
++    # Group tags by note ID
+     tags_map: dict[int, list[str]] = {}
+-    if note_ids:
+-        placeholders = ",".join(["?"] * len(note_ids))
+-        tag_rows = conn.execute(
+-            f"SELECT note_id, tag FROM note_tags WHERE note_id IN ({placeholders}) ORDER BY note_id, tag",
+-            note_ids,
+-        ).fetchall()
+-        for tag_row in tag_rows:
+-            nid = tag_row["note_id"]
+-            if nid not in tags_map:
+-                tags_map[nid] = []
+-            tags_map[nid].append(tag_row["tag"])
+-
++    current_note_id = None
++    current_tags: list[str] = []
++
++    for row in rows:
++        note_id = row["id"]
++        tag = row["tag"]
++
++        if note_id != current_note_id:
++            # Save previous note's tags if any
++            if current_note_id is not None:
++                tags_map[current_note_id] = current_tags
++            # Start new note
++            current_note_id = note_id
++            current_tags = []
++            # If tag is None (no join match), we still start with empty list
++            if tag is not None:
++                current_tags.append(tag)
++        else:
++            # Same note, append tag if not None
++            if tag is not None:
++                current_tags.append(tag)
++
++    # Don't forget the last note
++    if current_note_id is not None:
++        tags_map[current_note_id] = current_tags
++
++    # Construct Note objects
++    # We need to iterate through the unique notes found in the result set.
++    # Since we grouped by ID, we can just iterate the keys in tags_map
++    # but we must preserve the order from the SQL result (which is by ID ASC).
++    # The keys in tags_map are inserted in order, so iterating keys preserves order.
+     notes = []
++    for note_id in tags_map:
++        # Retrieve the row data for this note. Since we only have tags_map,
++        # we need to fetch the note details again or store them. 
++        # To avoid another query, let's re-iterate the rows to build the list directly.
++        pass
++
++    # Re-approach: Build list directly while grouping
++    notes = []
++    current_note_id = None
++    current_tags: list[str] = []
++    current_row = None
++
+     for row in rows:
+-        tags = tags_map.get(row["id"], [])
+-        notes.append(_to_note(row, tags))
++        note_id = row["id"]
++        tag = row["tag"]
++
++        if note_id != current_note_id:
++            # Finalize previous note
++            if current_note_id is not None:
++                notes.append(_to_note(current_row, current_tags))
++            # Start new note
++            current_note_id = note_id
++            current_tags = []
++            current_row = row
++            if tag is not None:
++                current_tags.append(tag)
++        else:
++            if tag is not None:
++                current_tags.append(tag)
++
++    # Finalize last note
++    if current_note_id is not None:
++        notes.append(_to_note(current_row, current_tags))
+ 
+     return notes, total
+ 

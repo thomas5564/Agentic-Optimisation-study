@@ -1,0 +1,42 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -119,23 +119,26 @@
+     if conditions:
+         where_clause = "WHERE " + " AND ".join(conditions)
+     
+-    # Query for total count
+-    count_sql = f"SELECT count(*) FROM notes {where_clause}"
+-    total_row = connection.execute(count_sql, params).fetchone()
+-    total = total_row[0]
+-    
+-    # Optimization: If count is 0, we know there are no items to fetch, so skip the second query.
+-    if total == 0:
+-        _release(connection)
+-        return [], 0
+-    
+-    # Query for paginated items
+-    # We need to order by id ASC as per contract
+-    items_sql = f"SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Combined query using window function to get both total count and items in one round-trip.
++    # COUNT(*) OVER() provides the total count of matching rows across all result rows.
++    # We order by id ASC, then limit/offset to get the paginated slice.
++    # The total count is available in the first row's window column.
++    items_sql = f"""
++        SELECT id, title, body, tags, COUNT(*) OVER() as total_count 
++        FROM notes {where_clause} 
++        ORDER BY id ASC 
++        LIMIT ? OFFSET ?
++    """
+     item_params = params + [limit, offset]
+     rows = connection.execute(items_sql, item_params).fetchall()
+     
+     _release(connection)
++    
++    if not rows:
++        return [], 0
++    
++    # Extract total from the first row's window column
++    total = rows[0]["total_count"]
+     
+     notes = [_to_note(row) for row in rows]
+     return notes, total

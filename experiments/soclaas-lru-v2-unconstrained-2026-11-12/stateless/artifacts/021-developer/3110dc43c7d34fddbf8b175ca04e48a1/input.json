@@ -1,0 +1,22 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Modify the `list_notes` function in `app/db.py` to fetch tags using a single JOIN query instead of separate queries. Replace the current logic that fetches note rows and then performs a separate `SELECT` for tags with a single query: `SELECT n.id, n.title, n.body, nt.tag FROM notes n LEFT JOIN note_tags nt ON n.id = nt.note_id {where_clause} ORDER BY n.id ASC LIMIT ? OFFSET ?`. Then, in Python, iterate through the result set to group tags by note ID into a dictionary, avoiding the overhead of multiple cursor executions and result set fetches for each page of notes.",
+    "hypothesis": "The profile shows `list_notes` consumes 0.112s, with significant time in `execute` (0.100s) and `fetchall` (0.003s). The current implementation executes one query for the notes and another for all their tags. By combining these into a single JOIN query, we reduce the number of SQLite executions from 2 to 1 per page load. This reduces Python-level loop overhead and SQLite cursor management overhead, directly targeting the largest hot spot in the profile.",
+    "risks": [
+      "If a note has many tags, the result set size increases, potentially increasing memory usage for the result set. However, given the schema and typical usage, this is unlikely to be a bottleneck compared to the query overhead.",
+      "The grouping logic in Python must correctly handle notes with no tags (LEFT JOIN) and multiple tags per note. The implementation must ensure tags are sorted as required by the contract (though the JOIN query can use ORDER BY nt.tag to help, Python sorting is safer to ensure correctness if the DB order isn't guaranteed to be stable across all rows for a single note).",
+      "The `total` count query remains separate and is not affected by this change."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

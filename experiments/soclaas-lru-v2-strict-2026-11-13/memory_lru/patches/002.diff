@@ -1,0 +1,34 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -58,22 +58,23 @@
+ def _to_note(row: sqlite3.Row) -> Note:
+     return _make_note(row["id"], row["title"], row["body"], row["tags"])
+ 
+-def create_note(title: str, body: str, tags: list[str]) -> Note:
++def create_note(title: str, body: str, tags: list[str]) -> Note | None:
+     connection = _connect()
+     payload = _normalize_tags(tags)
+     cursor = connection.execute(
+-        "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)",
++        'INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)',
+         (title, body, payload),
+     )
+     note_id = cursor.lastrowid
+     connection.commit()
+-    created = None
+-    for row in connection.execute("SELECT id, title, body, tags FROM notes").fetchall():
+-        note = _to_note(row)
+-        if note.id == note_id:
+-            created = note
++    row = connection.execute(
++        'SELECT id, title, body, tags FROM notes WHERE id = ?',
++        (note_id,),
++    ).fetchone()
+     _release(connection)
+-    return created
++    if row is None:
++        return None
++    return _to_note(row)
+ 
+ 
+ def get_note(note_id: int) -> Note | None:

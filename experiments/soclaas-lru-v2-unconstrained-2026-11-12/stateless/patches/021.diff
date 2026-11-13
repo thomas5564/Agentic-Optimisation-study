@@ -1,0 +1,60 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -172,26 +172,41 @@
+     total_row = db.execute(count_sql, params).fetchone()
+     total = total_row[0]
+ 
+-    # Data query
+-    data_sql = f"SELECT id, title, body FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Data query: JOIN with note_tags to fetch tags in a single query
++    data_sql = f"""SELECT n.id, n.title, n.body, nt.tag FROM notes n
++        LEFT JOIN note_tags nt ON n.id = nt.note_id
++        {where_clause}
++        ORDER BY n.id ASC, nt.tag ASC
++        LIMIT ? OFFSET ?"""
+     data_params = params + [limit, offset]
+     rows = db.execute(data_sql, data_params).fetchall()
+ 
+-    # Fetch tags for each note
+-    conn = db._get_connection()
+-    note_ids = [row["id"] for row in rows]
++    # Group tags by note ID
+     tags_map: dict[int, list[str]] = {}
+-    if note_ids:
+-        placeholders = ",".join(["?"] * len(note_ids))
+-        tag_rows = conn.execute(
+-            f"SELECT note_id, tag FROM note_tags WHERE note_id IN ({placeholders}) ORDER BY note_id, tag",
+-            note_ids,
+-        ).fetchall()
+-        for tag_row in tag_rows:
+-            nid = tag_row["note_id"]
+-            if nid not in tags_map:
+-                tags_map[nid] = []
+-            tags_map[nid].append(tag_row["tag"])
++    current_note_id = None
++    current_tags: list[str] = []
++
++    for row in rows:
++        nid = row["id"]
++        tag = row["tag"]
++        
++        # If we've moved to a new note, save the previous note's tags
++        if nid != current_note_id:
++            if current_note_id is not None:
++                tags_map[current_note_id] = sorted(current_tags)
++            current_note_id = nid
++            current_tags = []
++            # If tag is None (from LEFT JOIN with no tags), start empty
++            if tag is not None:
++                current_tags.append(tag)
++        else:
++            # Same note, append tag if present
++            if tag is not None:
++                current_tags.append(tag)
++
++    # Don't forget the last note
++    if current_note_id is not None:
++        tags_map[current_note_id] = sorted(current_tags)
+ 
+     notes = []
+     for row in rows:

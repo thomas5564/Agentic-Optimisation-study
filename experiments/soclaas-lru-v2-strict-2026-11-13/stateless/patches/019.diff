@@ -1,0 +1,14 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -124,6 +124,11 @@
+     total_row = connection.execute(count_sql, params).fetchone()
+     total = total_row[0]
+     
++    # Optimization: If count is 0, we know there are no items to fetch, so skip the second query.
++    if total == 0:
++        _release(connection)
++        return [], 0
++    
+     # Query for paginated items
+     # We need to order by id ASC as per contract
+     items_sql = f"SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"

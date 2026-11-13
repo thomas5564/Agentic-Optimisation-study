@@ -1,0 +1,12 @@
+{
+  "approach": "query",
+  "change": "def list_notes(*, search_text: str | None = None, tags_filter: list[str] | None = None, offset: int = 0, limit: int = 20) -> tuple[list[Note], int]: wanted = [tag for tag in tags_filter or [] if tag] connection = _connect() conditions = [] params: list[object] = [] if search_text: conditions.append('title LIKE ? OR body LIKE ?') params.extend([f'%{search_text}%', f'%{search_text}%']) if wanted: conditions.append('tags IN (?)') for tag in wanted: params.append(tag) where_clause = '' if conditions: where_clause = 'WHERE ' + ' AND '.join(conditions) query = f'SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC' rows = connection.execute(query, params).fetchall() _release(connection) matches = [] for row in rows: note = _to_note(row) matches.append(note) return matches[offset: offset + limit], len(matches)",
+  "hypothesis": "The current list_notes implementation fetches all notes and filters them in Python, causing O(N) database reads and O(N) Python-side JSON parsing/filtering. By moving the filtering logic (substring search and tag inclusion) into the SQL query using LIKE and IN clauses, we reduce the dataset size at the database level, minimizing I/O and Python overhead.",
+  "risks": [
+    "SQL LIKE with wildcards may not use indexes efficiently if the database is small or unindexed, but this is standard behavior and preserves correctness.",
+    "The IN clause with many tags might be slower than Python filtering for extremely large tag lists, but typical usage involves few tags.",
+    "Case sensitivity is preserved as required by the contract (PRAGMA case_sensitive_like = ON is already set)."
+  ]
+  ,
+  "schema_version": 1
+}

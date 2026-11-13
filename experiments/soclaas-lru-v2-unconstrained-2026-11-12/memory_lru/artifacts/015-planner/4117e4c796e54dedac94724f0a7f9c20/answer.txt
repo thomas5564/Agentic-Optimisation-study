@@ -1,0 +1,20 @@
+{
+  "approach": "serialization",
+  "change": "Refactor app/db.py to return plain Python dictionaries from database functions instead of Pydantic Note models. Specifically, replace the `_to_note` helper and its usage in `create_note`, `get_note`, `update_note`, and `list_notes` to construct dicts directly from SQLite rows. In `list_notes`, parse the JSON tags string once per row and return a list of dicts. In `app/main.py`, update `list_notes_endpoint` to return the dicts directly in the response payload without calling `model_dump()`. FastAPI will serialize these dicts to JSON natively. This bypasses the Pydantic `model_validate` and `model_dump` overhead for every row fetched or created, which the profile identifies as a significant CPU hotspot (0.106s in `execute` is high, but the per-row Python overhead in `_to_note` and `model_validate` is substantial relative to the small payload).",
+  "hypothesis": "The profile shows significant time spent in `pydantic`'s `model_validate` and `json.loads` (via `_to_note`). By bypassing Pydantic model creation for internal data transfer from DB to API response, we can reduce CPU overhead. SQLite returns native Python types (int, str) for most columns, and tags are stored as JSON strings. We can parse the tags JSON once and return a dict. FastAPI can serialize dicts directly. This avoids the overhead of Pydantic's schema validation and model creation for every row fetched. Since the data comes from our own DB and is already validated by the API on input, we can trust the internal consistency. This should reduce the per-call overhead for list_notes, get_note, update_note, and create_note.",
+  "risks": [
+    "Relative improvement may be negligible or negative if SQLite I/O or network overhead dominates latency.",
+    "Improvement magnitude may be smaller than observed noise variance.",
+    "Only mean latency was optimized; p95 and max latencies showed mixed results.",
+    "Does not address potential I/O or network bottlenecks dominating latency."
+  ],
+  "schema_version": 1,
+  "used_memory": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ]
+}

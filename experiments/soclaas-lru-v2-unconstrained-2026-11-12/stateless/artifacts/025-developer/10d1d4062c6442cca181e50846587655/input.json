@@ -1,0 +1,22 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Modify the `list_notes` function in `app/db.py` to fetch tags using a single JOIN query instead of separate queries per note or a separate IN query. Replace the current logic that fetches note IDs and then queries `note_tags` with a single SQL statement: `SELECT n.id, n.title, n.body, nt.tag FROM notes n LEFT JOIN note_tags nt ON n.id = nt.note_id {where_clause} ORDER BY n.id ASC LIMIT ? OFFSET ?`. Then, in Python, aggregate the tags into a dictionary while iterating the result set. This reduces the number of database round-trips and cursor operations from O(N) or 2 to 1 for the list endpoint.",
+    "hypothesis": "The profile shows `list_notes` is the hottest path, consuming significant time in `execute` and `fetchall`. Currently, for each page of notes, the code executes a count query, a data query, and then a separate query to fetch tags for all notes in the page. By combining the note data and tag retrieval into a single JOIN query, we eliminate the overhead of multiple cursor executions and result set iterations. This reduces Python-level loop overhead and SQLite API calls, directly lowering the cumulative time spent in `list_notes` and its helpers.",
+    "risks": [
+      "The JOIN may produce duplicate rows for notes with multiple tags, requiring careful aggregation in Python to reconstruct the Note objects correctly.",
+      "If the number of tags per note is very large, the result set size could increase, but given the constraints (tags are small lists), this is unlikely to be a bottleneck.",
+      "The `ORDER BY` must remain on `n.id` to preserve the existing pagination semantics, which the JOIN supports."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

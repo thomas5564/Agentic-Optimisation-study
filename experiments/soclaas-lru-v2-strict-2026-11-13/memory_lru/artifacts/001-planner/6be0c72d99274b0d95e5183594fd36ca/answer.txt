@@ -1,0 +1,10 @@
+{
+  "approach": "query",
+  "change": "def get_note(note_id: int) -> Note | None:    connection = _connect()    row = connection.execute(        'SELECT id, title, body, tags FROM notes WHERE id = ?',        (note_id,),    ).fetchone()    _release(connection)    if row is None:        return None    return _to_note(row)",
+  "hypothesis": "The current get_note implementation fetches all notes from the database and iterates through them in Python to find the matching ID. This results in O(N) database reads and O(N) Python object construction for every single-note retrieval. By replacing this with a targeted SQL query using a WHERE clause, we reduce the operation to O(1) database access and O(1) object construction, eliminating the massive overhead seen in the profile where get_note consumes significant time due to the full table scan and subsequent _to_note calls.",
+  "risks": [
+    "None. The semantic behavior remains identical: returns the note if found, None otherwise. SQL injection is prevented by parameterized queries. Durability and persistence are unchanged."
+  ],
+  "schema_version": 1,
+  "used_memory": []
+}

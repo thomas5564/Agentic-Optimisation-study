@@ -1,0 +1,22 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "def list_notes(*, search_text: str | None = None, tags_filter: list[str] | None = None, offset: int = 0, limit: int = 20) -> tuple[list[Note], int]: wanted = [tag for tag in tags_filter or [] if tag] connection = _connect() conditions = [] params: list[object] = [] if search_text: conditions.append('(title LIKE ? OR body LIKE ?)') params.extend([f'%{search_text}%', f'%{search_text}%']) if wanted: placeholders = ', '.join(['?'] * len(wanted)) conditions.append(f'(SELECT count(DISTINCT value) FROM json_each(tags) WHERE value IN ({placeholders})) = ?') params.extend(wanted) params.append(len(wanted)) where_clause = '' if conditions: where_clause = 'WHERE ' + ' AND '.join(conditions) count_sql = f'SELECT count(*) FROM notes {where_clause}' total_row = connection.execute(count_sql, params).fetchone() total = total_row[0] if total == 0: _release(connection) return [], 0 items_sql = f'SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?' item_params = params + [limit, offset] rows = connection.execute(items_sql, item_params).fetchall() _release(connection) notes = [_to_note(row) for row in rows] return notes, total",
+    "hypothesis": "The current profile shows that list_notes is the dominant cost, consuming 0.374s cumulative time. The primary bottleneck is the repeated opening and closing of the SQLite connection (1200 calls to _connect/_release for 600 list_notes calls, plus other ops). By keeping the connection open for both the COUNT query and the data retrieval query within the same function call, we eliminate the overhead of connection setup/teardown and the associated disk I/O for opening/closing the database file. This reduces the number of connection operations by half for list_notes calls, directly lowering latency.",
+    "risks": [
+      "If an exception occurs between the two queries, the connection might not be closed properly if not handled with try/finally, though the current code structure uses _release at the end. We must ensure _release is called in all paths.",
+      "Keeping the connection open slightly longer increases memory usage per request, but for a single-threaded benchmark this is negligible.",
+      "The change must strictly preserve the API contract, including error handling and return types."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

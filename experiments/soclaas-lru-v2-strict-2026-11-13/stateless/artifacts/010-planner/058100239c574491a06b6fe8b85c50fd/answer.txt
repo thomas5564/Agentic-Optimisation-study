@@ -1,0 +1,11 @@
+{
+  "approach": "query",
+  "change": "def list_notes(*, search_text: str | None = None, tags_filter: list[str] | None = None, offset: int = 0, limit: int = 20) -> tuple[list[Note], int]: wanted = [tag for tag in tags_filter or [] if tag] connection = _connect() query = 'SELECT id, title, body, tags FROM notes WHERE 1=1' params: list[object] = [] if search_text: query += ' AND (title LIKE ? OR body LIKE ?)' params.extend([f'%{search_text}%', f'%{search_text}%']) if wanted: query += ' AND tags IN (' + ','.join('?' for _ in wanted) + ')' params.extend(wanted) query += ' ORDER BY id ASC' rows = connection.execute(query, params).fetchall() _release(connection) matches = [] for row in rows: note = _make_note(row['id'], row['title'], row['body'], row['tags']) matches.append(note) return matches[offset: offset + limit], len(matches)",
+  "hypothesis": "The current list_notes implementation fetches all notes and filters them in Python, causing O(N) I/O and CPU usage. By moving filtering to SQL using LIKE for text search and IN for tags, we reduce data transfer and Python-side processing. This aligns with the profile showing high time in list_notes and _make_note due to processing all rows.",
+  "risks": [
+    "SQL injection if search_text contains special characters, but parameterized queries prevent this.",
+    "LIKE with wildcards may be slower than full-text search for very large datasets, but for typical note counts, it's efficient.",
+    "The IN clause with many tags might hit SQL limits, but tag counts are typically small."
+  ],
+  "schema_version": 1
+}

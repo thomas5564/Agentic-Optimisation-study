@@ -1,0 +1,23 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -18,6 +18,11 @@
+     """,
+ )
+ 
++INDEXES = (
++    "CREATE INDEX IF NOT EXISTS idx_notes_title ON notes(title);",
++    "CREATE INDEX IF NOT EXISTS idx_notes_body ON notes(body);",
++)
++
+ 
+ def get_db_path() -> Path:
+     configured = os.getenv("NOTES_DB_PATH")
+@@ -35,6 +40,8 @@
+     connection.execute("PRAGMA case_sensitive_like = ON")
+     for statement in SCHEMA:
+         connection.execute(statement)
++    for index in INDEXES:
++        connection.execute(index)
+     connection.commit()
+     return connection
+ 

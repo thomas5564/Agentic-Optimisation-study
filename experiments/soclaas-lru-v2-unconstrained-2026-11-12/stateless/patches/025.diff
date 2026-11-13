@@ -1,0 +1,72 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -172,31 +172,48 @@
+     total_row = db.execute(count_sql, params).fetchone()
+     total = total_row[0]
+ 
+-    # Data query
+-    data_sql = f"SELECT id, title, body FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Data query with JOIN to fetch tags in a single round-trip
++    # We select note columns and tag columns. Tags may be NULL if no tags exist.
++    data_sql = f"""
++        SELECT n.id, n.title, n.body, nt.tag
++        FROM notes n
++        LEFT JOIN note_tags nt ON n.id = nt.note_id
++        {where_clause}
++        ORDER BY n.id ASC
++        LIMIT ? OFFSET ?
++    """
+     data_params = params + [limit, offset]
+     rows = db.execute(data_sql, data_params).fetchall()
+ 
+-    # Fetch tags for each note
+-    conn = db._get_connection()
+-    note_ids = [row["id"] for row in rows]
+-    tags_map: dict[int, list[str]] = {}
+-    if note_ids:
+-        placeholders = ",".join(["?"] * len(note_ids))
+-        tag_rows = conn.execute(
+-            f"SELECT note_id, tag FROM note_tags WHERE note_id IN ({placeholders}) ORDER BY note_id, tag",
+-            note_ids,
+-        ).fetchall()
+-        for tag_row in tag_rows:
+-            nid = tag_row["note_id"]
+-            if nid not in tags_map:
+-                tags_map[nid] = []
+-            tags_map[nid].append(tag_row["tag"])
+-
++    # Aggregate tags into a dictionary while iterating the result set
++    # This handles the duplicate rows produced by the JOIN for notes with multiple tags
++    notes_map: dict[int, dict] = {}
++    for row in rows:
++        note_id = row["id"]
++        if note_id not in notes_map:
++            notes_map[note_id] = {
++                "id": row["id"],
++                "title": row["title"],
++                "body": row["body"],
++                "tags": [],
++            }
++        tag = row["tag"]
++        if tag is not None:
++            notes_map[note_id]["tags"].append(tag)
++
++    # Sort notes by ID to preserve the order from the SQL query
++    # (The SQL ORDER BY ensures this, but we reconstruct the list)
+     notes = []
+-    for row in rows:
+-        tags = tags_map.get(row["id"], [])
+-        notes.append(_to_note(row, tags))
++    for note_id in sorted(notes_map.keys()):
++        note_data = notes_map[note_id]
++        # Ensure tags are sorted as per the contract
++        note_data["tags"].sort()
++        notes.append(_make_note(
++            note_data["id"],
++            note_data["title"],
++            note_data["body"],
++            note_data["tags"]
++        ))
+ 
+     return notes, total
+ 

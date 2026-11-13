@@ -1,0 +1,21 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -67,13 +67,12 @@
+     )
+     note_id = cursor.lastrowid
+     connection.commit()
+-    created = None
+-    for row in connection.execute("SELECT id, title, body, tags FROM notes").fetchall():
+-        note = _to_note(row)
+-        if note.id == note_id:
+-            created = note
++    row = connection.execute(
++        'SELECT id, title, body, tags FROM notes WHERE id = ?',
++        (note_id,),
++    ).fetchone()
+     _release(connection)
+-    return created
++    return _to_note(row)
+ 
+ 
+ def get_note(note_id: int) -> Note | None:

@@ -1,0 +1,115 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -1,9 +1,12 @@
+ from __future__ import annotations
+ 
++import hashlib
+ import json
+ import os
+ import sqlite3
++from collections import OrderedDict
+ from pathlib import Path
++from typing import Any
+ 
+ from app.models import Note
+ 
+@@ -58,7 +61,37 @@
+ def _to_note(row: sqlite3.Row) -> Note:
+     return _make_note(row["id"], row["title"], row["body"], row["tags"])
+ 
++
++# In-memory LRU cache for read operations
++# Keyed by note ID for get_note, and by a hash of list_notes parameters for list_notes
++# Invalidated on any write operation (create, update, delete)
++_CACHE_SIZE = 1000
++_read_cache: OrderedDict[str, Any] = OrderedDict()
++
++
++def _cache_get(key: str) -> Any | None:
++    if key in _read_cache:
++        _read_cache.move_to_end(key)
++        return _read_cache[key]
++    return None
++
++
++def _cache_put(key: str, value: Any) -> None:
++    if key in _read_cache:
++        _read_cache.move_to_end(key)
++    else:
++        if len(_read_cache) >= _CACHE_SIZE:
++            _read_cache.popitem(last=False)
++    _read_cache[key] = value
++
++
++def _cache_invalidate() -> None:
++    """Clear the entire read cache on any write operation."""
++    _read_cache.clear()
++
++
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
++    _cache_invalidate()
+     connection = _connect()
+     try:
+         payload = _normalize_tags(tags)
+@@ -78,6 +111,11 @@
+ 
+ 
+ def get_note(note_id: int) -> Note | None:
++    cache_key = f"note:{note_id}"
++    cached = _cache_get(cache_key)
++    if cached is not None:
++        return cached
++
+     connection = _connect()
+     try:
+         row = connection.execute(
+@@ -86,7 +124,9 @@
+         ).fetchone()
+         if row is None:
+             return None
+-        return _to_note(row)
++        note = _to_note(row)
++        _cache_put(cache_key, note)
++        return note
+     finally:
+         _release(connection)
+ 
+@@ -98,6 +138,13 @@
+     offset: int = 0,
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
++    # Create a deterministic key for the cache based on query parameters
++    # We use a tuple of parameters to ensure uniqueness
++    cache_key = f"list:{search_text}:{json.dumps(tags_filter, sort_keys=True)}:{offset}:{limit}"
++    cached = _cache_get(cache_key)
++    if cached is not None:
++        return cached
++
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+     try:
+@@ -134,12 +181,15 @@
+         rows = connection.execute(data_sql, data_params).fetchall()
+ 
+         notes = [_to_note(row) for row in rows]
+-        return notes, total
++        result = (notes, total)
++        _cache_put(cache_key, result)
++        return result
+     finally:
+         _release(connection)
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
++    _cache_invalidate()
+     connection = _connect()
+     try:
+         payload = _normalize_tags(tags)
+@@ -160,6 +210,7 @@
+ 
+ 
+ def delete_note(note_id: int) -> bool:
++    _cache_invalidate()
+     connection = _connect()
+     try:
+         cursor = connection.execute(

@@ -1,0 +1,32 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -100,11 +100,24 @@
+     rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
+     _release(connection)
+     matches = []
+-    for note in map(_to_note, rows):
+-        if search_text and search_text not in note.title and search_text not in note.body:
+-            continue
+-        if all(tag in note.tags for tag in wanted):
+-            matches.append(note)
++    for row in rows:
++        if search_text:
++            title = row['title']
++            body = row['body']
++            if search_text not in title and search_text not in body:
++                continue
++        if wanted:
++            tags_json = row['tags']
++            if not tags_json:
++                continue
++            try:
++                tags = json.loads(tags_json)
++            except Exception:
++                continue
++            if not all(tag in tags for tag in wanted):
++                continue
++        note = _make_note(row['id'], row['title'], row['body'], row['tags'])
++        matches.append(note)
+     return matches[offset: offset + limit], len(matches)
+ 
+ 

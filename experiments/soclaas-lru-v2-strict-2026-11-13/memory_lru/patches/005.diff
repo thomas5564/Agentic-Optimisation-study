@@ -1,0 +1,55 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -98,15 +98,44 @@
+ ) -> tuple[list[Note], int]:
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
++    
++    conditions = []
++    params: list[object] = []
++    
++    if search_text:
++        conditions.append('(title LIKE ? OR body LIKE ?)')
++        params.extend([f'%{search_text}%', f'%{search_text}%'])
++    
++    if wanted:
++        tag_conditions = []
++        for tag in wanted:
++            # Match tag as a distinct element in the JSON array string.
++            # Tags are stored as sorted JSON arrays, e.g., '["tag1", "tag2"]'.
++            # We look for "tag" surrounded by quotes, commas, or brackets.
++            tag_conditions.append('tags LIKE ?')
++            params.append(f'%"{tag}"%')
++        conditions.append('(' + ' AND '.join(tag_conditions) + ')')
++    
++    where_clause = ""
++    if conditions:
++        where_clause = "WHERE " + " AND ".join(conditions)
++    
++    # First, get the total count of matching notes
++    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0] if total_row else 0
++    
++    # Second, get the paginated results
++    # We reuse the params for the count, but need to ensure they are passed correctly.
++    # Since params are positional, we can reuse the list.
++    data_query = f"SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    data_params = params + [limit, offset]
++    rows = connection.execute(data_query, data_params).fetchall()
++    
+     _release(connection)
+-    matches = []
+-    for note in map(_to_note, rows):
+-        if search_text and search_text not in note.title and search_text not in note.body:
+-            continue
+-        if all(tag in note.tags for tag in wanted):
+-            matches.append(note)
+-    return matches[offset: offset + limit], len(matches)
++    
++    matches = [_to_note(row) for row in rows]
++    return matches, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

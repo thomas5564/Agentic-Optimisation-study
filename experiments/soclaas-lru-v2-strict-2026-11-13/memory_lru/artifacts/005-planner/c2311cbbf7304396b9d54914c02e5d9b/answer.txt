@@ -1,0 +1,19 @@
+{
+  "approach": "query",
+  "change": "def list_notes(*, search_text: str | None = None, tags_filter: list[str] | None = None, offset: int = 0, limit: int = 20) -> tuple[list[Note], int]:    wanted = [tag for tag in tags_filter or [] if tag]    connection = _connect()    # Build SQL query with filters to reduce data transfer and Python processing    conditions = []    params = []    if search_text:        conditions.append('(title LIKE ? OR body LIKE ?)')        params.extend([f'%{search_text}%', f'%{search_text}%'])    if wanted:        # Use JSON_CONTAINS or LIKE for tag filtering. Since tags are stored as JSON array string,        # we check if the JSON string contains the tag. Note: This is a simple check.        # For strict JSON array containment, we might need more complex logic, but given the schema,        # tags are stored as sorted JSON arrays like '["
+
+  , "hypothesis": "The current `list_notes` implementation fetches all notes from the database and performs filtering in Python. This results in O(N) database reads and O(N) Python object construction for every list request, which is the dominant cost in the profile (6.08s cumulative time). By moving the filtering logic (search text and tags) into the SQL query using `LIKE` and `JSON` functions (or string matching for tags), we reduce the number of rows transferred from the database and the number of Python objects constructed. This leverages the database engine's optimized search capabilities, significantly reducing latency for large datasets and typical workloads where only a subset of notes matches the criteria.",
+  "risks": [
+    "Tag filtering using string matching on JSON arrays may not be perfectly accurate if tag names are substrings of other tags (e.g., 'work' matching 'workflow'). However, since tags are stored as a JSON array string, a more robust check is needed. A safer approach is to fetch all notes but optimize the Python loop, or use a dedicated tags table. Given the constraint of changing only one operation and the current schema, we will use a careful string match or accept the slight inaccuracy if it's negligible, or better, fetch only necessary columns. Actually, a better SQL approach for tags in a single column JSON array is tricky. Let's stick to fetching all but optimizing the Python side? No, the profile shows `_to_note` and `_make_note` are huge bottlenecks. The best optimization is to avoid constructing Note objects for non-matching rows. We can do this by filtering in SQL if possible. For tags, since they are a JSON array, we can check if the JSON string contains the tag. To avoid substring issues, we can check for the tag surrounded by quotes or brackets. E.g., '\"tag\"'. This is safer. Let's refine the change to use this safer string matching for tags in SQL.",
+    "The `LIKE` operator is case-sensitive by default in SQLite if `PRAGMA case_sensitive_like = ON` is set, which it is. This matches the requirement for case-sensitive search.",
+    "If the dataset is small, the overhead of complex SQL might outweigh benefits, but for the measured workload, it should help.",
+    "The `total` count must still reflect all matching notes. We can use a separate `COUNT(*)` query or calculate it in Python after filtering. To keep it simple and correct, we can fetch the IDs that match, count them, and then fetch the details for the paginated subset. This requires two queries. Let's propose a two-query approach within the single function change."
+  ],
+  "schema_version": 1,
+  "used_memory": [
+    1,
+    2,
+    3,
+    4
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "developer_note": "Change at most one of the public data operations in app/db.py (get_note, list_notes, create_note, update_note, delete_note); private helpers and module-level code may change. If the plan covers more than one operation, implement only the first operation it names and leave the other operations byte-identical. Patches that change more are rejected without testing.",
+  "note": "A patch may change at most one of the public data operations in app/db.py: get_note, list_notes, create_note, update_note, delete_note. Private helpers (names starting with _) and module-level code such as imports and SCHEMA may change freely. A change to any other file counts as one operation. Patches that change more than one operation are rejected without testing (status scope_exceeded). Propose the single most valuable optimization within this limit.",
+  "schema_version": 1,
+  "scope": "strict"
+}

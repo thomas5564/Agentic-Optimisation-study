@@ -1,0 +1,169 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -3,6 +3,8 @@
+ import json
+ import os
+ import sqlite3
++import threading
++from collections import OrderedDict
+ from pathlib import Path
+ 
+ from app.models import Note
+@@ -18,6 +20,10 @@
+     """,
+ )
+ 
++# In-memory cache for notes
++_cache_lock = threading.Lock()
++_cache_data: list[Note] | None = None
++
+ 
+ def get_db_path() -> Path:
+     configured = os.getenv("NOTES_DB_PATH")
+@@ -44,7 +50,28 @@
+ 
+ 
+ def initialize_db() -> None:
++    global _cache_data
+     _release(_connect())
++    # Load initial data into cache
++    _refresh_cache()
++
++
++def _refresh_cache() -> None:
++    """Reload the entire notes table into the in-memory cache."""
++    global _cache_data
++    connection = _connect()
++    try:
++        rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
++        _cache_data = [_to_note(row) for row in rows]
++    finally:
++        _release(connection)
++
++
++def _invalidate_cache() -> None:
++    """Invalidate the in-memory cache."""
++    global _cache_data
++    with _cache_lock:
++        _cache_data = None
+ 
+ 
+ def _normalize_tags(tags: list[str]) -> str:
+@@ -57,6 +84,7 @@
+ 
+ def _to_note(row: sqlite3.Row) -> Note:
+     return _make_note(row["id"], row["title"], row["body"], row["tags"])
++
+ 
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+     connection = _connect()
+@@ -69,16 +97,33 @@
+     connection.commit()
+     row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+     _release(connection)
+-    return _to_note(row)
++    note = _to_note(row)
++    
++    # Update cache
++    with _cache_lock:
++        global _cache_data
++        if _cache_data is not None:
++            _cache_data.append(note)
++    return note
+ 
+ 
+ def get_note(note_id: int) -> Note | None:
+-    connection = _connect()
+-    row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    _release(connection)
+-    if row is None:
+-        return None
+-    return _to_note(row)
++    # Try cache first
++    with _cache_lock:
++        if _cache_data is not None:
++            for note in _cache_data:
++                if note.id == note_id:
++                    return note
++    
++    # Fallback to DB
++    connection = _connect()
++    try:
++        row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
++        if row is None:
++            return None
++        return _to_note(row)
++    finally:
++        _release(connection)
+ 
+ 
+ def list_notes(
+@@ -88,6 +133,35 @@
+     offset: int = 0,
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
++    # Try cache first
++    with _cache_lock:
++        if _cache_data is not None:
++            cached_notes = _cache_data
++    
++    if 'cached_notes' in locals() and cached_notes is not None:
++        # Apply filters in Python
++        filtered = cached_notes
++        
++        if search_text:
++            filtered = [
++                n for n in filtered
++                if search_text in n.title or search_text in n.body
++            ]
++        
++        if tags_filter:
++            # Tags in DB are stored as sorted JSON array string
++            # We need to check if all required tags are present in the note's tags
++            filtered = [
++                n for n in filtered
++                if all(tag in n.tags for tag in tags_filter)
++            ]
++        
++        total = len(filtered)
++        # Apply pagination
++        paginated = filtered[offset:offset + limit]
++        return paginated, total
++
++    # Fallback to DB
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+     
+@@ -139,12 +213,29 @@
+     
+     row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+     _release(connection)
+-    return _to_note(row)
++    note = _to_note(row)
++    
++    # Update cache
++    with _cache_lock:
++        global _cache_data
++        if _cache_data is not None:
++            # Replace the note in the cache
++            for i, n in enumerate(_cache_data):
++                if n.id == note_id:
++                    _cache_data[i] = note
++                    break
++    return note
+ 
+ 
+ def delete_note(note_id: int) -> bool:
+     connection = _connect()
+     cursor = connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+     connection.commit()
+-    _release(connection)
+-    return cursor.rowcount > 0
++    deleted = cursor.rowcount > 0
++    _release(connection)
++    
++    if deleted:
++        # Invalidate cache
++        _invalidate_cache()
++    
++    return deleted

@@ -1,0 +1,30 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -164,16 +164,21 @@
+     
+     where_clause = " AND ".join(conditions) if conditions else "1=1"
+     
+-    count_sql = f"SELECT COUNT(*) FROM notes WHERE {where_clause}"
+-    count_row = connection.execute(count_sql, params).fetchone()
+-    total = count_row[0]
+-    
+-    query_sql = f"SELECT id, title, body, tags FROM notes WHERE {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Use a single query with a window function to get both the count and the paginated rows.
++    # COUNT(*) OVER() returns the total count in every row.
++    query_sql = f"SELECT id, title, body, tags, COUNT(*) OVER() as total FROM notes WHERE {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
+     query_params = params + [limit, offset]
+     
+     rows = connection.execute(query_sql, query_params).fetchall()
+     
+-    notes = [_to_note(row) for row in rows]
++    total = 0
++    notes = []
++    for i, row in enumerate(rows):
++        # Extract total from the first row only
++        if i == 0:
++            total = row["total"]
++        notes.append(_to_note(row))
++    
+     return notes, total
+ 
+ 

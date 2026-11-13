@@ -1,0 +1,50 @@
+Fri Nov 13 06:18:53 2026    /result/application.prof
+
+         67089 function calls in 0.309 seconds
+
+   Ordered by: cumulative time
+   List reduced from 50 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      600    0.002    0.000    0.284    0.000 /workspace/app/main.py:35(list_notes_endpoint)
+      600    0.003    0.000    0.281    0.000 /workspace/app/db.py:123(list_notes)
+     2000    0.002    0.000    0.270    0.000 /workspace/app/db.py:60(execute)
+     2000    0.267    0.000    0.267    0.000 {method 'execute' of 'sqlite3.Connection' objects}
+     1848    0.001    0.000    0.014    0.000 /workspace/app/db.py:94(_to_note)
+     1848    0.002    0.000    0.013    0.000 /workspace/app/db.py:90(_make_note)
+     1200    0.000    0.000    0.012    0.000 /runner/benchmarks/server.py:24(finish)
+     1200    0.011    0.000    0.011    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+     1848    0.001    0.000    0.006    0.000 /usr/local/lib/python3.13/site-packages/pydantic/main.py:746(model_validate)
+     1848    0.002    0.000    0.005    0.000 /usr/local/lib/python3.13/json/__init__.py:304(loads)
+      300    0.000    0.000    0.005    0.000 /workspace/app/main.py:27(read_note)
+      300    0.000    0.000    0.005    0.000 /workspace/app/db.py:113(get_note)
+     1848    0.002    0.000    0.005    0.000 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}
+      100    0.000    0.000    0.004    0.000 /workspace/app/main.py:22(create_note_endpoint)
+     1848    0.002    0.000    0.004    0.000 /usr/local/lib/python3.13/json/decoder.py:340(decode)
+      100    0.000    0.000    0.004    0.000 /workspace/app/db.py:98(create_note)
+      100    0.000    0.000    0.003    0.000 /workspace/app/main.py:52(update_note_endpoint)
+     1848    0.002    0.000    0.003    0.000 /workspace/app/models.py:13(validate_tags)
+      100    0.000    0.000    0.003    0.000 /workspace/app/db.py:163(update_note)
+      600    0.002    0.000    0.002    0.000 {method 'fetchall' of 'sqlite3.Cursor' objects}
+     1100    0.002    0.000    0.002    0.000 {method 'fetchone' of 'sqlite3.Cursor' objects}
+      300    0.000    0.000    0.002    0.000 /workspace/app/db.py:65(commit)
+      100    0.000    0.000    0.002    0.000 /workspace/app/main.py:60(delete_note_endpoint)
+      300    0.001    0.000    0.001    0.000 {method 'commit' of 'sqlite3.Connection' objects}
+     1348    0.000    0.000    0.001    0.000 /usr/local/lib/python3.13/site-packages/pydantic/main.py:472(model_dump)
+      100    0.000    0.000    0.001    0.000 /workspace/app/db.py:179(delete_note)
+     2300    0.001    0.000    0.001    0.000 /workspace/app/db.py:45(_get_connection)
+      200    0.000    0.000    0.001    0.000 /workspace/app/db.py:86(_normalize_tags)
+     1348    0.001    0.000    0.001    0.000 {method 'to_python' of 'pydantic_core._pydantic_core.SchemaSerializer' objects}
+      200    0.000    0.000    0.001    0.000 /usr/local/lib/python3.13/json/__init__.py:185(dumps)
+      200    0.000    0.000    0.001    0.000 /usr/local/lib/python3.13/json/encoder.py:185(encode)
+     3696    0.001    0.000    0.001    0.000 {method 'match' of 're.Pattern' objects}
+     1848    0.001    0.000    0.001    0.000 /usr/local/lib/python3.13/json/decoder.py:351(raw_decode)
+     4566    0.000    0.000    0.000    0.000 {method 'strip' of 'str' objects}
+     2048    0.000    0.000    0.000    0.000 {built-in method builtins.sorted}
+     4084    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+     2300    0.000    0.000    0.000    0.000 {built-in method builtins.hasattr}
+      100    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/site-packages/starlette/responses.py:33(__init__)
+      200    0.000    0.000    0.000    0.000 /usr/local/lib/python3.13/json/encoder.py:207(iterencode)
+     3696    0.000    0.000    0.000    0.000 {method 'end' of 're.Match' objects}
+
+

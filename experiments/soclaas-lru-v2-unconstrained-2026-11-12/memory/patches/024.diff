@@ -1,0 +1,260 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -15,6 +15,17 @@
+         body TEXT NOT NULL,
+         tags TEXT NOT NULL DEFAULT '[]'
+     )
++    """,
++    """
++    CREATE TABLE IF NOT EXISTS note_tags (
++        note_id INTEGER NOT NULL,
++        tag TEXT NOT NULL,
++        FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE,
++        UNIQUE(note_id, tag)
++    )
++    """,
++    """
++    CREATE INDEX IF NOT EXISTS idx_note_tags_tag ON note_tags(tag)
+     """,
+ )
+ 
+@@ -66,27 +77,44 @@
+     return _make_note_dict(row["id"], row["title"], row["body"], row["tags"])
+ 
+ 
++def _sync_tags(connection: sqlite3.Connection, note_id: int, tags: list[str]) -> None:
++    """Replace all tags for a note with the provided list."""
++    normalized = [tag.strip() for tag in tags if tag and tag.strip()]
++    # Delete existing tags for this note
++    connection.execute("DELETE FROM note_tags WHERE note_id = ?", (note_id,))
++    # Insert new tags
++    if normalized:
++        connection.executemany(
++            "INSERT INTO note_tags (note_id, tag) VALUES (?, ?)",
++            [(note_id, tag) for tag in normalized]
++        )
++
++
+ def create_note(title: str, body: str, tags: list[str]) -> dict:
+     connection = _connect()
+-    payload = _normalize_tags(tags)
+-    cursor = connection.execute(
+-        "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)",
+-        (title, body, payload),
+-    )
+-    note_id = cursor.lastrowid
+-    connection.commit()
+-    row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    _release(connection)
+-    return _to_note_dict(row)
++    try:
++        cursor = connection.execute(
++            "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)",
++            (title, body, _normalize_tags(tags)),
++        )
++        note_id = cursor.lastrowid
++        _sync_tags(connection, note_id, tags)
++        connection.commit()
++        row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
++        return _to_note_dict(row)
++    finally:
++        _release(connection)
+ 
+ 
+ def get_note(note_id: int) -> dict | None:
+     connection = _connect()
+-    row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    _release(connection)
+-    if row is None:
+-        return None
+-    return _to_note_dict(row)
++    try:
++        row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
++        if row is None:
++            return None
++        return _to_note_dict(row)
++    finally:
++        _release(connection)
+ 
+ 
+ def list_notes(
+@@ -98,61 +126,129 @@
+ ) -> tuple[list[dict], int]:
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+-    
+-    conditions = []
+-    params: list[object] = []
+-    
+-    if search_text:
+-        conditions.append("(title LIKE ? OR body LIKE ?)")
+-        params.extend([f"%{search_text}%", f"%{search_text}%"])
+-    
+-    if wanted:
+-        for tag in wanted:
+-            conditions.append("INSTR(tags, ?) > 0")
+-            params.append(f'"{tag}"')
+-    
+-    where_clause = ""
+-    if conditions:
+-        where_clause = "WHERE " + " AND ".join(conditions)
+-    
+-    # Count total matches
+-    count_query = f"SELECT COUNT(*) FROM notes {where_clause}"
+-    total_row = connection.execute(count_query, params).fetchone()
+-    total = total_row[0]
+-    
+-    # Fetch paginated results
+-    query = f"SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
+-    fetch_params = params + [limit, offset]
+-    rows = connection.execute(query, fetch_params).fetchall()
+-    
+-    _release(connection)
+-    notes = [_to_note_dict(row) for row in rows]
+-    return notes, total
++    try:
++        conditions = []
++        params: list[object] = []
++
++        if search_text:
++            conditions.append("(notes.title LIKE ? OR notes.body LIKE ?)")
++            params.extend([f"%{search_text}%", f"%{search_text}%"])
++
++        if wanted:
++            # Use a subquery or join with HAVING to ensure ALL tags are present
++            # We will use a JOIN approach with GROUP BY and HAVING COUNT(DISTINCT tag) = len(wanted)
++            # This is robust for the "ALL tags" requirement.
++            conditions.append("1=1") # Placeholder, logic handled in JOIN/HAVING
++            # We need to count how many of the wanted tags match for each note
++            # To do this efficiently in SQLite with the new schema:
++            # We join note_tags and filter by the wanted tags.
++            # Then group by note_id and ensure count(distinct tag) == len(wanted)
++            
++            # Build the query parts
++            join_clause = "INNER JOIN note_tags ON notes.id = note_tags.note_id"
++            having_clause = f"HAVING COUNT(DISTINCT note_tags.tag) = {len(wanted)}"
++            
++            # Filter for specific tags in WHERE
++            tag_conditions = []
++            for tag in wanted:
++                tag_conditions.append("note_tags.tag = ?")
++                params.append(tag)
++            
++            where_tag_clause = " AND ".join(tag_conditions)
++            
++            # Construct the full query
++            # Note: We need to be careful with the WHERE clause construction
++            # If there are other conditions (search_text), we combine them.
++            
++            # Let's rebuild the query string carefully
++            base_query = "SELECT notes.id, notes.title, notes.body, notes.tags FROM notes"
++            
++            if wanted:
++                base_query += f" {join_clause}"
++                # Add tag filter to WHERE
++                if conditions:
++                    # We need to insert the tag filter into the existing conditions
++                    # But the existing conditions are for search_text.
++                    # Let's restructure: 
++                    # WHERE (search conditions) AND (tag conditions)
++                    # GROUP BY notes.id
++                    # HAVING (tag count condition)
++                    pass 
++                else:
++                    conditions.append(where_tag_clause)
++            
++            # Re-evaluating the structure for clarity and correctness
++            # We will build the WHERE clause dynamically.
++            
++            where_parts = []
++            if search_text:
++                where_parts.append("(notes.title LIKE ? OR notes.body LIKE ?)")
++                params_search = [f"%{search_text}%", f"%{search_text}%"]
++            else:
++                params_search = []
++            
++            if wanted:
++                where_parts.append(where_tag_clause)
++                params_tag = wanted
++            else:
++                params_tag = []
++            
++            all_params = params_search + params_tag
++            
++            where_clause = ""
++            if where_parts:
++                where_clause = "WHERE " + " AND ".join(where_parts)
++            
++            group_by = ""
++            having = ""
++            if wanted:
++                group_by = "GROUP BY notes.id"
++                having = f"HAVING COUNT(DISTINCT note_tags.tag) = {len(wanted)}"
++            
++            # Count query
++            count_sql = f"SELECT COUNT(DISTINCT notes.id) FROM notes {join_clause if wanted else ''} {where_clause} {group_by} {having}"
++            total_row = connection.execute(count_sql, all_params).fetchone()
++            total = total_row[0]
++            
++            # Fetch query
++            fetch_sql = f"SELECT notes.id, notes.title, notes.body, notes.tags FROM notes {join_clause if wanted else ''} {where_clause} {group_by} {having} ORDER BY notes.id ASC LIMIT ? OFFSET ?"
++            fetch_params = all_params + [limit, offset]
++            rows = connection.execute(fetch_sql, fetch_params).fetchall()
++            
++            notes = [_to_note_dict(row) for row in rows]
++            return notes, total
++    finally:
++        _release(connection)
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> dict | None:
+     connection = _connect()
+-    payload = _normalize_tags(tags)
+-    
+-    # Check existence and update
+-    cursor = connection.execute(
+-        "UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?",
+-        (title, body, payload, note_id),
+-    )
+-    connection.commit()
+-    
+-    if cursor.rowcount == 0:
+-        _release(connection)
+-        return None
+-    
+-    row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    _release(connection)
+-    return _to_note_dict(row)
++    try:
++        # Check existence first
++        existing = connection.execute("SELECT id FROM notes WHERE id = ?", (note_id,)).fetchone()
++        if existing is None:
++            return None
++        
++        # Update note
++        connection.execute(
++            "UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?",
++            (title, body, _normalize_tags(tags), note_id),
++        )
++        # Update tags
++        _sync_tags(connection, note_id, tags)
++        connection.commit()
++        
++        row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
++        return _to_note_dict(row)
++    finally:
++        _release(connection)
+ 
+ 
+ def delete_note(note_id: int) -> bool:
+     connection = _connect()
+-    cursor = connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+-    connection.commit()
+-    _release(connection)
+-    return cursor.rowcount > 0
++    try:
++        cursor = connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
++        connection.commit()
++        return cursor.rowcount > 0
++    finally:
++        _release(connection)

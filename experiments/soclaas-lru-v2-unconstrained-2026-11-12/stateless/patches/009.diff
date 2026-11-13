@@ -1,0 +1,15 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -84,7 +84,11 @@
+ 
+ 
+ def _normalize_tags(tags: list[str]) -> str:
+-    return json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))
++    """Serialize tags to JSON string for storage.
++
++    Assumes tags are already sorted and unique as enforced by the Pydantic model.
++    """
++    return json.dumps(tags)
+ 
+ 
+ def _make_note(note_id: int, title: str, body: str, tags: str) -> Note:

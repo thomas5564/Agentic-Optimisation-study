@@ -1,0 +1,64 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -92,28 +92,40 @@
+ ) -> tuple[list[Note], int]:
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
++    conditions = []
++    params: list[object] = []
++
++    if search_text:
++        conditions.append('title LIKE ? OR body LIKE ?')
++        params.extend([f'%{search_text}%', f'%{search_text}%'])
++
++    if wanted:
++        tag_conditions = []
++        for tag in wanted:
++            tag_conditions.append('json_contains(tags, ?)')
++        conditions.append(' AND '.join(tag_conditions))
++        params.extend([json.dumps(tag) for tag in wanted])
++
++    base_query = 'SELECT id, title, body, tags FROM notes'
++    if conditions:
++        base_query += ' WHERE ' + ' AND '.join(conditions)
++    base_query += ' ORDER BY id ASC'
++
++    count_query = f'SELECT COUNT(*) FROM ({base_query})'
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++
++    if total == 0:
++        _release(connection)
++        return [], 0
++
++    paginated_query = base_query + ' LIMIT ? OFFSET ?'
++    final_params = params + [limit, offset]
++    rows = connection.execute(paginated_query, final_params).fetchall()
+     _release(connection)
+-    matches = []
+-    for row in rows:
+-        if search_text:
+-            title = row['title']
+-            body = row['body']
+-            if search_text not in title and search_text not in body:
+-                continue
+-        if wanted:
+-            tags_json = row['tags']
+-            if not tags_json:
+-                continue
+-            try:
+-                tags = json.loads(tags_json)
+-            except Exception:
+-                continue
+-            if not all(tag in tags for tag in wanted):
+-                continue
+-        note = _make_note(row['id'], row['title'], row['body'], row['tags'])
+-        matches.append(note)
+-    return matches[offset: offset + limit], len(matches)
++
++    notes = [_to_note(row) for row in rows]
++    return notes[offset: offset + limit], total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

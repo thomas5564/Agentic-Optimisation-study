@@ -1,0 +1,29 @@
+--- a/app/main.py
++++ b/app/main.py
+@@ -3,7 +3,7 @@
+ from pathlib import Path
+ 
+ from fastapi import FastAPI, HTTPException, Query, Response, status
+-from fastapi.responses import FileResponse
++from fastapi.responses import FileResponse, JSONResponse
+ from fastapi.staticfiles import StaticFiles
+ 
+ from app.db import create_note, delete_note, get_note, initialize_db, list_notes, update_note
+@@ -30,7 +30,7 @@
+     note_dict = get_note(note_id)
+     if note_dict is None:
+         raise HTTPException(status_code=404, detail="Note not found")
+-    return Note(**note_dict)
++    return JSONResponse(content=note_dict, status_code=200)
+ 
+ 
+ @app.get("/notes")
+@@ -56,7 +56,7 @@
+     updated_dict = update_note(note_id, note.title, note.body, note.tags)
+     if updated_dict is None:
+         raise HTTPException(status_code=404, detail="Note not found")
+-    return Note(**updated_dict)
++    return JSONResponse(content=updated_dict, status_code=200)
+ 
+ 
+ @app.delete("/notes/{note_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -1,0 +1,23 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -78,13 +78,14 @@
+ 
+ def get_note(note_id: int) -> Note | None:
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
++    row = connection.execute(
++        'SELECT id, title, body, tags FROM notes WHERE id = ?',
++        (note_id,),
++    ).fetchone()
+     _release(connection)
+-    notes = [_to_note(row) for row in rows]
+-    for note in notes:
+-        if note.id == note_id:
+-            return note
+-    return None
++    if row is None:
++        return None
++    return _to_note(row)
+ 
+ 
+ def list_notes(

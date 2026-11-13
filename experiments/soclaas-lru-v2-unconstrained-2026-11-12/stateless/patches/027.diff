@@ -1,0 +1,80 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -4,6 +4,7 @@
+ import os
+ import sqlite3
+ import threading
++from collections import defaultdict
+ from pathlib import Path
+ 
+ from app.models import Note
+@@ -172,31 +173,49 @@
+     total_row = db.execute(count_sql, params).fetchone()
+     total = total_row[0]
+ 
+-    # Data query
+-    data_sql = f"SELECT id, title, body FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Data query with JOIN to fetch tags in a single round-trip
++    # We join note_tags to get tags, using LEFT JOIN to preserve notes without tags
++    data_sql = f"""
++        SELECT n.id, n.title, n.body, nt.tag
++        FROM notes n
++        LEFT JOIN note_tags nt ON n.id = nt.note_id
++        {where_clause}
++        ORDER BY n.id ASC
++        LIMIT ? OFFSET ?
++    """
+     data_params = params + [limit, offset]
+     rows = db.execute(data_sql, data_params).fetchall()
+ 
+-    # Fetch tags for each note
+-    conn = db._get_connection()
+-    note_ids = [row["id"] for row in rows]
+-    tags_map: dict[int, list[str]] = {}
+-    if note_ids:
+-        placeholders = ",".join(["?"] * len(note_ids))
+-        tag_rows = conn.execute(
+-            f"SELECT note_id, tag FROM note_tags WHERE note_id IN ({placeholders}) ORDER BY note_id, tag",
+-            note_ids,
+-        ).fetchall()
+-        for tag_row in tag_rows:
+-            nid = tag_row["note_id"]
+-            if nid not in tags_map:
+-                tags_map[nid] = []
+-            tags_map[nid].append(tag_row["tag"])
+-
++    # Group results by note ID to reconstruct tags lists
++    # Since we ORDER BY n.id, rows for the same note are contiguous
+     notes = []
++    current_note_id = None
++    current_tags: list[str] = []
++    current_row = None
++
+     for row in rows:
+-        tags = tags_map.get(row["id"], [])
+-        notes.append(_to_note(row, tags))
++        nid = row["id"]
++        tag = row["tag"]
++
++        if nid != current_note_id:
++            # Save previous note if exists
++            if current_row is not None:
++                notes.append(_to_note(current_row, current_tags))
++            # Start new note
++            current_note_id = nid
++            current_row = row
++            current_tags = []
++            # If tag is None (from LEFT JOIN with no match), keep empty list
++            if tag is not None:
++                current_tags.append(tag)
++        else:
++            # Same note, append tag if not None
++            if tag is not None:
++                current_tags.append(tag)
++
++    # Append the last note
++    if current_row is not None:
++        notes.append(_to_note(current_row, current_tags))
+ 
+     return notes, total
+ 

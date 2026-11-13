@@ -1,0 +1,266 @@
+{
+  "decision": {
+    "accepted": true,
+    "reason": "improved_beyond_epsilon",
+    "relative_improvement": 0.28622914991038223
+  },
+  "evidence": {
+    "candidate": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 15.386750000288885,
+          "mean": 1.749923201329845,
+          "median": 1.2052914994455932,
+          "min": 0.39149999975052197,
+          "p95": 7.903542000349262
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.0031632483478938925,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.007275708809790789,
+        "repetition_means_ms": [
+          1.7437600866757446,
+          1.7549416950017378,
+          1.7564920183281174,
+          1.746335064158302,
+          1.7480871424853224
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.7100420007191133,
+            "mean": 0.5219477660266421,
+            "median": 0.516771000548033,
+            "min": 0.47408299997186987,
+            "p95": 0.5675419997714926
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 9.464416999435343,
+            "mean": 3.923354550021031,
+            "median": 3.8945414999034256,
+            "min": 3.7980420001986204,
+            "p95": 4.092375000254833
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.4056670001518796,
+            "mean": 0.44165561666280456,
+            "median": 0.4332909998083778,
+            "min": 0.39149999975052197,
+            "p95": 0.4828750006709015
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 2.0257919995856355,
+            "mean": 1.1377534313245026,
+            "median": 1.288041500174586,
+            "min": 0.5521659995793016,
+            "p95": 1.4535000000250875
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 15.386750000288885,
+            "mean": 8.402288661975035,
+            "median": 7.968978999542742,
+            "min": 7.6723330003005685,
+            "p95": 13.581707999946957
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 1.7480871424853224,
+      "valid": true
+    },
+    "parent": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 15.215540999633959,
+          "mean": 2.442933797992282,
+          "median": 2.2788750002291636,
+          "min": 0.4016250004497124,
+          "p95": 7.942707999973209
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.006339408251239483,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.014213952866668178,
+        "repetition_means_ms": [
+          2.455615945001076,
+          2.421859991644245,
+          2.449087325807492,
+          2.4315219900032994,
+          2.456583737505298
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.2878749994342797,
+            "mean": 0.5325261780017172,
+            "median": 0.5242909996923117,
+            "min": 0.4788749993167585,
+            "p95": 0.5752090000896715
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 10.003458000028331,
+            "mean": 3.9719974900199304,
+            "median": 3.8932709999244253,
+            "min": 3.780041999561945,
+            "p95": 4.070875000252272
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.0917500003415626,
+            "mean": 0.44507050931800524,
+            "median": 0.43795800002044416,
+            "min": 0.4016250004497124,
+            "p95": 0.4914999999527936
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 10.096832999806793,
+            "mean": 2.518714977990385,
+            "median": 2.301625000200147,
+            "min": 1.3823339995724382,
+            "p95": 4.1263330003857845
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 15.215540999633959,
+            "mean": 8.363180511989412,
+            "median": 7.9686455005685275,
+            "min": 7.662582999728329,
+            "p95": 13.505541999620618
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 2.449087325807492,
+      "valid": true
+    },
+    "validation": {
+      "correct": true,
+      "status": "passed"
+    }
+  },
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nfrom pathlib import Path\n\nfrom app.models import Note\n\nSCHEMA = (\n    \"\"\"\n    CREATE TABLE IF NOT EXISTS notes (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        title TEXT NOT NULL,\n        body TEXT NOT NULL,\n        tags TEXT NOT NULL DEFAULT '[]'\n    )\n    \"\"\",\n)\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\ndef _connect() -> sqlite3.Connection:\n    path = get_db_path()\n    path.parent.mkdir(parents=True, exist_ok=True)\n    connection = sqlite3.connect(path)\n    connection.row_factory = sqlite3.Row\n    connection.execute(\"PRAGMA foreign_keys = ON\")\n    connection.execute(\"PRAGMA case_sensitive_like = ON\")\n    for statement in SCHEMA:\n        connection.execute(statement)\n    connection.commit()\n    return connection\n\n\ndef _release(connection: sqlite3.Connection) -> None:\n    connection.close()\n\n\ndef initialize_db() -> None:\n    _release(_connect())\n\n\ndef _normalize_tags(tags: list[str]) -> str:\n    return json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n\n\ndef _make_note(note_id: int, title: str, body: str, tags: str) -> Note:\n    return Note.model_validate({\"id\": note_id, \"title\": title, \"body\": body, \"tags\": json.loads(tags or \"[]\")})\n\n\ndef _to_note(row: sqlite3.Row) -> Note:\n    return _make_note(row[\"id\"], row[\"title\"], row[\"body\"], row[\"tags\"])\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    connection = _connect()\n    payload = _normalize_tags(tags)\n    cursor = connection.execute(\n        \"INSERT INTO notes (title, body, tags) VALUES (?, ?, ?) RETURNING id, title, body, tags\",\n        (title, body, payload),\n    )\n    row = cursor.fetchone()\n    connection.commit()\n    _release(connection)\n    return _to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    connection = _connect()\n    row = connection.execute(\n        'SELECT id, title, body, tags FROM notes WHERE id = ?',\n        (note_id,),\n    ).fetchone()\n    _release(connection)\n    if row is None:\n        return None\n    return _to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    wanted = [tag for tag in tags_filter or [] if tag]\n    connection = _connect()\n    \n    conditions = []\n    params: list[object] = []\n    \n    if search_text:\n        conditions.append('(title LIKE ? OR body LIKE ?)')\n        params.extend([f'%{search_text}%', f'%{search_text}%'])\n    \n    if wanted:\n        # Use json_each to filter tags in SQL. \n        # We require that ALL wanted tags exist in the note's tags array.\n        # We construct a subquery for each tag to check existence, or use a single json_each with IN.\n        # To ensure ALL tags are present, we can count distinct matching tags in json_each and compare to len(wanted).\n        # However, json_each returns one row per element. \n        # A robust way: SELECT count(DISTINCT value) FROM json_each(tags) WHERE value IN (?, ?, ...)\n        # This count must equal len(wanted).\n        placeholders = ', '.join(['?'] * len(wanted))\n        conditions.append(\n            f\"(SELECT count(DISTINCT value) FROM json_each(tags) WHERE value IN ({placeholders})) = ?\"\n        )\n        params.extend(wanted)\n        params.append(len(wanted))\n    \n    where_clause = \"\"\n    if conditions:\n        where_clause = \"WHERE \" + \" AND \".join(conditions)\n    \n    # Query for total count\n    count_sql = f\"SELECT count(*) FROM notes {where_clause}\"\n    total_row = connection.execute(count_sql, params).fetchone()\n    total = total_row[0]\n    \n    # Query for paginated items\n    # We need to order by id ASC as per contract\n    items_sql = f\"SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?\"\n    item_params = params + [limit, offset]\n    rows = connection.execute(items_sql, item_params).fetchall()\n    \n    _release(connection)\n    \n    notes = [_to_note(row) for row in rows]\n    return notes, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    connection = _connect()\n    existing = {note.id: note for note in map(_to_note, connection.execute(\"SELECT id, title, body, tags FROM notes\"))}\n    if note_id not in existing:\n        _release(connection)\n        return None\n    payload = _normalize_tags(tags)\n    connection.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?\",\n        (title, body, payload, note_id),\n    )\n    connection.commit()\n    updated = {note.id: note for note in map(_to_note, connection.execute(\"SELECT id, title, body, tags FROM notes\"))}\n    _release(connection)\n    return updated[note_id]\n\n\ndef delete_note(note_id: int) -> bool:\n    connection = _connect()\n    ids = [_to_note(row).id for row in connection.execute(\"SELECT id, title, body, tags FROM notes\").fetchall()]\n    if note_id not in ids:\n        _release(connection)\n        return False\n    connection.execute(\"DELETE FROM notes WHERE id = ?\", (note_id,))\n    connection.commit()\n    connection.execute(\"VACUUM\")\n    _release(connection)\n    return True\n",
+      "path": "app/db.py"
+    }
+  ],
+  "plan": {
+    "approach": "query",
+    "change": "def list_notes(*, search_text: str | None = None, tags_filter: list[str] | None = None, offset: int = 0, limit: int = 20) -> tuple[list[Note], int]: wanted = [tag for tag in tags_filter or [] if tag] connection = _connect() # Build dynamic query with parameters to avoid full table scan and Python-side filtering. conditions = [] params: list[object] = [] if search_text: conditions.append('(title LIKE ? OR body LIKE ?)') params.extend([f'%{search_text}%', f'%{search_text}%']) if wanted: # Use JSON1 extension for tag filtering. # We check if all wanted tags exist in the JSON array stored in 'tags'. # Since tags are stored as sorted JSON arrays, we can use json_each or simple LIKE checks if the array is small, # but a robust way without complex JSON functions is to rely on the fact that tags are sorted and unique. # However, standard SQLite doesn't have a simple 'contains all' for JSON arrays without json_each. # A simpler, highly effective optimization for the current schema is to fetch only necessary columns and use SQL for filtering. # To support 'all tags' efficiently with standard SQLite: # We can construct a query that checks if the tags JSON string contains each tag. # Since tags are sorted and unique, 'work' in '[work, research]' is tricky with LIKE. # Better: Use json_each if available, or fallback to Python if not. # Given the profile shows heavy json.loads, let's try to push filtering to SQL. # If json1 is available (standard in modern SQLite), we can do: # SELECT ... WHERE (SELECT count(*) FROM json_each(tags) WHERE value IN (?)) = ? # But let's stick to a simpler, robust SQL approach that avoids full scan. # We will fetch rows and filter in Python ONLY if SQL filtering is too complex or unavailable, # BUT the current code fetches ALL rows. # The biggest win is to use SQL WHERE clauses. # For tags, since they are stored as a JSON array string, we can check for the presence of the tag string. # To avoid false positives (e.g. 'work' matching 'newwork'), we can check for delimiters. # However, the most reliable way without json1 is to fetch and filter in Python, BUT we must limit the fetch. # Since we need 'total' count, we need to know how many match. # Strategy: Use two queries if possible, or one query with SQL filtering. # Let's assume standard SQLite. We can use LIKE with boundaries if we knew the format, but it's JSON. # Alternative: The profile shows 1.6M json.loads. This is because list_notes fetches ALL rows and parses tags for EVERY row. # Optimization: Use SQL to filter. For tags, we can use a subquery with json_each if available, or accept that tag filtering might need Python. # BUT, we can at least filter by search_text in SQL. # And for tags, we can try to use json1. If json1 is not available, we fall back. # Let's try to use json1 as it's standard in SQLite 3.9+. # Query: SELECT id, title, body, tags FROM notes WHERE 1=1 [AND conditions] # For tags: (SELECT count(*) FROM json_each(notes.tags) WHERE value IN (tag1, tag2...)) = len(wanted) # This is efficient. # If json1 is not available, we can't do this easily. # Let's check if we can just use Python filtering but with a LIMIT on the DB fetch? No, we need total count. # So we must count matches. # Let's use the json1 approach. # If it fails, we catch and fallback? No, we must preserve semantics. # Let's assume json1 is available. # If not, we can still optimize by not fetching body if not needed? No, we need to return it. # The main issue is parsing tags for non-matching rows. # With json1, we filter in SQL. # If json1 is NOT available, we are stuck with Python filtering for tags. # But we can still filter search_text in SQL. # Let's write code that uses json1 if possible, otherwise falls back to current behavior for tags but uses SQL for search. # Actually, let's just use the json1 approach. It's standard. # If the environment doesn't have json1, this will crash. # To be safe, let's use a method that works without json1 for tags but minimizes work. # We C'",
+    "hypothesis": "The current `list_notes` implementation fetches all notes from the database and performs filtering (search text and tags) and JSON parsing in Python. This results in a full table scan and excessive `json.loads` calls (1.6M calls in profile). By moving the filtering logic to SQL using SQLite's `json_each` function (available in standard SQLite builds), we can filter rows at the database level, significantly reducing the number of rows fetched and parsed. This will reduce cumulative time in `list_notes`, `_make_note`, and `json.loads`.",
+    "risks": [
+      "SQLite might not have the JSON1 extension enabled in this environment, causing `json_each` to fail. If so, the code should fallback to the original behavior or raise an error. However, JSON1 is standard in most modern SQLite distributions.",
+      "The `json_each` approach requires careful handling of the `tags` column to ensure it matches the expected JSON array format. If the data is malformed, it might cause errors.",
+      "The `total` count query also needs to use the same filtering logic to ensure consistency between `items` and `total`."
+    ],
+    "schema_version": 1
+  },
+  "role": "auditor",
+  "schema_version": 1
+}

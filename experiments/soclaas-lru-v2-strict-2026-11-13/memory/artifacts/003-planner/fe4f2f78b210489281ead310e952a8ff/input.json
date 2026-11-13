@@ -1,0 +1,113 @@
+{
+  "decision": null,
+  "evidence": {
+    "profile": "Fri Nov 13 18:45:38 2026    /result/application.prof\n\n         37599644 function calls (37599619 primitive calls) in 8.171 seconds\n\n   Ordered by: cumulative time\n   List reduced from 132 to 40 due to restriction <40>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n  1600900    0.306    0.000    6.438    0.000 /workspace/app/db.py:58(_to_note)\n  614/600    0.076    0.000    6.176    0.010 /workspace/app/main.py:35(list_notes_endpoint)\n  1600900    0.637    0.000    6.132    0.000 /workspace/app/db.py:54(_make_note)\n      600    0.547    0.001    6.041    0.010 /workspace/app/db.py:91(list_notes)\n  1600900    0.276    0.000    2.994    0.000 /usr/local/lib/python3.13/site-packages/pydantic/main.py:746(model_validate)\n  1600900    0.825    0.000    2.718    0.000 {method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects}\n  1600900    0.521    0.000    2.501    0.000 /usr/local/lib/python3.13/json/__init__.py:304(loads)\n  1600900    1.180    0.000    1.893    0.000 /workspace/app/models.py:13(validate_tags)\n  1600900    0.872    0.000    1.792    0.000 /usr/local/lib/python3.13/json/decoder.py:340(decode)\n  105/100    0.011    0.000    0.932    0.009 /workspace/app/main.py:60(delete_note_endpoint)\n  106/100    0.002    0.000    0.912    0.009 /workspace/app/main.py:22(create_note_endpoint)\n      100    0.046    0.000    0.903    0.009 /workspace/app/db.py:134(delete_note)\n      100    0.046    0.000    0.865    0.009 /workspace/app/db.py:61(create_note)\n      800    0.572    0.001    0.572    0.001 {method 'fetchall' of 'sqlite3.Cursor' objects}\n  3201800    0.349    0.000    0.349    0.000 {method 'match' of 're.Pattern' objects}\n  1600900    0.287    0.000    0.287    0.000 /usr/local/lib/python3.13/json/decoder.py:351(raw_decode)\n  3156541    0.204    0.000    0.204    0.000 {method 'append' of 'list' objects}\n  3201800    0.201    0.000    0.201    0.000 {method 'end' of 're.Match' objects}\n  1001181    0.136    0.000    0.198    0.000 {built-in method builtins.all}\n  2953791    0.184    0.000    0.184    0.000 {method 'add' of 'set' objects}\n  2955373    0.182    0.000    0.182    0.000 {method 'strip' of 'str' objects}\n  1601100    0.158    0.000    0.158    0.000 {built-in method builtins.sorted}\n  1802615    0.123    0.000    0.123    0.000 /workspace/app/db.py:106(<genexpr>)\n  1600900    0.106    0.000    0.106    0.000 {method 'startswith' of 'str' objects}\n     1200    0.004    0.000    0.087    0.000 /workspace/app/db.py:29(_connect)\n  1604074    0.083    0.000    0.083    0.000 {built-in method builtins.len}\n  1610282    0.082    0.000    0.082    0.000 {built-in method builtins.isinstance}\n     5300    0.072    0.000    0.072    0.000 {method 'execute' of 'sqlite3.Connection' objects}\n      300    0.000    0.000    0.031    0.000 /workspace/app/main.py:27(read_note)\n      300    0.001    0.000    0.031    0.000 /workspace/app/db.py:79(get_note)\n     1200    0.014    0.000    0.022    0.000 {built-in method _sqlite3.connect}\n      100    0.000    0.000    0.015    0.000 /workspace/app/main.py:52(update_note_endpoint)\n      100    0.000    0.000    0.015    0.000 /workspace/app/db.py:111(update_note)\n     1200    0.001    0.000    0.015    0.000 /runner/benchmarks/server.py:24(finish)\n     1200    0.014    0.000    0.014    0.000 {method 'disable' of '_lsprof.Profiler' objects}\n     1200    0.001    0.000    0.012    0.000 /usr/local/lib/python3.13/pathlib/_local.py:329(parent)\n     1200    0.001    0.000    0.009    0.000 /workspace/app/db.py:22(get_db_path)\n       33    0.000    0.000    0.009    0.000 /usr/local/lib/python3.13/asyncio/base_events.py:1981(_run_once)\n     1200    0.001    0.000    0.009    0.000 /workspace/app/db.py:42(_release)\n     1200    0.008    0.000    0.008    0.000 {method 'close' of 'sqlite3.Connection' objects}\n\n\n",
+    "scope_policy": {
+      "note": "A patch may change at most one of the public data operations in app/db.py: get_note, list_notes, create_note, update_note, delete_note. Private helpers (names starting with _) and module-level code such as imports and SCHEMA may change freely. A change to any other file counts as one operation. Patches that change more than one operation are rejected without testing (status scope_exceeded). Propose the single most valuable optimization within this limit.",
+      "scope": "strict"
+    }
+  },
+  "memory": [
+    {
+      "approach": "query",
+      "attempted_change": "def get_note(note_id: int) -> Note | None:    connection = _connect()    row = connection.execute(        'SELECT id, title, body, tags FROM notes WHERE id = ?',        (note_id,),    ).fetchone()    _release(connection)    if row is None:        return None    return _to_note(row)",
+      "audit_status": "passed",
+      "candidate_hash": "039424e98b5dc6fee106ec7373890589a3d1df1a80f8f8fa2a5da31a6a8e3b2d",
+      "facts": {
+        "acceptance": {
+          "accepted": true,
+          "reason": "improved_beyond_epsilon",
+          "relative_improvement": 0.2083688432775806
+        },
+        "after_score_ms": 3.613858592502576,
+        "before_score_ms": 4.565078776667899,
+        "candidate_counts": {
+          "completed": 6000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 15.785667000045578,
+            "mean": 3.604178784832925,
+            "median": 4.047813000056522,
+            "min": 0.4114999999274005,
+            "p95": 8.10524999997142
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 6000,
+          "timed_out": 0,
+          "total": 6000
+        },
+        "correctness": {
+          "correct": true,
+          "status": "passed"
+        },
+        "status": "evaluated"
+      },
+      "hypothesis": "The current get_note implementation fetches all notes from the database and iterates through them in Python to find the matching ID. This results in O(N) database reads and O(N) Python object construction/validation for every single note retrieval, regardless of the total number of notes. By changing the SQL query to filter by ID directly (WHERE id = ?), we reduce the database work to a single row lookup (O(1) with primary key index) and eliminate the overhead of constructing and validating Note objects for all other rows. This should significantly reduce latency for get_note, which is a frequent operation.",
+      "interpretation": "The plan proposes optimizing the `get_note` function in `app/db.py` by replacing a full table scan with a targeted SQL query (`WHERE id = ?`). The parent implementation incorrectly fetched all notes to find a single record, resulting in O(N) database reads and Python object construction per request. The candidate patch corrects this to O(1) lookup via the primary key index. Validation confirms the patch is syntactically correct and semantically valid. Measurements show a 20.8% improvement in mean latency (4.57ms to 3.60ms) and a reduction in max latency (19.02ms to 15.79ms) across 6000 operations. All operations maintained a 100% success rate with zero semantic mismatches. The `get` operation specifically saw a dramatic latency drop (mean 4.19ms to 0.45ms), confirming the hypothesis. The runner accepted the change based on this improvement exceeding the epsilon threshold. The change is isolated to `get_note`, preserving the API contract and durability requirements.",
+      "iteration": 1,
+      "limitations": [
+        "Latency improvements are measured in a controlled environment; production performance may vary with higher concurrency or larger datasets.",
+        "The patch does not address similar inefficiencies in `create_note`, `update_note`, or `delete_note` which also perform full table scans.",
+        "The `list_notes` function still loads all notes into memory for filtering, which may not scale well with large note counts.",
+        "The improvement metric is relative to a single pilot run; statistical significance across multiple diverse workloads is not established."
+      ],
+      "parent_hash": "86606814d3ad8316dff6e08b2b58e10a8402c975ff37d59fe791856e854a71df",
+      "schema_version": 1
+    },
+    {
+      "approach": "query",
+      "attempted_change": "def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:    connection = _connect()    row = connection.execute(        'SELECT id, title, body, tags FROM notes WHERE id = ?',        (note_id,),    ).fetchone()    if row is None:        _release(connection)        return None    payload = _normalize_tags(tags)    connection.execute(        'UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?',        (title, body, payload, note_id),    )    connection.commit()    updated_row = connection.execute(        'SELECT id, title, body, tags FROM notes WHERE id = ?',        (note_id,),    ).fetchone()    _release(connection)    return _to_note(updated_row)",
+      "audit_status": "passed",
+      "candidate_hash": "3f3db90957488d3eadc8fff84248d7a237f3f542fa4436f3fb699e1d86438d42",
+      "facts": {
+        "acceptance": {
+          "accepted": true,
+          "reason": "improved_beyond_epsilon",
+          "relative_improvement": 0.1869882476779962
+        },
+        "after_score_ms": 2.9264830100059194,
+        "before_score_ms": 3.599558064994426,
+        "candidate_counts": {
+          "completed": 6000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 12.5412080001297,
+            "mean": 2.9222428025025238,
+            "median": 3.970707999997103,
+            "min": 0.39375000005748007,
+            "p95": 4.387625000163098
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 6000,
+          "timed_out": 0,
+          "total": 6000
+        },
+        "correctness": {
+          "correct": true,
+          "status": "passed"
+        },
+        "status": "evaluated"
+      },
+      "hypothesis": "The current update_note implementation performs two full table scans (SELECT * FROM notes) to find the existing note and then to retrieve the updated note. This results in O(N) database reads and O(N) Python object construction for every update. By replacing these with targeted SQL queries using the primary key (WHERE id = ?), we reduce the database work to O(1) lookups and eliminate the overhead of constructing Note objects for all non-matching rows. This should significantly reduce latency for update_note, which is a frequent operation.",
+      "interpretation": "The patch optimizes `update_note` in `app/db.py` by replacing full table scans with primary-key lookups, aligning with the plan's hypothesis. Validation passed, confirming API contract preservation. Measurements show a 18.7% mean latency reduction (3.60ms to 2.93ms), driven by a significant drop in `update` operation latency (8.50ms to 0.55ms). Other operations remained stable or slightly improved. The runner accepted the change based on this improvement exceeding the noise threshold. Limitations: 1. The `create_note` and `delete_note` functions still perform inefficient full table scans, limiting overall potential gains. 2. `delete_note` executes `VACUUM`, which may cause high latency spikes under concurrent load. 3. The `list_notes` function loads all notes into memory for filtering, risking memory issues at scale. 4. The improvement is measured on a small dataset; behavior with larger tables is unverified.",
+      "iteration": 2,
+      "limitations": [
+        "Inefficient full table scans persist in create_note and delete_note.",
+        "delete_note executes VACUUM, potentially causing latency spikes.",
+        "list_notes loads all notes into memory, risking scalability issues.",
+        "Performance gains are unverified on larger datasets."
+      ],
+      "parent_hash": "039424e98b5dc6fee106ec7373890589a3d1df1a80f8f8fa2a5da31a6a8e3b2d",
+      "schema_version": 1
+    }
+  ],
+  "memory_count": 2,
+  "memory_hash": "39432b2b4ef4a9020e4343fca223b3bce78c62127d44bfb50ca0546fce8fa102",
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": null,
+  "role": "planner",
+  "schema_version": 1
+}

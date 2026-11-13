@@ -1,0 +1,149 @@
+...F....FFFFFF..F                                                        [100%]
+=================================== FAILURES ===================================
+_____________________ test_validation_and_invalid_filters ______________________
+
+client = <httpx.Client object at 0xffffa5bd56e0>
+
+    def test_validation_and_invalid_filters(client):
+        bad = client.post("/notes", json={"title": "", "body": "Oops"})
+>       assert bad.status_code == 422
+E       assert 500 == 422
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests/test_notes.py:85: AssertionError
+_____________________ test_validation_boundaries[payload0] _____________________
+
+client = <httpx.Client object at 0xffffa5bd1d50>, payload = {}
+
+    @pytest.mark.parametrize("payload", [
+        {}, {"title": "A", "body": ""}, {"title": "A" * 201, "body": "B"},
+        {"title": "A", "body": "B" * 5001}, {"title": 1, "body": "B"},
+        {"title": "A", "body": "B", "tags": [1]},
+    ])
+    def test_validation_boundaries(client, payload):
+        result = client.post("/notes", json=payload)
+>       assert result.status_code == 422
+E       assert 500 == 422
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests/test_notes.py:173: AssertionError
+_____________________ test_validation_boundaries[payload1] _____________________
+
+client = <httpx.Client object at 0xffffa5bd1250>
+payload = {'body': '', 'title': 'A'}
+
+    @pytest.mark.parametrize("payload", [
+        {}, {"title": "A", "body": ""}, {"title": "A" * 201, "body": "B"},
+        {"title": "A", "body": "B" * 5001}, {"title": 1, "body": "B"},
+        {"title": "A", "body": "B", "tags": [1]},
+    ])
+    def test_validation_boundaries(client, payload):
+        result = client.post("/notes", json=payload)
+>       assert result.status_code == 422
+E       assert 500 == 422
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests/test_notes.py:173: AssertionError
+_____________________ test_validation_boundaries[payload2] _____________________
+
+client = <httpx.Client object at 0xffffa5bf5e50>
+payload = {'body': 'B', 'title': 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'}
+
+    @pytest.mark.parametrize("payload", [
+        {}, {"title": "A", "body": ""}, {"title": "A" * 201, "body": "B"},
+        {"title": "A", "body": "B" * 5001}, {"title": 1, "body": "B"},
+        {"title": "A", "body": "B", "tags": [1]},
+    ])
+    def test_validation_boundaries(client, payload):
+        result = client.post("/notes", json=payload)
+>       assert result.status_code == 422
+E       assert 500 == 422
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests/test_notes.py:173: AssertionError
+_____________________ test_validation_boundaries[payload3] _____________________
+
+client = <httpx.Client object at 0xffffa5bf4500>
+payload = {'body': 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB...BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB', 'title': 'A'}
+
+    @pytest.mark.parametrize("payload", [
+        {}, {"title": "A", "body": ""}, {"title": "A" * 201, "body": "B"},
+        {"title": "A", "body": "B" * 5001}, {"title": 1, "body": "B"},
+        {"title": "A", "body": "B", "tags": [1]},
+    ])
+    def test_validation_boundaries(client, payload):
+        result = client.post("/notes", json=payload)
+>       assert result.status_code == 422
+E       assert 500 == 422
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests/test_notes.py:173: AssertionError
+_____________________ test_validation_boundaries[payload4] _____________________
+
+client = <httpx.Client object at 0xffffa5bfba10>
+payload = {'body': 'B', 'title': 1}
+
+    @pytest.mark.parametrize("payload", [
+        {}, {"title": "A", "body": ""}, {"title": "A" * 201, "body": "B"},
+        {"title": "A", "body": "B" * 5001}, {"title": 1, "body": "B"},
+        {"title": "A", "body": "B", "tags": [1]},
+    ])
+    def test_validation_boundaries(client, payload):
+        result = client.post("/notes", json=payload)
+>       assert result.status_code == 422
+E       assert 500 == 422
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests/test_notes.py:173: AssertionError
+_____________________ test_validation_boundaries[payload5] _____________________
+
+client = <httpx.Client object at 0xffffa58c52b0>
+payload = {'body': 'B', 'tags': [1], 'title': 'A'}
+
+    @pytest.mark.parametrize("payload", [
+        {}, {"title": "A", "body": ""}, {"title": "A" * 201, "body": "B"},
+        {"title": "A", "body": "B" * 5001}, {"title": 1, "body": "B"},
+        {"title": "A", "body": "B", "tags": [1]},
+    ])
+    def test_validation_boundaries(client, payload):
+        result = client.post("/notes", json=payload)
+>       assert result.status_code == 422
+E       assert 500 == 422
+E        +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests/test_notes.py:173: AssertionError
+_______________________ test_frozen_validation_responses _______________________
+
+client = <httpx.Client object at 0xffffa5ca2150>
+
+    def test_frozen_validation_responses(client):
+        import json
+        from pathlib import Path
+        fixtures = json.loads((Path(__file__).resolve().parents[1] / "contracts" / "validation-errors.json").read_text())
+        for case in fixtures["cases"]:
+            response = client.request(**case["request"])
+>           assert response.status_code == case["status_code"]
+E           assert 500 == 422
+E            +  where 500 = <Response [500 Internal Server Error]>.status_code
+
+tests/test_notes.py:235: AssertionError
+=============================== warnings summary ===============================
+../usr/local/lib/python3.13/site-packages/_pytest/config/__init__.py:1290
+  /usr/local/lib/python3.13/site-packages/_pytest/config/__init__.py:1290: PytestAssertRewriteWarning: Module already imported so cannot be rewritten; anyio
+    self._mark_plugins_for_rewrite(hook, disable_autoload)
+
+../usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1
+  /usr/local/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_notes.py::test_validation_and_invalid_filters - assert 500 ...
+FAILED tests/test_notes.py::test_validation_boundaries[payload0] - assert 500...
+FAILED tests/test_notes.py::test_validation_boundaries[payload1] - assert 500...
+FAILED tests/test_notes.py::test_validation_boundaries[payload2] - assert 500...
+FAILED tests/test_notes.py::test_validation_boundaries[payload3] - assert 500...
+FAILED tests/test_notes.py::test_validation_boundaries[payload4] - assert 500...
+FAILED tests/test_notes.py::test_validation_boundaries[payload5] - assert 500...
+FAILED tests/test_notes.py::test_frozen_validation_responses - assert 500 == 422
+8 failed, 9 passed, 2 warnings in 7.06s

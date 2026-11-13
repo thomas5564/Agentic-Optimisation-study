@@ -1,0 +1,30 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -146,15 +146,20 @@
+ 
+     where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
+ 
+-    # Count query
+-    count_sql = f"SELECT COUNT(*) FROM notes{where_clause}"
+-    total_row = db.execute(count_sql, params).fetchone()
+-    total = total_row[0]
+-
+-    # Data query
+-    data_sql = f"SELECT id, title, body, tags FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Combined query using window function to get both data and total count in one round-trip
++    # This reduces database execution overhead significantly for list operations
++    data_sql = f"""SELECT id, title, body, tags, COUNT(*) OVER() as total
++        FROM notes{where_clause}
++        ORDER BY id ASC
++        LIMIT ? OFFSET ?"""
+     data_params = params + [limit, offset]
+     rows = db.execute(data_sql, data_params).fetchall()
++
++    if not rows:
++        return [], 0
++
++    # Extract total from the first row's window function result
++    total = rows[0]["total"]
+ 
+     notes = [_to_note(row) for row in rows]
+     return notes, total

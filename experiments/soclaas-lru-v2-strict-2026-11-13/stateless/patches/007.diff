@@ -1,0 +1,58 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -92,28 +92,36 @@
+ ) -> tuple[list[Note], int]:
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
++    conditions = []
++    params: list[object] = []
++
++    if search_text:
++        conditions.append('title LIKE ? OR body LIKE ?')
++        params.extend([f'%{search_text}%', f'%{search_text}%'])
++
++    if wanted:
++        for tag in wanted:
++            conditions.append('json_each(tags).value = ?')
++            params.append(tag)
++
++    where_clause = ''
++    if conditions:
++        where_clause = 'WHERE ' + ' AND '.join(conditions)
++
++    count_sql = f'SELECT COUNT(*) FROM notes {where_clause}'
++    total_row = connection.execute(count_sql, params).fetchone()
++    total = total_row[0]
++
++    fetch_sql = f'SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?'
++    params.extend([limit, offset])
++    rows = connection.execute(fetch_sql, params).fetchall()
+     _release(connection)
++
+     matches = []
+     for row in rows:
+-        if search_text:
+-            title = row['title']
+-            body = row['body']
+-            if search_text not in title and search_text not in body:
+-                continue
+-        if wanted:
+-            tags_json = row['tags']
+-            if not tags_json:
+-                continue
+-            try:
+-                tags = json.loads(tags_json)
+-            except Exception:
+-                continue
+-            if not all(tag in tags for tag in wanted):
+-                continue
+-        note = _make_note(row['id'], row['title'], row['body'], row['tags'])
+-        matches.append(note)
+-    return matches[offset: offset + limit], len(matches)
++        matches.append(_to_note(row))
++
++    return matches, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

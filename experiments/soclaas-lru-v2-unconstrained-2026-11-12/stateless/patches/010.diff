@@ -1,0 +1,60 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -146,17 +146,49 @@
+ 
+     where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
+ 
+-    # Count query
+-    count_sql = f"SELECT COUNT(*) FROM notes{where_clause}"
+-    total_row = db.execute(count_sql, params).fetchone()
+-    total = total_row[0]
+-
+-    # Data query
+-    data_sql = f"SELECT id, title, body, tags FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Single query to get both total count and paginated data
++    # Using a subquery for the count to avoid window function overhead in some SQLite versions
++    # and to keep the query structure simple and compatible.
++    # We fetch all rows needed for the page, and also get the total count in the same round trip.
++    # However, SQLite doesn't easily allow returning two result sets from one execute.
++    # The most efficient way in SQLite with one connection is to use a CTE or subquery
++    # to get the count, and then join it, but that duplicates rows.
++    # A better approach for "one round trip" in SQLite without complex CTEs is:
++    # 1. Execute the count query.
++    # 2. Execute the data query.
++    # But the plan suggests combining them. Let's use a CTE to get the total count
++    # and then join it to the main query. This ensures one execution plan for the filter logic.
++    
++    # Actually, the most robust "single query" pattern in SQLite for pagination with count
++    # is often just two queries because the optimizer handles them well, but to strictly
++    # follow the "eliminate separate COUNT(*) query" instruction while preserving semantics:
++    # We can use a subquery in the SELECT list if we group by, but that's messy.
++    # Let's use a CTE to calculate the total count, then select from it.
++    
++    # Optimized approach: 
++    # Use a single SQL statement that returns the total count in the first row
++    # and the data in subsequent rows? No, SQLite returns a single result set.
++    # The standard efficient way is:
++    # SELECT COUNT(*) OVER() as total, id, title, body, tags FROM notes ... LIMIT ... OFFSET ...
++    # This returns the total count on every row. We can then read the first row's total
++    # and ignore it for subsequent rows. This is one query, one round trip.
++    
++    data_sql = f"""
++        SELECT COUNT(*) OVER() as total_count, id, title, body, tags 
++        FROM notes{where_clause} 
++        ORDER BY id ASC 
++        LIMIT ? OFFSET ?
++    """
+     data_params = params + [limit, offset]
+     rows = db.execute(data_sql, data_params).fetchall()
+ 
+-    notes = [_to_note(row) for row in rows]
++    total = 0
++    notes = []
++    for row in rows:
++        if not notes:  # First row contains the total count
++            total = row["total_count"]
++        notes.append(_to_note(row))
++
+     return notes, total
+ 
+ 

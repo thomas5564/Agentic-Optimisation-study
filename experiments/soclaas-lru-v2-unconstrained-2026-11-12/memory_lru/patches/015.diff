@@ -1,0 +1,145 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -5,8 +5,6 @@
+ import sqlite3
+ import threading
+ from pathlib import Path
+-
+-from app.models import Note
+ 
+ SCHEMA = (
+     """
+@@ -107,15 +105,22 @@
+     return json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))
+ 
+ 
+-def _make_note(note_id: int, title: str, body: str, tags: str) -> Note:
+-    return Note.model_validate({"id": note_id, "title": title, "body": body, "tags": json.loads(tags or "[]")})
+-
+-
+-def _to_note(row: sqlite3.Row) -> Note:
+-    return _make_note(row["id"], row["title"], row["body"], row["tags"])
+-
+-
+-def create_note(title: str, body: str, tags: list[str]) -> Note:
++def _row_to_dict(row: sqlite3.Row) -> dict:
++    """Convert a sqlite3.Row to a plain dictionary, parsing tags JSON."""
++    tags_str = row["tags"]
++    try:
++        tags = json.loads(tags_str) if tags_str else []
++    except (json.JSONDecodeError, TypeError):
++        tags = []
++    return {
++        "id": row["id"],
++        "title": row["title"],
++        "body": row["body"],
++        "tags": tags,
++    }
++
++
++def create_note(title: str, body: str, tags: list[str]) -> dict:
+     pool = _get_pool()
+     connection = pool.get_connection()
+     payload = _normalize_tags(tags)
+@@ -126,16 +131,16 @@
+     note_id = cursor.lastrowid
+     connection.commit()
+     row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    return _to_note(row)
+-
+-
+-def get_note(note_id: int) -> Note | None:
++    return _row_to_dict(row)
++
++
++def get_note(note_id: int) -> dict | None:
+     pool = _get_pool()
+     connection = pool.get_connection()
+     row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+     if row is None:
+         return None
+-    return _to_note(row)
++    return _row_to_dict(row)
+ 
+ 
+ def list_notes(
+@@ -144,7 +149,7 @@
+     tags_filter: list[str] | None = None,
+     offset: int = 0,
+     limit: int = 20,
+-) -> tuple[list[Note], int]:
++) -> tuple[list[dict], int]:
+     pool = _get_pool()
+     connection = pool.get_connection()
+     
+@@ -173,11 +178,11 @@
+     
+     rows = connection.execute(query_sql, query_params).fetchall()
+     
+-    notes = [_to_note(row) for row in rows]
++    notes = [_row_to_dict(row) for row in rows]
+     return notes, total
+ 
+ 
+-def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
++def update_note(note_id: int, title: str, body: str, tags: list[str]) -> dict | None:
+     pool = _get_pool()
+     connection = pool.get_connection()
+     row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+@@ -192,7 +197,7 @@
+     connection.commit()
+     
+     updated_row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    return _to_note(updated_row)
++    return _row_to_dict(updated_row)
+ 
+ 
+ def delete_note(note_id: int) -> bool:
+--- a/app/main.py
++++ b/app/main.py
+@@ -7,7 +7,7 @@
+ from fastapi.staticfiles import StaticFiles
+ 
+ from app.db import create_note, delete_note, get_note, initialize_db, list_notes, update_note
+-from app.models import Note, NoteCreate, NoteUpdate
++from app.models import NoteCreate, NoteUpdate
+ 
+ app = FastAPI(title="Notes API")
+ initialize_db()
+@@ -19,13 +19,13 @@
+     initialize_db()
+ 
+ 
+-@app.post("/notes", response_model=Note, status_code=status.HTTP_201_CREATED)
+-def create_note_endpoint(note: NoteCreate) -> Note:
++@app.post("/notes", response_model=dict, status_code=status.HTTP_201_CREATED)
++def create_note_endpoint(note: NoteCreate) -> dict:
+     return create_note(note.title, note.body, note.tags)
+ 
+ 
+-@app.get("/notes/{note_id}", response_model=Note)
+-def read_note(note_id: int) -> Note:
++@app.get("/notes/{note_id}", response_model=dict)
++def read_note(note_id: int) -> dict:
+     note = get_note(note_id)
+     if note is None:
+         raise HTTPException(status_code=404, detail="Note not found")
+@@ -42,15 +42,15 @@
+     clean_tags = [item.strip() for item in tag if isinstance(item, str) and item.strip()]
+     items, total = list_notes(search_text=q, tags_filter=clean_tags, offset=offset, limit=limit)
+     return {
+-        "items": [note.model_dump() for note in items],
++        "items": items,
+         "total": total,
+         "offset": offset,
+         "limit": limit,
+     }
+ 
+ 
+-@app.put("/notes/{note_id}", response_model=Note)
+-def update_note_endpoint(note_id: int, note: NoteUpdate) -> Note:
++@app.put("/notes/{note_id}", response_model=dict)
++def update_note_endpoint(note_id: int, note: NoteUpdate) -> dict:
+     updated = update_note(note_id, note.title, note.body, note.tags)
+     if updated is None:
+         raise HTTPException(status_code=404, detail="Note not found")

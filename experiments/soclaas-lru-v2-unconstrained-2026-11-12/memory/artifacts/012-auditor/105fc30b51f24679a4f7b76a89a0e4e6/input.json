@@ -1,0 +1,267 @@
+{
+  "decision": {
+    "accepted": false,
+    "reason": "insufficient_improvement",
+    "relative_improvement": -0.0521782293263764
+  },
+  "evidence": {
+    "candidate": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 5.63812499967753,
+          "mean": 0.5604229584967774,
+          "median": 0.5866459998742357,
+          "min": 0.33424999992348603,
+          "p95": 0.7893750002949673
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.037694529202742966,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.09247314766349779,
+        "repetition_means_ms": [
+          0.5689143933299571,
+          0.5255079383357497,
+          0.5773320133308365,
+          0.5561608066557255,
+          0.5741996408316178
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.5467919997718127,
+            "mean": 0.5629943580142935,
+            "median": 0.5375000000640284,
+            "min": 0.46883300001354655,
+            "p95": 0.6985410000197589
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.9307919999628211,
+            "mean": 0.4109184999988429,
+            "median": 0.38441599986072106,
+            "min": 0.34095900036845705,
+            "p95": 0.5821670001751045
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.1815419998129073,
+            "mean": 0.3973251706559798,
+            "median": 0.38208300020414754,
+            "min": 0.33424999992348603,
+            "p95": 0.499582999964332
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 5.63812499967753,
+            "mean": 0.6740166886615953,
+            "median": 0.6406249999599822,
+            "min": 0.5341660003068682,
+            "p95": 0.8465829996566754
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.7404170002446335,
+            "mean": 0.5150870000106806,
+            "median": 0.47662500014666875,
+            "min": 0.41729199983819854,
+            "p95": 0.6932500000402797
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.5689143933299571,
+      "valid": true
+    },
+    "parent": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 4.423750000114524,
+          "mean": 0.5534223351646688,
+          "median": 0.5726664996927866,
+          "min": 0.3363749997333798,
+          "p95": 0.7311250001293956
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.04612555892025787,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.11029703014403648,
+        "repetition_means_ms": [
+          0.5512864350021118,
+          0.5407015441615689,
+          0.5400525016652106,
+          0.537015177505206,
+          0.5980560174892465
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.206917000170506,
+            "mean": 0.5401362459888333,
+            "median": 0.5110204999709822,
+            "min": 0.4718330001196591,
+            "p95": 0.6260000000111177
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.9406669996678829,
+            "mean": 0.38510477798809006,
+            "median": 0.3680625000015425,
+            "min": 0.3363749997333798,
+            "p95": 0.4930830000375863
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.4479999999821302,
+            "mean": 0.4383069646646618,
+            "median": 0.4258755000137171,
+            "min": 0.3840419999505684,
+            "p95": 0.5040830001235008
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 4.423750000114524,
+            "mean": 0.642720550999608,
+            "median": 0.6160210002690292,
+            "min": 0.5278749999888532,
+            "p95": 0.7671250000385044
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.818041999693378,
+            "mean": 0.5445827980074682,
+            "median": 0.5148754999027005,
+            "min": 0.4688750000241271,
+            "p95": 0.7024159999673429
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.5407015441615689,
+      "valid": true
+    },
+    "validation": {
+      "correct": true,
+      "status": "passed"
+    }
+  },
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nfrom pathlib import Path\n\nfrom fastapi import FastAPI, HTTPException, Query, Response, status\nfrom fastapi.responses import FileResponse, JSONResponse\nfrom fastapi.staticfiles import StaticFiles\n\nfrom app.db import create_note, delete_note, get_note, initialize_db, list_notes, update_note\nfrom app.models import Note, NoteCreate, NoteUpdate\n\napp = FastAPI(title=\"Notes API\")\ninitialize_db()\napp.mount(\"/static\", StaticFiles(directory=Path(__file__).resolve().parent / \"static\"), name=\"static\")\n\n\n@app.on_event(\"startup\")\nasync def startup_event() -> None:\n    initialize_db()\n\n\n@app.post(\"/notes\", response_model=Note, status_code=status.HTTP_201_CREATED)\ndef create_note_endpoint(note: NoteCreate) -> Note:\n    created_dict = create_note(note.title, note.body, note.tags)\n    return Note(**created_dict)\n\n\n@app.get(\"/notes/{note_id}\", response_model=Note)\ndef read_note(note_id: int) -> Note:\n    note_dict = get_note(note_id)\n    if note_dict is None:\n        raise HTTPException(status_code=404, detail=\"Note not found\")\n    return JSONResponse(content=note_dict, status_code=200)\n\n\n@app.get(\"/notes\")\ndef list_notes_endpoint(\n    q: str | None = Query(default=None, description=\"Substring search over title or body.\"),\n    tag: list[str] = Query(default_factory=list),\n    offset: int = Query(default=0, ge=0),\n    limit: int = Query(default=20, ge=1, le=100),\n) -> dict[str, object]:\n    clean_tags = [item.strip() for item in tag if isinstance(item, str) and item.strip()]\n    items, total = list_notes(search_text=q, tags_filter=clean_tags, offset=offset, limit=limit)\n    # Items are already plain dicts from db.py, so no model_dump needed\n    return {\n        \"items\": items,\n        \"total\": total,\n        \"offset\": offset,\n        \"limit\": limit,\n    }\n\n\n@app.put(\"/notes/{note_id}\", response_model=Note)\ndef update_note_endpoint(note_id: int, note: NoteUpdate) -> Note:\n    updated_dict = update_note(note_id, note.title, note.body, note.tags)\n    if updated_dict is None:\n        raise HTTPException(status_code=404, detail=\"Note not found\")\n    return JSONResponse(content=updated_dict, status_code=200)\n\n\n@app.delete(\"/notes/{note_id}\", status_code=status.HTTP_204_NO_CONTENT)\ndef delete_note_endpoint(note_id: int) -> Response:\n    deleted = delete_note(note_id)\n    if not deleted:\n        raise HTTPException(status_code=404, detail=\"Note not found\")\n    return Response(status_code=204)\n\n\n@app.get(\"/\", include_in_schema=False)\ndef read_index() -> FileResponse:\n    return FileResponse(Path(__file__).resolve().parent / \"static\" / \"index.html\")\n\n\nif __name__ == \"__main__\":\n    import uvicorn\n\n    uvicorn.run(app, host=\"0.0.0.0\", port=8000)\n",
+      "path": "app/main.py"
+    }
+  ],
+  "plan": {
+    "approach": "serialization",
+    "change": "Refactor app/main.py to bypass Pydantic model validation and serialization for read endpoints (GET /notes, GET /notes/{id}, PUT /notes/{id}) by returning plain dictionaries directly via FastAPI's JSONResponse. Specifically: 1) In read_note, return JSONResponse(content=note_dict, status_code=200) instead of returning a Note model. 2) In update_note_endpoint, return JSONResponse(content=updated_dict, status_code=200) instead of returning a Note model. 3) In create_note_endpoint, return JSONResponse(content=created_dict, status_code=201) instead of returning a Note model. 4) Ensure list_notes_endpoint continues returning plain dicts as it already does. This eliminates the overhead of constructing Pydantic Note objects and their subsequent serialization in the API layer for all read-heavy operations, while preserving the exact JSON output structure required by the API contract.",
+    "hypothesis": "The current profile shows significant time spent in Pydantic's model_validate and JSON serialization functions during row processing and API response generation. By bypassing Pydantic model construction in the API layer for read operations (which constitute the majority of the workload: 600 list_notes, 300 get_note, 100 update_note vs 100 create_note), we eliminate the overhead of schema validation and object instantiation. FastAPI's JSONResponse can serialize plain dictionaries directly, which is significantly faster than serializing Pydantic models. This should reduce the cumulative time in the hot paths (list_notes_endpoint, read_note, update_note_endpoint) by avoiding repeated Pydantic validation overhead, leading to a measurable reduction in median request latency.",
+    "risks": [
+      "Pydantic field validators (e.g., tag normalization) are bypassed in the API layer. However, since the database layer (db.py) already normalizes tags and the input validation is handled by Pydantic in the request body parsing (NoteCreate/NoteUpdate), the output data remains consistent with the contract.",
+      "If the API contract requires specific Pydantic behavior for response serialization (e.g., excluding None values, custom encoders), plain dict serialization might differ. However, the current implementation uses standard JSON serialization, and the contract specifies exact field names and types, which plain dicts satisfy.",
+      "The optimization does not address the serialization overhead in create_note_endpoint if it still constructs a Note model. However, the profile indicates list_notes and get_note are the hottest paths, so optimizing reads yields the most significant gain.",
+      "FastAPI's JSONResponse might have slight overhead compared to returning a model, but this is negligible compared to the cost of Pydantic validation and model construction."
+    ],
+    "schema_version": 1
+  },
+  "role": "auditor",
+  "schema_version": 1
+}

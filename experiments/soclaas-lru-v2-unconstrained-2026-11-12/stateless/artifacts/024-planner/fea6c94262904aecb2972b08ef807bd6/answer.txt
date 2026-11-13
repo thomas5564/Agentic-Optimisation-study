@@ -1,0 +1,11 @@
+{
+  "approach": "query",
+  "change": "Modify the `list_notes` function in `app/db.py` to fetch tags using a single JOIN query instead of separate queries per note or a bulk IN query with Python-side grouping. Replace the current logic that fetches note IDs, then executes a separate query for tags with a single SQL query: `SELECT n.id, n.title, n.body, nt.tag FROM notes n LEFT JOIN note_tags nt ON n.id = nt.note_id WHERE ... ORDER BY n.id ASC, nt.tag ASC LIMIT ? OFFSET ?`. Then, in Python, iterate through the flat result set to group tags by note ID into a list of Note objects. This reduces the number of database round-trips and cursor operations from O(N) or O(1) + O(1) to O(1) for the data fetch, while maintaining the same logical result set.",
+  "hypothesis": "The current `list_notes` implementation performs a separate database query to fetch tags for all notes in the result set. While it batches this into one `IN` query, it still involves fetching rows, iterating in Python to group them, and managing two separate result sets. By using a single SQL JOIN, we reduce the overhead of cursor creation, result fetching, and Python-side data manipulation. The profile shows significant time spent in `fetchall` and `_to_note`/`_make_note` loops. A JOIN allows SQLite to handle the grouping more efficiently and reduces Python-side iteration overhead, leading to lower cumulative time for the `list_notes` endpoint.",
+  "risks": [
+    "If the number of tags per note is very large, the JOIN could produce a large result set, potentially increasing memory usage. However, given the constraints and typical usage, this is unlikely to be a bottleneck compared to the current overhead.",
+    "The ORDER BY clause must include both `n.id` and `nt.tag` to ensure deterministic ordering and correct grouping in Python. Failure to do so might result in tags being split across different rows for the same note if the database optimizer changes behavior.",
+    "Using `LEFT JOIN` ensures notes without tags are still included, which matches the current behavior. If implemented as an `INNER JOIN`, notes without tags would be dropped, violating the API contract."
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,274 @@
+{
+  "decision": {
+    "accepted": false,
+    "reason": "insufficient_improvement",
+    "relative_improvement": -0.005666590968936632
+  },
+  "evidence": {
+    "candidate": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 4.372750000129599,
+          "mean": 0.5046610063335493,
+          "median": 0.5182705000379428,
+          "min": 0.30049999986658804,
+          "p95": 0.6524579998767877
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.012172723859507394,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.030441150535970015,
+        "repetition_means_ms": [
+          0.5017953699986796,
+          0.49664910166882237,
+          0.5033997933361434,
+          0.5094492033318451,
+          0.5120115633322561
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.7309169999844016,
+            "mean": 0.47164026000109516,
+            "median": 0.45489550007005164,
+            "min": 0.4220000000714208,
+            "p95": 0.4999159998533287
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 2.1632080001836584,
+            "mean": 0.3378992460034169,
+            "median": 0.3234580000253118,
+            "min": 0.30049999986658804,
+            "p95": 0.3847080001833092
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.5222500001073058,
+            "mean": 0.37974994599668815,
+            "median": 0.37177050000991585,
+            "min": 0.3299589998277952,
+            "p95": 0.4207919998862053
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 4.372750000129599,
+            "mean": 0.6050617036669337,
+            "median": 0.5987080000977585,
+            "min": 0.4844589998356241,
+            "p95": 0.6794999999328866
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.711166999892157,
+            "mean": 0.47677251000641263,
+            "median": 0.4587290000017674,
+            "min": 0.4294170000775921,
+            "p95": 0.5413750000116124
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.5033997933361434,
+      "valid": true
+    },
+    "parent": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 5.107541000143101,
+          "mean": 0.5022439016669296,
+          "median": 0.5166665000615467,
+          "min": 0.2982500000143773,
+          "p95": 0.6475000000136788
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.011092686155301843,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.030025801777013264,
+        "repetition_means_ms": [
+          0.4959194266653337,
+          0.5033493066696337,
+          0.5005633058279576,
+          0.5003877666712242,
+          0.5109997025004986
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.6694579999475536,
+            "mean": 0.45972615999789923,
+            "median": 0.45399999999062857,
+            "min": 0.42241600021952763,
+            "p95": 0.5000420001124439
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.6367920000229788,
+            "mean": 0.33151107999901797,
+            "median": 0.3208334999271756,
+            "min": 0.2982500000143773,
+            "p95": 0.38116599989734823
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.031958000112354,
+            "mean": 0.37743950599997333,
+            "median": 0.3697914999065688,
+            "min": 0.33291699992332724,
+            "p95": 0.41941700010283967
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 5.107541000143101,
+            "mean": 0.6032687070009312,
+            "median": 0.5957089999810705,
+            "min": 0.48604099993099226,
+            "p95": 0.6683749998046551
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.7354589999267773,
+            "mean": 0.48375882000073034,
+            "median": 0.46127099994919263,
+            "min": 0.432416999956331,
+            "p95": 0.568749999956708
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.5005633058279576,
+      "valid": true
+    },
+    "validation": {
+      "correct": true,
+      "status": "passed"
+    }
+  },
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nimport threading\nfrom pathlib import Path\n\nfrom app.models import Note\n\nSCHEMA = (\n    \"\"\"\n    CREATE TABLE IF NOT EXISTS notes (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        title TEXT NOT NULL,\n        body TEXT NOT NULL,\n        tags TEXT NOT NULL DEFAULT '[]'\n    )\n    \"\"\",\n)\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\nclass ConnectionPool:\n    \"\"\"Thread-local SQLite connection pool.\"\"\"\n\n    def __init__(self, db_path: Path) -> None:\n        self._db_path = db_path\n        self._local = threading.local()\n\n    def _get_connection(self) -> sqlite3.Connection:\n        conn = getattr(self._local, \"connection\", None)\n        if conn is not None:\n            try:\n                # Check if connection is still valid\n                conn.execute(\"SELECT 1\")\n                return conn\n            except sqlite3.Error:\n                # Connection is broken, close it and create a new one\n                try:\n                    conn.close()\n                except sqlite3.Error:\n                    pass\n                self._local.connection = None\n                conn = None\n\n        if conn is None:\n            conn = self._create_connection()\n            self._local.connection = conn\n        return conn\n\n    def _create_connection(self) -> sqlite3.Connection:\n        path = self._db_path\n        path.parent.mkdir(parents=True, exist_ok=True)\n        connection = sqlite3.connect(path)\n        connection.row_factory = sqlite3.Row\n        connection.execute(\"PRAGMA foreign_keys = ON\")\n        connection.execute(\"PRAGMA case_sensitive_like = ON\")\n        for statement in SCHEMA:\n            connection.execute(statement)\n        connection.commit()\n        return connection\n\n    def get_connection(self) -> sqlite3.Connection:\n        return self._get_connection()\n\n    def close(self) -> None:\n        conn = getattr(self._local, \"connection\", None)\n        if conn is not None:\n            try:\n                conn.close()\n            except sqlite3.Error:\n                pass\n            self._local.connection = None\n\n\n# Module-level pool instance\n_pool: ConnectionPool | None = None\n_pool_lock = threading.Lock()\n\n\ndef _get_pool() -> ConnectionPool:\n    global _pool\n    if _pool is None:\n        with _pool_lock:\n            if _pool is None:\n                _pool = ConnectionPool(get_db_path())\n    return _pool\n\n\ndef initialize_db() -> None:\n    pool = _get_pool()\n    conn = pool.get_connection()\n    # Ensure schema is created\n    for statement in SCHEMA:\n        conn.execute(statement)\n    conn.commit()\n\n\ndef _normalize_tags(tags: list[str]) -> str:\n    return json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n\n\ndef _make_note(note_id: int, title: str, body: str, tags: str) -> Note:\n    return Note.model_validate({\"id\": note_id, \"title\": title, \"body\": body, \"tags\": json.loads(tags or \"[]\")})\n\n\ndef _to_note(row: sqlite3.Row) -> Note:\n    return _make_note(row[\"id\"], row[\"title\"], row[\"body\"], row[\"tags\"])\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    pool = _get_pool()\n    connection = pool.get_connection()\n    payload = _normalize_tags(tags)\n    cursor = connection.execute(\n        \"INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)\",\n        (title, body, payload),\n    )\n    note_id = cursor.lastrowid\n    connection.commit()\n    row = connection.execute(\"SELECT id, title, body, tags FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    return _to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    pool = _get_pool()\n    connection = pool.get_connection()\n    row = connection.execute(\"SELECT id, title, body, tags FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    if row is None:\n        return None\n    return _to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    pool = _get_pool()\n    connection = pool.get_connection()\n    \n    wanted = [tag for tag in tags_filter or [] if tag]\n    \n    conditions = []\n    params: list[object] = []\n    \n    if search_text:\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n    \n    if wanted:\n        for tag in wanted:\n            conditions.append(\"(tags LIKE ?)\")\n            params.append(f\"%\\\"{tag}\\\"%\")\n    \n    where_clause = \" AND \".join(conditions) if conditions else \"1=1\"\n    \n    count_sql = f\"SELECT COUNT(*) FROM notes WHERE {where_clause}\"\n    count_row = connection.execute(count_sql, params).fetchone()\n    total = count_row[0]\n    \n    query_sql = f\"SELECT id, title, body, tags FROM notes WHERE {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?\"\n    query_params = params + [limit, offset]\n    \n    rows = connection.execute(query_sql, query_params).fetchall()\n    \n    notes = [_to_note(row) for row in rows]\n    return notes, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    pool = _get_pool()\n    connection = pool.get_connection()\n    \n    payload = _normalize_tags(tags)\n    cursor = connection.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?\",\n        (title, body, payload, note_id),\n    )\n    \n    if cursor.rowcount == 0:\n        return None\n    \n    connection.commit()\n    \n    row = connection.execute(\"SELECT id, title, body, tags FROM notes WHERE id = ?\", (note_id,)).fetchone()\n    return _to_note(row)\n\n\ndef delete_note(note_id: int) -> bool:\n    pool = _get_pool()\n    connection = pool.get_connection()\n    cursor = connection.execute(\"DELETE FROM notes WHERE id = ?\", (note_id,))\n    connection.commit()\n    deleted = cursor.rowcount > 0\n    return deleted\n",
+      "path": "app/db.py"
+    }
+  ],
+  "plan": {
+    "approach": "query",
+    "change": "Refactor app/db.py to use a single SQL query with a subquery or JOIN to retrieve both the count and the paginated notes, eliminating the separate COUNT(*) query and the redundant SELECT for the updated note in update_note. Specifically: 1. In list_notes, replace the two queries (COUNT and SELECT) with a single query that fetches the notes and uses a window function or a separate count query only if necessary, but more importantly, avoid the double-fetch pattern. However, SQLite doesn't support COUNT(*) OVER() in all versions easily for pagination without subqueries. A better approach is to keep the count query but optimize the main query. The biggest win is in update_note: currently it does SELECT, UPDATE, COMMIT, SELECT. Change update_note to perform the UPDATE, then immediately return the updated data by selecting from the updated row in a single transaction without the initial SELECT if the note existence is guaranteed by the caller (but the contract requires 404 if not found). So, keep the existence check but combine it: Use a single UPDATE statement that returns the updated row using RETURNING clause if SQLite version supports it (3.35+), or optimize the flow. Given the profile shows high time in execute, reducing the number of execute calls is key. In update_note, replace the SELECT-UPDATE-SELECT pattern with a single UPDATE followed by a SELECT, but ensure the transaction is committed only once. Actually, the current code commits after UPDATE. The initial SELECT is for existence. We can do: 1. SELECT id FROM notes WHERE id=? (for existence). 2. UPDATE notes SET ... WHERE id=?. 3. SELECT ... FROM notes WHERE id=?. This is 3 executes. We can reduce to 2 by doing the UPDATE and then SELECT, but we need to know if it existed. If we UPDATE and rowcount is 0, it didn't exist. So: 1. UPDATE notes SET ... WHERE id=?. 2. If cursor.rowcount == 0, return None. 3. SELECT ... FROM notes WHERE id=?. This reduces execute calls from 3 to 2. In list_notes, we have 3 executes (COUNT, SELECT COUNT, SELECT LIST). We can't easily combine COUNT and LIST in SQLite without a subquery. But we can optimize the tag filtering. The current tag filtering uses LIKE with wildcards which is slow. We can't change the semantics. The main win is reducing the number of SQLite execute calls in the hot path. In list_notes, the profile shows 3300 execute calls for 600 requests (5 per request? No, 600 requests, 3300 executes. 3300/600 = 5.5 executes per request. This includes the COUNT and the LIST. The LIST fetches all rows. The COUNT fetches one row. The _to_note calls are Python. The execute calls are the bottleneck. Let's look at list_notes: 1 COUNT query, 1 LIST query. That's 2 executes. But there are 600 requests. 600 * 2 = 1200. Where do the other 2100 come from? Maybe from the other endpoints. create_note: 2 executes (INSERT, SELECT). get_note: 1 execute. update_note: 3 executes (SELECT, UPDATE, SELECT). delete_note: 1 execute. The profile shows 3300 executes. 600 list_notes * 2 = 1200. 300 get_note * 1 = 300. 100 create_note * 2 = 200. 100 update_note * 3 = 300. 100 delete_note * 1 = 100. Total = 2100. The profile says 3300. There might be more executes in the pool management or other internal calls. Regardless, reducing executes in update_note from 3 to 2 is a clear win. In list_notes, we can't easily reduce executes below 2 without changing semantics. But we can optimize the Python side. The profile shows 1848 calls to _to_note and _make_note. This is for 600 list_notes requests. If each list_notes returns ~3 notes on average, 600 * 3 = 1800. This matches. The _to_note function calls json.loads and Note.model_validate. This is the serialization overhead we tried to bypass. But that failed. So we must stick to the SQL optimization. The change is to update_note to use UPDATE ... RETURNING if possible, or just reduce the SELECTs. Since we can't assume SQLite version, we use the rowcount check. Change update_note to: 1. Execute UPDATE. 2. Check rowcount",
+    "hypothesis": "The profile indicates that sqlite3.Connection.execute is the dominant CPU hotspot (0.104s total, 3300 calls). By reducing the number of SQL execute calls per request, particularly in the update_note path which currently performs three executes (SELECT for existence, UPDATE, SELECT for return), we can reduce the per-request latency. Changing update_note to perform an UPDATE first and check rowcount to determine existence, followed by a single SELECT to fetch the updated note, reduces the execute count from 3 to 2. This optimization preserves all API semantics, including 404 handling and durability, while directly addressing the identified bottleneck in the SQLite interaction layer.",
+    "risks": [
+      "If the UPDATE statement fails due to a constraint violation other than non-existence, the rowcount check might not correctly identify the error, but the contract only requires 404 for missing notes.",
+      "The change assumes that the UPDATE statement's rowcount accurately reflects whether the note existed, which is true for SQLite.",
+      "No change to list_notes query structure, so the 2 executes per list request remain, but the overall average executes per request decreases."
+    ],
+    "schema_version": 1,
+    "used_memory": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "role": "auditor",
+  "schema_version": 1
+}

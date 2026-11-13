@@ -1,0 +1,39 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -87,12 +87,31 @@
+     return json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))
+ 
+ 
+-def _make_note(note_id: int, title: str, body: str, tags: str) -> Note:
+-    return Note.model_validate({"id": note_id, "title": title, "body": body, "tags": json.loads(tags or "[]")})
+-
+-
+ def _to_note(row: sqlite3.Row) -> Note:
+-    return _make_note(row["id"], row["title"], row["body"], row["tags"])
++    """Construct a Note directly from a sqlite3.Row without intermediate JSON/Pydantic validation overhead.
++
++    Since the data comes from SQLite and was previously validated/normalized on write,
++    we can construct the Note directly. We ensure tags is a list by parsing the JSON
++    string, but skip the redundant model_validate step.
++    """
++    tags_str = row["tags"]
++    # Parse tags JSON directly. Since we control the write path, this is safe.
++    # Using json.loads is still necessary to convert the stored JSON string to a Python list.
++    # However, we avoid the double-validation of Pydantic.
++    tags_list = json.loads(tags_str) if tags_str else []
++    
++    # Construct Note directly. We assume the types from SQLite (int, str) match Note expectations.
++    # Note model expects: id (int), title (str), body (str), tags (list[str]).
++    # SQLite returns these as int/str/list (after json.loads). 
++    # We must ensure tags are strings, as json.loads preserves types but SQLite TEXT is always string.
++    # json.loads of a list of strings returns a list of strings. 
++    # If the DB was corrupted, this might fail, but we assume valid data.
++    return Note(
++        id=row["id"],
++        title=row["title"],
++        body=row["body"],
++        tags=tags_list
++    )
+ 
+ 
+ def create_note(title: str, body: str, tags: list[str]) -> Note:

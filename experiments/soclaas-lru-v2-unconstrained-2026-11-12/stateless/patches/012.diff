@@ -1,0 +1,51 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -138,24 +138,36 @@
+         params.extend([f"%{search_text}%", f"%{search_text}%"])
+ 
+     if wanted:
+-        # Use json_each for robust tag filtering
+-        # We need to ensure the note has ALL the wanted tags
+-        conditions.append("id IN (SELECT n.id FROM notes n JOIN json_each(n.tags) j WHERE j.value IN (" + ",".join(["?"] * len(wanted)) + ") GROUP BY n.id HAVING COUNT(DISTINCT j.value) = ?)")
+-        params.extend(wanted)
+-        params.append(len(wanted))
++        # Use LIKE with quoted tags to match exact elements in the sorted JSON array
++        # e.g. tags LIKE '%"work"%' matches the string "work" inside the JSON array
++        tag_conditions = []
++        for tag in wanted:
++            # Escape single quotes in the tag to prevent SQL injection
++            escaped_tag = tag.replace("'", "''")
++            tag_conditions.append("tags LIKE '%\"" + escaped_tag + "\"%'")
++        conditions.append(" AND ".join(tag_conditions))
+ 
+     where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
+ 
+-    # Count query
+-    count_sql = f"SELECT COUNT(*) FROM notes{where_clause}"
+-    total_row = db.execute(count_sql, params).fetchone()
+-    total = total_row[0]
+-
+-    # Data query
+-    data_sql = f"SELECT id, title, body, tags FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    # Combined count and data query using a window function to avoid redundant scans
++    # We fetch the total count as a window function over the filtered set, then limit the rows
++    data_sql = f"""
++        SELECT id, title, body, tags, total_count
++        FROM (
++            SELECT id, title, body, tags, COUNT(*) OVER() AS total_count
++            FROM notes{where_clause}
++            ORDER BY id ASC
++        )
++        LIMIT ? OFFSET ?
++    """
+     data_params = params + [limit, offset]
+     rows = db.execute(data_sql, data_params).fetchall()
+ 
++    if not rows:
++        return [], 0
++
++    # The first row contains the total count from the window function
++    total = rows[0]["total_count"]
+     notes = [_to_note(row) for row in rows]
+     return notes, total
+ 

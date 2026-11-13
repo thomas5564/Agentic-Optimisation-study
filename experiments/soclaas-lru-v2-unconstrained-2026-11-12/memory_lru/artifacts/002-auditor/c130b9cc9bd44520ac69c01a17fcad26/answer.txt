@@ -1,0 +1,10 @@
+{
+  "interpretation": "The plan proposes adding a composite index on (title, body) to accelerate list_notes queries. However, the runner rejected this with a -1.1% relative improvement (regression). The plan's own risks correctly identify that SQLite B-tree indexes are ineffective for LIKE '%pattern%' queries with leading wildcards, which are used in the workload. Consequently, the index was likely ignored by the query planner, adding write overhead without read benefit. The patch also fails to implement the plan's secondary suggestion of connection reuse, instead maintaining the existing pattern of opening/closing connections per operation. The measured latency increase suggests the overhead of managing the unused index slightly degraded performance. The semantic contract remains valid with 0 mismatches.",
+  "limitations": [
+    "The patch does not implement the plan's suggestion for connection reuse.",
+    "SQLite indexes do not optimize leading-wildcard LIKE queries.",
+    "Performance impact is specific to the current dataset size and query mix.",
+    "No analysis of write-heavy workload performance was included."
+  ],
+  "schema_version": 1
+}

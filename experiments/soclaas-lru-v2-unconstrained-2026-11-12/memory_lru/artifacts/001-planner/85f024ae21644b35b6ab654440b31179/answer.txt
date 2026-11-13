@@ -1,0 +1,13 @@
+{
+  "approach": "query",
+  "change": "Refactor db.py to use parameterized SQL queries for filtering instead of loading all rows into memory. Specifically: 1) In list_notes, replace the full table scan with a SQL query using LIKE for search_text and a generated WHERE clause for tags_filter (using JSON_CONTAINS or LIKE on the tags column). 2) In get_note, replace the full table scan with a direct SELECT WHERE id = ?. 3) In update_note, replace the full table scan with a direct SELECT WHERE id = ? to check existence. 4) In delete_note, replace the full table scan with a direct DELETE WHERE id = ? and check affected rows. 5) In create_note, replace the full table scan with a direct SELECT WHERE id = lastrowid.",
+  "hypothesis": "The current implementation performs full table scans (SELECT * FROM notes) for every read operation, including single-note lookups and list queries, regardless of filters. This results in O(N) time complexity for all reads, where N is the total number of notes. By using parameterized SQL queries with WHERE clauses, we reduce the complexity to O(1) for single-note lookups and O(K) for list queries (where K is the number of matching notes), significantly reducing CPU time spent on data transfer, JSON parsing, and Python-side filtering. The profile shows high cumulative time in _to_note and list_notes, which will be reduced by fetching only relevant rows.",
+  "risks": [
+    "Incorrect SQL syntax for tag filtering may lead to incorrect results or errors.",
+    "SQL injection if parameterization is not used correctly (mitigated by using ? placeholders).",
+    "Performance regression if the database is very small and query overhead exceeds full scan cost (unlikely given the profile data).",
+    "Changes to query logic must preserve exact sorting (ORDER BY id ASC) and filtering semantics (case-sensitive substring search, exact tag matching)."
+  ],
+  "schema_version": 1,
+  "used_memory": []
+}

@@ -1,0 +1,266 @@
+{
+  "decision": {
+    "accepted": false,
+    "reason": "insufficient_improvement",
+    "relative_improvement": -0.016118305362765904
+  },
+  "evidence": {
+    "candidate": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 9.750166999765497,
+          "mean": 0.5033599693318441,
+          "median": 0.5078750000393484,
+          "min": 0.2985420005643391,
+          "p95": 0.8171660001607961
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.008411040033158864,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.022834708815411237,
+        "repetition_means_ms": [
+          0.5016075758203442,
+          0.504080974989544,
+          0.504767520827348,
+          0.5089189266755056,
+          0.49742484834647865
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 8.044707999943057,
+            "mean": 0.46097219800685707,
+            "median": 0.43920800044361386,
+            "min": 0.41641700045147445,
+            "p95": 0.47566699959133985
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 8.342791000359284,
+            "mean": 0.3493583539930114,
+            "median": 0.31795850009075366,
+            "min": 0.2985420005643391,
+            "p95": 0.3672499997264822
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 9.750166999765497,
+            "mean": 0.38735099265977624,
+            "median": 0.36337500023364555,
+            "min": 0.3322909997223178,
+            "p95": 0.4110830004719901
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 6.386750000274333,
+            "mean": 0.5970370426672768,
+            "median": 0.5454369998005859,
+            "min": 0.4891660000794218,
+            "p95": 0.8383750000575674
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 9.115458999986004,
+            "mean": 0.48571384599927114,
+            "median": 0.44914599993717275,
+            "min": 0.4199579998385161,
+            "p95": 0.5572919999394799
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.504080974989544,
+      "valid": true
+    },
+    "parent": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 9.244957999726466,
+          "mean": 0.4981213014956059,
+          "median": 0.5058960000496882,
+          "min": 0.2895840007113293,
+          "p95": 0.8064579997153487
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.013792046989132507,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.03503596237743386,
+        "repetition_means_ms": [
+          0.4960849266558398,
+          0.4982977358417884,
+          0.5097467533316072,
+          0.4922945941530088,
+          0.49418249749578536
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 9.244957999726466,
+            "mean": 0.49248375600291183,
+            "median": 0.43624999989333446,
+            "min": 0.40866700055630645,
+            "p95": 0.46708399986528093
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.5779580005764728,
+            "mean": 0.3248414000172488,
+            "median": 0.3140204998999252,
+            "min": 0.2895840007113293,
+            "p95": 0.36983400059398264
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 8.619917000032729,
+            "mean": 0.37908115532445663,
+            "median": 0.3622289996201289,
+            "min": 0.3296250006314949,
+            "p95": 0.41091599996434525
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 4.6386670001083985,
+            "mean": 0.5908542206616403,
+            "median": 0.5431874997157138,
+            "min": 0.4862079995291424,
+            "p95": 0.8296249998238636
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 6.672500000604487,
+            "mean": 0.47776167198389885,
+            "median": 0.4462494998733746,
+            "min": 0.41650000002846355,
+            "p95": 0.540709000233619
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.4960849266558398,
+      "valid": true
+    },
+    "validation": {
+      "correct": true,
+      "status": "passed"
+    }
+  },
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nimport threading\nfrom pathlib import Path\n\nfrom app.models import Note\n\nSCHEMA = (\n    \"\"\"\n    CREATE TABLE IF NOT EXISTS notes (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        title TEXT NOT NULL,\n        body TEXT NOT NULL\n    )\n    \"\"\",\n    \"\"\"\n    CREATE TABLE IF NOT EXISTS note_tags (\n        note_id INTEGER NOT NULL,\n        tag TEXT NOT NULL,\n        PRIMARY KEY (note_id, tag),\n        FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE\n    )\n    \"\"\",\n)\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\nclass _DB:\n    \"\"\"Thread-local SQLite connection manager.\n\n    Uses a single persistent connection per thread to avoid the overhead of\n    opening/closing connections for every request. This is safe for the default\n    single-threaded uvicorn worker. A lock is used to serialize writes to ensure\n    durability and prevent SQLite busy errors during concurrent access within\n    the same thread (though unlikely in single-threaded mode, it's good practice\n    for the commit/rollback cycle).\n    \"\"\"\n\n    def __init__(self) -> None:\n        self._local = threading.local()\n        self._lock = threading.Lock()\n\n    def _get_connection(self) -> sqlite3.Connection:\n        if not hasattr(self._local, \"connection\") or self._local.connection is None:\n            path = get_db_path()\n            path.parent.mkdir(parents=True, exist_ok=True)\n            conn = sqlite3.connect(path, timeout=30)\n            conn.row_factory = sqlite3.Row\n            conn.execute(\"PRAGMA foreign_keys = ON\")\n            conn.execute(\"PRAGMA journal_mode = WAL\")\n            conn.execute(\"PRAGMA case_sensitive_like = ON\")\n            for statement in SCHEMA:\n                conn.execute(statement)\n            conn.commit()\n            self._local.connection = conn\n        return self._local.connection\n\n    def execute(self, sql: str, params: tuple = ()) -> sqlite3.Cursor:\n        conn = self._get_connection()\n        with self._lock:\n            return conn.execute(sql, params)\n\n    def commit(self) -> None:\n        conn = self._get_connection()\n        with self._lock:\n            conn.commit()\n\n    def close(self) -> None:\n        conn = getattr(self._local, \"connection\", None)\n        if conn:\n            conn.close()\n            self._local.connection = None\n\n\n# Global singleton instance\ndb = _DB()\n\n\ndef initialize_db() -> None:\n    \"\"\"Initialize the database schema. Called at startup.\"\"\"\n    db.execute(\"SELECT 1\")  # Ensure connection is established and schema is ready\n\n\ndef _make_note(note_id: int, title: str, body: str, tags: list[str]) -> Note:\n    return Note.model_validate({\"id\": note_id, \"title\": title, \"body\": body, \"tags\": tags})\n\n\ndef _to_note(row: sqlite3.Row, tags: list[str]) -> Note:\n    return _make_note(row[\"id\"], row[\"title\"], row[\"body\"], tags)\n\n\ndef _get_tags_for_note(conn: sqlite3.Connection, note_id: int) -> list[str]:\n    cursor = conn.execute(\n        \"SELECT tag FROM note_tags WHERE note_id = ? ORDER BY tag\",\n        (note_id,),\n    )\n    return [row[\"tag\"] for row in cursor.fetchall()]\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    conn = db._get_connection()\n    with db._lock:\n        cursor = conn.execute(\n            \"INSERT INTO notes (title, body) VALUES (?, ?)\",\n            (title, body),\n        )\n        note_id = cursor.lastrowid\n\n        normalized_tags = sorted({tag.strip() for tag in tags if tag and tag.strip()})\n        if normalized_tags:\n            conn.executemany(\n                \"INSERT INTO note_tags (note_id, tag) VALUES (?, ?)\",\n                [(note_id, tag) for tag in normalized_tags],\n            )\n        conn.commit()\n\n        row = conn.execute(\n            \"SELECT id, title, body FROM notes WHERE id = ?\",\n            (note_id,),\n        ).fetchone()\n        return _to_note(row, normalized_tags)\n\n\ndef get_note(note_id: int) -> Note | None:\n    row = db.execute(\n        \"SELECT id, title, body FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    if row is None:\n        return None\n    tags = _get_tags_for_note(db._get_connection(), note_id)\n    return _to_note(row, tags)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    wanted = [tag for tag in tags_filter or [] if tag]\n\n    # Build query for matching notes\n    conditions = []\n    params: list[object] = []\n\n    if search_text:\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n\n    if wanted:\n        # Use a subquery to find note_ids that have ALL the wanted tags\n        # We join note_tags to filter, then group by note_id and ensure count matches\n        conditions.append(\"id IN (SELECT nt.note_id FROM note_tags nt WHERE nt.tag IN (\" + \",\".join([\"?\"] * len(wanted)) + \") GROUP BY nt.note_id HAVING COUNT(DISTINCT nt.tag) = ?)\")\n        params.extend(wanted)\n        params.append(len(wanted))\n\n    where_clause = \" WHERE \" + \" AND \".join(conditions) if conditions else \"\"\n\n    # Count query\n    count_sql = f\"SELECT COUNT(*) FROM notes{where_clause}\"\n    total_row = db.execute(count_sql, params).fetchone()\n    total = total_row[0]\n\n    # Data query: Use a subquery to limit notes first, then join tags.\n    # This ensures LIMIT/OFFSET applies to the number of notes, not the joined rows.\n    # We order by n.id, nt.tag to allow efficient grouping in Python.\n    data_sql = f\"\"\"\n        SELECT n.id, n.title, n.body, nt.tag\n        FROM notes n\n        LEFT JOIN note_tags nt ON n.id = nt.note_id\n        WHERE n.id IN (\n            SELECT id FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?\n        )\n        ORDER BY n.id ASC, nt.tag ASC\n    \"\"\"\n    data_params = params + [limit, offset]\n    rows = db.execute(data_sql, data_params).fetchall()\n\n    # Reconstruct notes from the flat joined result set\n    notes = []\n    current_note_id = None\n    current_tags = []\n    current_row = None\n\n    for row in rows:\n        note_id = row[\"id\"]\n        tag = row[\"tag\"]\n\n        if note_id != current_note_id:\n            # Save previous note if exists\n            if current_row is not None:\n                notes.append(_to_note(current_row, current_tags))\n            # Start new note\n            current_note_id = note_id\n            current_row = row\n            current_tags = []\n            # If tag is None (no match in LEFT JOIN), it's an empty list\n            if tag is not None:\n                current_tags.append(tag)\n        else:\n            # Same note, append tag if present\n            if tag is not None:\n                current_tags.append(tag)\n\n    # Append the last note\n    if current_row is not None:\n        notes.append(_to_note(current_row, current_tags))\n\n    return notes, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    conn = db._get_connection()\n    with db._lock:\n        cursor = conn.execute(\n            \"UPDATE notes SET title = ?, body = ? WHERE id = ?\",\n            (title, body, note_id),\n        )\n        if cursor.rowcount == 0:\n            return None\n\n        normalized_tags = sorted({tag.strip() for tag in tags if tag and tag.strip()})\n        # Remove existing tags\n        conn.execute(\"DELETE FROM note_tags WHERE note_id = ?\", (note_id,))\n        # Insert new tags\n        if normalized_tags:\n            conn.executemany(\n                \"INSERT INTO note_tags (note_id, tag) VALUES (?, ?)\",\n                [(note_id, tag) for tag in normalized_tags],\n            )\n        conn.commit()\n\n        row = conn.execute(\n            \"SELECT id, title, body FROM notes WHERE id = ?\",\n            (note_id,),\n        ).fetchone()\n        return _to_note(row, normalized_tags)\n\n\ndef delete_note(note_id: int) -> bool:\n    cursor = db.execute(\n        \"DELETE FROM notes WHERE id = ?\",\n        (note_id,),\n    )\n    db.commit()\n    return cursor.rowcount > 0\n",
+      "path": "app/db.py"
+    }
+  ],
+  "plan": {
+    "approach": "query",
+    "change": "Modify the `list_notes` function in `app/db.py` to fetch tags using a single SQL query with a JOIN instead of separate queries per note or a separate IN query. Specifically, replace the logic that fetches note IDs and then queries `note_tags` with a single query: `SELECT n.id, n.title, n.body, nt.tag FROM notes n LEFT JOIN note_tags nt ON n.id = nt.note_id WHERE ... ORDER BY n.id ASC, nt.tag ASC LIMIT ? OFFSET ?`. Then, in Python, iterate through the flat result set to reconstruct the list of Note objects, grouping tags by note ID as we go. This eliminates the overhead of preparing and executing a second SQL statement for the tag lookup and reduces the number of Python-level loop iterations for tag assignment.",
+    "hypothesis": "The profile shows `list_notes` is the dominant hot spot, consuming 0.112s cumulative time. While the SQL execution time itself is low (0.100s for 600 calls), the overhead of managing two separate database interactions (one for notes, one for tags) and the Python loop to merge them contributes to latency. By using a single JOIN query, we reduce the number of cursor operations and Python-level data structure manipulations. Although the result set size increases (one row per tag per note), the reduction in Python overhead and the efficiency of a single database round-trip for the data retrieval phase should lower the cumulative time for `list_notes`.",
+    "risks": [
+      "If a note has many tags, the result set from the JOIN will be larger, potentially increasing memory usage and network transfer time if not handled efficiently, though here it stays within the application process.",
+      "The ORDER BY clause must include both `n.id` and `nt.tag` to ensure deterministic grouping in the Python reconstruction loop without needing to sort tags separately in Python (which is already done in `_to_note` via `sorted`, but the JOIN approach might allow us to rely on DB sorting if we adjust `_to_note` or just accept the Python sort).",
+      "Changing the query structure requires careful handling of the `LIMIT` and `OFFSET` to ensure they apply to the number of notes, not the number of rows in the joined result. SQLite's `LIMIT` applies to the final result set, so we cannot simply join and limit. We must use a subquery or CTE to limit the notes first, then join tags. The current implementation does this correctly by fetching note IDs first. The proposed single-query approach must preserve this semantics: `SELECT n.id, n.title, n.body, nt.tag FROM notes n LEFT JOIN note_tags nt ON n.id = nt.note_id WHERE n.id IN (SELECT id FROM notes WHERE ... LIMIT ? OFFSET ?) ORDER BY n.id, nt.tag`. This adds a subquery which might have its own cost, but avoids the second query execution."
+    ],
+    "schema_version": 1
+  },
+  "role": "auditor",
+  "schema_version": 1
+}

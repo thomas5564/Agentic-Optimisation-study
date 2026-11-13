@@ -1,0 +1,177 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -3,7 +3,9 @@
+ import json
+ import os
+ import sqlite3
++from functools import lru_cache
+ from pathlib import Path
++from threading import Lock
+ 
+ from app.models import Note
+ 
+@@ -17,6 +19,11 @@
+     )
+     """,
+ )
++
++# Thread-safe LRU cache for read operations
++_cache_lock = Lock()
++_cache_data: dict[tuple, tuple] = {}  # key -> (notes_tuple, total)
++_CACHE_MAX_SIZE = 128
+ 
+ 
+ def get_db_path() -> Path:
+@@ -58,7 +65,15 @@
+ def _to_note(row: sqlite3.Row) -> Note:
+     return _make_note(row["id"], row["title"], row["body"], row["tags"])
+ 
++
++def _clear_cache() -> None:
++    """Clear the read cache on any write operation."""
++    with _cache_lock:
++        _cache_data.clear()
++
++
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
++    _clear_cache()
+     connection = _connect()
+     try:
+         payload = _normalize_tags(tags)
+@@ -77,7 +92,9 @@
+         _release(connection)
+ 
+ 
+-def get_note(note_id: int) -> Note | None:
++@lru_cache(maxsize=128)
++def get_note_cached(note_id: int) -> tuple | None:
++    """Cached retrieval for get_note. Returns row data or None."""
+     connection = _connect()
+     try:
+         row = connection.execute(
+@@ -86,7 +103,58 @@
+         ).fetchone()
+         if row is None:
+             return None
+-        return _to_note(row)
++        # Convert Row to tuple for caching
++        return tuple(row)
++    finally:
++        _release(connection)
++
++
++def get_note(note_id: int) -> Note | None:
++    cached = get_note_cached(note_id)
++    if cached is None:
++        return None
++    return _make_note(cached[0], cached[1], cached[2], cached[3])
++
++
++def list_notes_cached(
++    *,
++    search_text: str | None = None,
++    tags_filter: list[str] | None = None,
++    offset: int = 0,
++    limit: int = 20,
++) -> tuple[tuple, int]:
++    """Cached retrieval for list_notes. Returns (notes_tuples, total)."""
++    wanted = [tag for tag in tags_filter or [] if tag]
++    connection = _connect()
++    try:
++        # Build query for matching notes
++        conditions = []
++        params: list[object] = []
++
++        if search_text:
++            conditions.append("(title LIKE ? OR body LIKE ?)")
++            params.extend([f"%{search_text}%", f"%{search_text}%"])
++
++        if wanted:
++            conditions.append("id IN (SELECT n.id FROM notes n JOIN json_each(n.tags) j WHERE j.value IN (" + ",".join(["?"] * len(wanted)) + ") GROUP BY n.id HAVING COUNT(DISTINCT j.value) = ?)")
++            params.extend(wanted)
++            params.append(len(wanted))
++
++        where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
++
++        # Count query
++        count_sql = f"SELECT COUNT(*) FROM notes{where_clause}"
++        total_row = connection.execute(count_sql, params).fetchone()
++        total = total_row[0]
++
++        # Data query
++        data_sql = f"SELECT id, title, body, tags FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++        data_params = params + [limit, offset]
++        rows = connection.execute(data_sql, data_params).fetchall()
++
++        # Convert rows to tuples for caching
++        notes_tuples = tuple(tuple(row) for row in rows)
++        return notes_tuples, total
+     finally:
+         _release(connection)
+ 
+@@ -98,48 +166,18 @@
+     offset: int = 0,
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
+-    wanted = [tag for tag in tags_filter or [] if tag]
+-    connection = _connect()
+-    try:
+-        # Build query for matching notes
+-        conditions = []
+-        params: list[object] = []
+-
+-        if search_text:
+-            conditions.append("(title LIKE ? OR body LIKE ?)")
+-            params.extend([f"%{search_text}%", f"%{search_text}%"])
+-
+-        if wanted:
+-            # SQLite JSON functions are available in 3.38+
+-            # We check if json_each is available or fallback to in-memory filtering
+-            # For robustness and performance, we'll use a subquery with json_each if possible,
+-            # but to ensure compatibility and simplicity, we fetch limited rows and filter in memory
+-            # if the tag filtering is complex. However, the plan suggests SQL filtering.
+-            # Let's try to do it in SQL if possible, otherwise fallback.
+-            # Given the constraint of "parameterized SQL queries", we can use json_each.
+-            conditions.append("id IN (SELECT n.id FROM notes n JOIN json_each(n.tags) j WHERE j.value IN (" + ",".join(["?"] * len(wanted)) + ") GROUP BY n.id HAVING COUNT(DISTINCT j.value) = ?)")
+-            params.extend(wanted)
+-            params.append(len(wanted))
+-
+-        where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
+-
+-        # Count query
+-        count_sql = f"SELECT COUNT(*) FROM notes{where_clause}"
+-        total_row = connection.execute(count_sql, params).fetchone()
+-        total = total_row[0]
+-
+-        # Data query
+-        data_sql = f"SELECT id, title, body, tags FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
+-        data_params = params + [limit, offset]
+-        rows = connection.execute(data_sql, data_params).fetchall()
+-
+-        notes = [_to_note(row) for row in rows]
+-        return notes, total
+-    finally:
+-        _release(connection)
++    notes_tuples, total = list_notes_cached(
++        search_text=search_text,
++        tags_filter=tags_filter,
++        offset=offset,
++        limit=limit,
++    )
++    notes = [_make_note(nt[0], nt[1], nt[2], nt[3]) for nt in notes_tuples]
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
++    _clear_cache()
+     connection = _connect()
+     try:
+         payload = _normalize_tags(tags)
+@@ -160,6 +198,7 @@
+ 
+ 
+ def delete_note(note_id: int) -> bool:
++    _clear_cache()
+     connection = _connect()
+     try:
+         cursor = connection.execute(

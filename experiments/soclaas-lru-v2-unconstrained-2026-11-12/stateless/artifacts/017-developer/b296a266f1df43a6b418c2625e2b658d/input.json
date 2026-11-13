@@ -1,0 +1,21 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor the `list_notes` function in `app/db.py` to use a single SQL query that joins `notes` and `note_tags`, aggregating tags into a JSON array using SQLite's `json_group_array` and `json_object`. This eliminates the N+1 query pattern where tags were fetched separately for each note in the result set. The Python code will then parse the JSON tags from the single result set instead of iterating through separate cursor results.",
+    "hypothesis": "The current `list_notes` implementation performs one query to fetch note metadata and then N additional queries (one per note) to fetch tags, or at least one query per batch of notes with significant Python-side iteration overhead. By consolidating this into a single SQL query with aggregation, we reduce the number of SQLite API calls, context switches, and Python object creation overhead, directly addressing the high cumulative time in `list_notes` and `execute` seen in the profile.",
+    "risks": [
+      "SQLite's `json_group_array` behavior with NULLs or specific ordering must be verified to ensure tags are sorted correctly as per the API contract (though the SQL can enforce `ORDER BY tag` within the aggregation).",
+      "If the number of tags per note is extremely large, constructing JSON in SQL might be slightly more memory intensive, but for typical note sizes, this is negligible compared to the query overhead saved."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

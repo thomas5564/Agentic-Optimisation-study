@@ -1,0 +1,77 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -2,6 +2,7 @@
+ 
+ import json
+ import os
++import re
+ import sqlite3
+ from pathlib import Path
+ 
+@@ -58,6 +59,11 @@
+ def _to_note(row: sqlite3.Row) -> Note:
+     return _make_note(row["id"], row["title"], row["body"], row["tags"])
+ 
++
++def _escape_like(value: str) -> str:
++    return value.replace("%", "\\%").replace("_", "\\_").replace("\\", "\\\\")
++
++
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+     connection = _connect()
+     payload = _normalize_tags(tags)
+@@ -92,15 +98,38 @@
+ ) -> tuple[list[Note], int]:
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
++    conditions = []
++    params: list[object] = []
++
++    if search_text:
++        escaped = _escape_like(search_text)
++        conditions.append('(title LIKE ? ESCAPE \'\\\' OR body LIKE ? ESCAPE \'\\\')')
++        params.extend([f'%{escaped}%', f'%{escaped}%'])
++
++    if wanted:
++        placeholders = ', '.join(['?'] * len(wanted))
++        conditions.append(f'tags IN ({placeholders})')
++        params.extend(wanted)
++
++    where_clause = ''
++    if conditions:
++        where_clause = 'WHERE ' + ' AND '.join(conditions)
++
++    count_sql = f'SELECT COUNT(*) FROM notes {where_clause}'
++    count_row = connection.execute(count_sql, params).fetchone()
++    total = count_row[0]
++
++    if total == 0:
++        _release(connection)
++        return [], 0
++
++    sql = f'SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?'
++    params.extend([limit, offset])
++    rows = connection.execute(sql, params).fetchall()
+     _release(connection)
++
+     matches = []
+     for row in rows:
+-        if search_text:
+-            title = row['title']
+-            body = row['body']
+-            if search_text not in title and search_text not in body:
+-                continue
+         if wanted:
+             tags_json = row['tags']
+             if not tags_json:
+@@ -113,7 +142,8 @@
+                 continue
+         note = _make_note(row['id'], row['title'], row['body'], row['tags'])
+         matches.append(note)
+-    return matches[offset: offset + limit], len(matches)
++
++    return matches[offset: offset + limit], total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

@@ -1,0 +1,28 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -96,13 +96,6 @@
+ ) -> tuple[list[Note], int]:
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+-    if not search_text and not wanted:
+-        rows = connection.execute(
+-            'SELECT id, title, body, tags FROM notes ORDER BY id ASC',
+-        ).fetchall()
+-        _release(connection)
+-        matches = [_to_note(row) for row in rows]
+-        return matches[offset : offset + limit], len(matches)
+     conditions = []
+     params: list[object] = []
+     if search_text:
+@@ -112,7 +105,10 @@
+         conditions.append('tags LIKE ?')
+         params.append(f'%{tag}%')
+     where_clause = ' AND '.join(conditions)
+-    query = f'SELECT id, title, body, tags FROM notes WHERE {where_clause} ORDER BY id ASC'
++    if where_clause:
++        query = f'SELECT id, title, body, tags FROM notes WHERE {where_clause} ORDER BY id ASC'
++    else:
++        query = 'SELECT id, title, body, tags FROM notes ORDER BY id ASC'
+     rows = connection.execute(query, params).fetchall()
+     _release(connection)
+     matches = [_to_note(row) for row in rows]

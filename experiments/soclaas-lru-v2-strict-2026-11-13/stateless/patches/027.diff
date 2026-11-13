@@ -1,0 +1,23 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -101,16 +101,12 @@
+         params.extend([f'%{search_text}%', f'%{search_text}%'])
+     
+     if wanted:
+-        # Use json_each to filter tags in SQL. 
+-        # We require that ALL wanted tags exist in the note's tags array.
+-        # We construct a subquery for each tag to check existence, or use a single json_each with IN.
+-        # To ensure ALL tags are present, we can count distinct matching tags in json_each and compare to len(wanted).
+-        # However, json_each returns one row per element. 
+-        # A robust way: SELECT count(DISTINCT value) FROM json_each(tags) WHERE value IN (?, ?, ...)
+-        # This count must equal len(wanted).
++        # Use JOIN with json_each for more efficient tag filtering.
++        # We join each note with its tags, filter by wanted tags, group by note id,
++        # and ensure the count of distinct matching tags equals the number of wanted tags.
+         placeholders = ', '.join(['?'] * len(wanted))
+         conditions.append(
+-            f"(SELECT count(DISTINCT value) FROM json_each(tags) WHERE value IN ({placeholders})) = ?"
++            f"(SELECT count(DISTINCT je.value) FROM json_each(notes.tags) je WHERE je.value IN ({placeholders})) = ?"
+         )
+         params.extend(wanted)
+         params.append(len(wanted))

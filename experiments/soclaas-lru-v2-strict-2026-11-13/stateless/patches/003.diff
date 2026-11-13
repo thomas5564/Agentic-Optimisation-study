@@ -1,0 +1,24 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -62,18 +62,13 @@
+     connection = _connect()
+     payload = _normalize_tags(tags)
+     cursor = connection.execute(
+-        "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)",
++        "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?) RETURNING id, title, body, tags",
+         (title, body, payload),
+     )
+-    note_id = cursor.lastrowid
++    row = cursor.fetchone()
+     connection.commit()
+-    created = None
+-    for row in connection.execute("SELECT id, title, body, tags FROM notes").fetchall():
+-        note = _to_note(row)
+-        if note.id == note_id:
+-            created = note
+     _release(connection)
+-    return created
++    return _to_note(row)
+ 
+ 
+ def get_note(note_id: int) -> Note | None:

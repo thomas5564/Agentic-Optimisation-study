@@ -1,0 +1,111 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -67,24 +67,18 @@
+     )
+     note_id = cursor.lastrowid
+     connection.commit()
+-    created = None
+-    for row in connection.execute("SELECT id, title, body, tags FROM notes").fetchall():
+-        note = _to_note(row)
+-        if note.id == note_id:
+-            created = note
++    row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+     _release(connection)
+-    return created
++    return _to_note(row)
+ 
+ 
+ def get_note(note_id: int) -> Note | None:
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
++    row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+     _release(connection)
+-    notes = [_to_note(row) for row in rows]
+-    for note in notes:
+-        if note.id == note_id:
+-            return note
+-    return None
++    if row is None:
++        return None
++    return _to_note(row)
+ 
+ 
+ def list_notes(
+@@ -96,42 +90,58 @@
+ ) -> tuple[list[Note], int]:
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
++    
++    conditions = []
++    params: list[object] = []
++    
++    if search_text:
++        conditions.append("(title LIKE ? OR body LIKE ?)")
++        params.extend([f"%{search_text}%", f"%{search_text}%"])
++    
++    if wanted:
++        for tag in wanted:
++            conditions.append("(tags LIKE ?)")
++            params.append(f"%\"{tag}\"%")
++    
++    where_clause = " AND ".join(conditions) if conditions else "1=1"
++    
++    count_sql = f"SELECT COUNT(*) FROM notes WHERE {where_clause}"
++    count_row = connection.execute(count_sql, params).fetchone()
++    total = count_row[0]
++    
++    query_sql = f"SELECT id, title, body, tags FROM notes WHERE {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++    query_params = params + [limit, offset]
++    
++    rows = connection.execute(query_sql, query_params).fetchall()
+     _release(connection)
+-    matches = []
+-    for note in map(_to_note, rows):
+-        if search_text and search_text not in note.title and search_text not in note.body:
+-            continue
+-        if all(tag in note.tags for tag in wanted):
+-            matches.append(note)
+-    return matches[offset: offset + limit], len(matches)
++    
++    notes = [_to_note(row) for row in rows]
++    return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
+     connection = _connect()
+-    existing = {note.id: note for note in map(_to_note, connection.execute("SELECT id, title, body, tags FROM notes"))}
+-    if note_id not in existing:
++    row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
++    if row is None:
+         _release(connection)
+         return None
++    
+     payload = _normalize_tags(tags)
+     connection.execute(
+         "UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?",
+         (title, body, payload, note_id),
+     )
+     connection.commit()
+-    updated = {note.id: note for note in map(_to_note, connection.execute("SELECT id, title, body, tags FROM notes"))}
++    
++    updated_row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+     _release(connection)
+-    return updated[note_id]
++    return _to_note(updated_row)
+ 
+ 
+ def delete_note(note_id: int) -> bool:
+     connection = _connect()
+-    ids = [_to_note(row).id for row in connection.execute("SELECT id, title, body, tags FROM notes").fetchall()]
+-    if note_id not in ids:
+-        _release(connection)
+-        return False
+-    connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
++    cursor = connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+     connection.commit()
+-    connection.execute("VACUUM")
++    deleted = cursor.rowcount > 0
+     _release(connection)
+-    return True
++    return deleted

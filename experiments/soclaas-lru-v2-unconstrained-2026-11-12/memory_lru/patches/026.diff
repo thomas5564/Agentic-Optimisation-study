@@ -1,0 +1,53 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -115,6 +115,18 @@
+     return _make_note(row["id"], row["title"], row["body"], row["tags"])
+ 
+ 
++def _row_to_dict(row: sqlite3.Row) -> dict:
++    """Convert a sqlite3.Row to a plain dictionary, parsing tags JSON."""
++    tags_raw = row["tags"]
++    tags = json.loads(tags_raw) if tags_raw else []
++    return {
++        "id": row["id"],
++        "title": row["title"],
++        "body": row["body"],
++        "tags": tags,
++    }
++
++
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+     pool = _get_pool()
+     connection = pool.get_connection()
+@@ -144,7 +156,7 @@
+     tags_filter: list[str] | None = None,
+     offset: int = 0,
+     limit: int = 20,
+-) -> tuple[list[Note], int]:
++) -> tuple[list[dict], int]:
+     pool = _get_pool()
+     connection = pool.get_connection()
+     
+@@ -173,8 +185,9 @@
+     
+     rows = connection.execute(query_sql, query_params).fetchall()
+     
+-    notes = [_to_note(row) for row in rows]
+-    return notes, total
++    # Bypass Pydantic validation for read path performance
++    items = [_row_to_dict(row) for row in rows]
++    return items, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
+--- a/app/main.py
++++ b/app/main.py
+@@ -42,7 +42,7 @@
+     clean_tags = [item.strip() for item in tag if isinstance(item, str) and item.strip()]
+     items, total = list_notes(search_text=q, tags_filter=clean_tags, offset=offset, limit=limit)
+     return {
+-        "items": [note.model_dump() for note in items],
++        "items": items,
+         "total": total,
+         "offset": offset,
+         "limit": limit,

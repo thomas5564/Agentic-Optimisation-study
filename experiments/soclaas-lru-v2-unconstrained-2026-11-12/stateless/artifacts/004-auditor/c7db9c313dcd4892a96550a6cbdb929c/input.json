@@ -1,0 +1,266 @@
+{
+  "decision": {
+    "accepted": true,
+    "reason": "improved_beyond_epsilon",
+    "relative_improvement": 0.11348001160280438
+  },
+  "evidence": {
+    "candidate": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 4.425999999511987,
+          "mean": 0.6394547036569141,
+          "median": 0.5037294999965525,
+          "min": 0.27425000007497147,
+          "p95": 1.2771670008078218
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.018781967654950292,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.04516792951829215,
+        "repetition_means_ms": [
+          0.6602637174804235,
+          0.6388263141684547,
+          0.6313808724955076,
+          0.6349977724918668,
+          0.631804841648318
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 4.425999999511987,
+            "mean": 0.45341946399094013,
+            "median": 0.4422500001055596,
+            "min": 0.4058329996041721,
+            "p95": 0.47366699982376304
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 2.149500000086846,
+            "mean": 0.31604599199090444,
+            "median": 0.3022920000148588,
+            "min": 0.27425000007497147,
+            "p95": 0.3519589999996242
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.268249999564432,
+            "mean": 0.3734786073388629,
+            "median": 0.3648130004876293,
+            "min": 0.3242499997213599,
+            "p95": 0.40866699964681175
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 4.322916999626614,
+            "mean": 0.8865376546467209,
+            "median": 0.860833499700675,
+            "min": 0.48420900020573754,
+            "p95": 1.314832999923965
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.688040999804798,
+            "mean": 0.4643292380042112,
+            "median": 0.44554199985213927,
+            "min": 0.4165420004937914,
+            "p95": 0.5320410000422271
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.6349977724918668,
+      "valid": true
+    },
+    "parent": {
+      "counts": {
+        "completed": 6000,
+        "failed": 0,
+        "latency_ms": {
+          "max": 5.058458999883442,
+          "mean": 0.7153721964943239,
+          "median": 0.5783749998045096,
+          "min": 0.33150000035675475,
+          "p95": 1.3707500002055895
+        },
+        "semantic_mismatches": 0,
+        "success_rate": 1.0,
+        "successful": 6000,
+        "timed_out": 0,
+        "total": 6000
+      },
+      "noise": {
+        "coefficient_of_variation": 0.003184390932959354,
+        "epsilon": null,
+        "note": "Descriptive local noise only. Select and freeze epsilon above observed noise after a representative pilot.",
+        "relative_range": 0.007927126394447136,
+        "repetition_means_ms": [
+          0.71628139331627,
+          0.7170974508297453,
+          0.7114266050090615,
+          0.7155143424847665,
+          0.7165411908317765
+        ]
+      },
+      "per_operation": {
+        "add": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.321208000263141,
+            "mean": 0.5202923679862579,
+            "median": 0.5139374993632373,
+            "min": 0.47699999959149864,
+            "p95": 0.554750000446802
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "delete": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 0.6172499997774139,
+            "mean": 0.3801605819917313,
+            "median": 0.3712914995048777,
+            "min": 0.33150000035675475,
+            "p95": 0.4285000004529138
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        },
+        "get": {
+          "completed": 1500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 1.0943750003207242,
+            "mean": 0.4313111806568486,
+            "median": 0.42525050002950593,
+            "min": 0.3863749998345156,
+            "p95": 0.4674579995480599
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 1500,
+          "timed_out": 0,
+          "total": 1500
+        },
+        "list_search": {
+          "completed": 3000,
+          "failed": 0,
+          "latency_ms": {
+            "max": 5.058458999883442,
+            "mean": 0.9750565203339647,
+            "median": 0.9494999999333231,
+            "min": 0.5537500001082662,
+            "p95": 1.4032090002729092
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 3000,
+          "timed_out": 0,
+          "total": 3000
+        },
+        "update": {
+          "completed": 500,
+          "failed": 0,
+          "latency_ms": {
+            "max": 3.763125000659784,
+            "mean": 0.5397407439795643,
+            "median": 0.5150204997335095,
+            "min": 0.47491699933743803,
+            "p95": 0.6597499996132683
+          },
+          "semantic_mismatches": 0,
+          "success_rate": 1.0,
+          "successful": 500,
+          "timed_out": 0,
+          "total": 500
+        }
+      },
+      "score_ms": 0.71628139331627,
+      "valid": true
+    },
+    "validation": {
+      "correct": true,
+      "status": "passed"
+    }
+  },
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nimport threading\nfrom pathlib import Path\n\nfrom app.models import Note\n\nSCHEMA = (\n    \"\"\"\n    CREATE TABLE IF NOT EXISTS notes (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        title TEXT NOT NULL,\n        body TEXT NOT NULL,\n        tags TEXT NOT NULL DEFAULT '[]'\n    )\n    \"\"\",\n)\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\nclass _DB:\n    \"\"\"Thread-local SQLite connection manager.\n\n    Uses a single persistent connection per thread to avoid the overhead of\n    opening/closing connections for every request. This is safe for the default\n    single-threaded uvicorn worker. A lock is used to serialize writes to ensure\n    durability and prevent SQLite busy errors during concurrent access within\n    the same thread (though unlikely in single-threaded mode, it's good practice\n    for the commit/rollback cycle).\n    \"\"\"\n\n    def __init__(self) -> None:\n        self._local = threading.local()\n        self._lock = threading.Lock()\n\n    def _get_connection(self) -> sqlite3.Connection:\n        if not hasattr(self._local, \"connection\") or self._local.connection is None:\n            path = get_db_path()\n            path.parent.mkdir(parents=True, exist_ok=True)\n            conn = sqlite3.connect(path, timeout=30)\n            conn.row_factory = sqlite3.Row\n            conn.execute(\"PRAGMA foreign_keys = ON\")\n            conn.execute(\"PRAGMA journal_mode = WAL\")\n            conn.execute(\"PRAGMA case_sensitive_like = ON\")\n            for statement in SCHEMA:\n                conn.execute(statement)\n            conn.commit()\n            self._local.connection = conn\n        return self._local.connection\n\n    def execute(self, sql: str, params: tuple = ()) -> sqlite3.Cursor:\n        conn = self._get_connection()\n        with self._lock:\n            return conn.execute(sql, params)\n\n    def commit(self) -> None:\n        conn = self._get_connection()\n        with self._lock:\n            conn.commit()\n\n    def close(self) -> None:\n        conn = getattr(self._local, \"connection\", None)\n        if conn:\n            conn.close()\n            self._local.connection = None\n\n\n# Global singleton instance\ndb = _DB()\n\n\ndef initialize_db() -> None:\n    \"\"\"Initialize the database schema. Called at startup.\"\"\"\n    db.execute(\"SELECT 1\")  # Ensure connection is established and schema is ready\n\n\ndef _normalize_tags(tags: list[str]) -> str:\n    return json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n\n\ndef _make_note(note_id: int, title: str, body: str, tags: str) -> Note:\n    return Note.model_validate({\"id\": note_id, \"title\": title, \"body\": body, \"tags\": json.loads(tags or \"[]\")})\n\n\ndef _to_note(row: sqlite3.Row) -> Note:\n    return _make_note(row[\"id\"], row[\"title\"], row[\"body\"], row[\"tags\"])\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    payload = _normalize_tags(tags)\n    cursor = db.execute(\n        \"INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)\",\n        (title, body, payload),\n    )\n    note_id = cursor.lastrowid\n    db.commit()\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    return _to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    if row is None:\n        return None\n    return _to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    wanted = [tag for tag in tags_filter or [] if tag]\n\n    # Build query for matching notes\n    conditions = []\n    params: list[object] = []\n\n    if search_text:\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n\n    if wanted:\n        # Use json_each for robust tag filtering\n        # We need to ensure the note has ALL the wanted tags\n        conditions.append(\"id IN (SELECT n.id FROM notes n JOIN json_each(n.tags) j WHERE j.value IN (\" + \",\".join([\"?\"] * len(wanted)) + \") GROUP BY n.id HAVING COUNT(DISTINCT j.value) = ?)\")\n        params.extend(wanted)\n        params.append(len(wanted))\n\n    where_clause = \" WHERE \" + \" AND \".join(conditions) if conditions else \"\"\n\n    # Count query\n    count_sql = f\"SELECT COUNT(*) FROM notes{where_clause}\"\n    total_row = db.execute(count_sql, params).fetchone()\n    total = total_row[0]\n\n    # Data query\n    data_sql = f\"SELECT id, title, body, tags FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?\"\n    data_params = params + [limit, offset]\n    rows = db.execute(data_sql, data_params).fetchall()\n\n    notes = [_to_note(row) for row in rows]\n    return notes, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    payload = _normalize_tags(tags)\n    cursor = db.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?\",\n        (title, body, payload, note_id),\n    )\n    db.commit()\n    if cursor.rowcount == 0:\n        return None\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    return _to_note(row)\n\n\ndef delete_note(note_id: int) -> bool:\n    cursor = db.execute(\n        \"DELETE FROM notes WHERE id = ?\",\n        (note_id,),\n    )\n    db.commit()\n    return cursor.rowcount > 0\n",
+      "path": "app/db.py"
+    }
+  ],
+  "plan": {
+    "approach": "query",
+    "change": "Refactor list_notes in app/db.py to use a single SQL query that retrieves both the count and the paginated data, eliminating the redundant full-table scan. Additionally, optimize the tag filtering by using a simpler JSON containment check (e.g., tags LIKE '%tag%') combined with a precise validation step, or more robustly, by ensuring the json_each subquery is efficient. However, the primary win is removing the separate COUNT query. The current code executes a COUNT query and then a SELECT query, both scanning the table. By using a window function or simply fetching the data and counting in Python (if the result set is small due to LIMIT), we can reduce overhead. Given the LIMIT is small (max 100), fetching the rows and counting them in Python is likely faster than a second SQL scan, provided we don't fetch all rows. But we need the total count for pagination metadata. A better approach: Use a single query with a window function to get both the row and the total count, or accept that for large datasets, two queries are standard. However, the profile shows 5600 execute calls for 600 requests, implying 9-10 executes per request. The list_notes function currently does: 1. Count query, 2. Data query. That's 2 executes. But _connect and _release are called. The profile shows 1200 _connect calls for 600 list_notes calls? No, 600 list_notes calls. 1200 _connect calls suggests 2 connects per list_notes? No, list_notes calls _connect once. create_note, get_note, update_note, delete_note also call _connect. 100 creates, 300 reads, 100 updates, 100 deletes, 600 lists. Total 1200 CRUD operations. Each calls _connect. The profile shows 1200 _connect calls. This is the main overhead: opening/closing a SQLite connection for every single request. The optimization is to use a connection pool or a single persistent connection per worker. Since this is a simple app, we can use a module-level connection or a FastAPI dependency with lifespan to maintain a single connection. However, SQLite is not thread-safe for writes. FastAPI runs in a single thread by default with uvicorn. So a single global connection is safe if we handle concurrency carefully. But the profile shows 1200 connects. If we reuse the connection, we save 1200 connect/close cycles. This is a 'computation' or 'other' approach? It's 'other' (connection management). But the prompt asks for one focused optimization. The profile shows _connect takes 0.003s per call, tottime 0.003, cumtime 0.073 for 1200 calls. That's significant. Also, _release takes time. Let's propose connection reuse. Change: Implement a simple connection pool or a single persistent connection in app/db.py that is initialized once and reused, with proper locking if necessary (though single-threaded uvicorn doesn't need locking). Risks: Thread safety if uvicorn uses multiple workers/threads. We must ensure the connection is not shared across threads. FastAPI's lifespan can provide a single connection per worker. We will use a module-level variable guarded by a lock or just rely on single-threaded execution. Given the profile, the app is likely running single-threaded. We will use a single connection instance. Approach: other (infrastructure/connection management).",
+    "hypothesis": "The current implementation opens and closes a SQLite connection for every single API request (1200 times in the profile). This incurs significant overhead due to file I/O and initialization. By reusing a single persistent SQLite connection for the lifetime of the worker process, we can eliminate this overhead, reducing the cumulative time spent in _connect and _release, thereby lowering request latency.",
+    "risks": [
+      "SQLite connections are not thread-safe. If the application is deployed with multiple workers or threads, a shared connection could cause errors. This optimization assumes a single-threaded worker (default uvicorn).",
+      "Long-lived connections may hold locks longer, potentially causing contention if writes are frequent. However, SQLite handles this gracefully with WAL mode (which we can enable).",
+      "If the database file is moved or deleted externally, the connection may break. We need to handle reconnection logic or ensure the database path is stable."
+    ],
+    "schema_version": 1
+  },
+  "role": "auditor",
+  "schema_version": 1
+}

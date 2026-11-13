@@ -1,0 +1,11 @@
+{
+  "approach": "query",
+  "change": "Modify the `list_notes` function in `app/db.py` to fetch tags using a single JOIN query instead of a separate query per note or a separate query for all note IDs. Replace the current logic that fetches note IDs and then runs a separate `SELECT ... FROM note_tags WHERE note_id IN (...)` with a single query: `SELECT n.id, n.title, n.body, nt.tag FROM notes n LEFT JOIN note_tags nt ON n.id = nt.note_id {where_clause} ORDER BY n.id ASC LIMIT ? OFFSET ?`. Then, in Python, reconstruct the notes by grouping the flat result set by note ID. This eliminates the overhead of preparing and executing a second SQL statement and reduces the number of round-trips to the SQLite engine for the tag data retrieval phase.",
+  "hypothesis": "The profile shows `list_notes` is the dominant hot spot, consuming 0.113s cumulative time. While the separate tag query is optimized with `IN (...)`, executing a second SQL statement (even with a prepared cursor or efficient batch) adds Python-level overhead and SQLite internal parsing/execution time. By joining the tags directly in the main query, we reduce the number of SQL executions from 2 (count, data, tags) to 2 (count, joined data) and eliminate the Python loop overhead for fetching the second result set. This should reduce the cumulative time of `list_notes` by removing the distinct tag-fetching step.",
+  "risks": [
+    "If a note has many tags, the result set size increases, potentially increasing memory usage and transfer time, though for typical note tag counts this is negligible.",
+    "The Python logic for reconstructing notes from the joined result set must correctly handle notes with no tags (NULLs from LEFT JOIN) and multiple tags per note.",
+    "The `ORDER BY` must remain on `n.id` to preserve the required sort order; joining might affect execution plan, but SQLite handles this efficiently."
+  ],
+  "schema_version": 1
+}

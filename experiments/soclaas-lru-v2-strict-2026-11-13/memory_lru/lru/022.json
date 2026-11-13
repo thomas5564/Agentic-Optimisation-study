@@ -1,0 +1,22 @@
+{
+  "capacity": 6,
+  "iteration": 22,
+  "order_before": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+  ],
+  "schema_version": 1,
+  "shown": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+  ],
+  "total_attempts": 21
+}

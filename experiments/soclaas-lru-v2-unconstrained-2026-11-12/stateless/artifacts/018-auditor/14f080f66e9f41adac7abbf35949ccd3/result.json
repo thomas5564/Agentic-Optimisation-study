@@ -1,0 +1,27 @@
+{
+  "elapsed_seconds": 148.00173816701863,
+  "error": "Missing or truncated chat completion",
+  "exit_code": null,
+  "metadata": {
+    "model": "default",
+    "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+    "reasoning_parameter_sent": false,
+    "reported_model": "qwen3.6:35b",
+    "tools": [],
+    "transport": "chat_completions"
+  },
+  "output": null,
+  "schema_version": 1,
+  "status": "malformed",
+  "usage": {
+    "input_tokens": 12349,
+    "output_tokens": 12000,
+    "provider_usage": {
+      "completion_tokens": 12000,
+      "prompt_tokens": 12349,
+      "prompt_tokens_details": null,
+      "total_tokens": 24349
+    },
+    "total_tokens": 24349
+  }
+}

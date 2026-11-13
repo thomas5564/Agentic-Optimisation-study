@@ -1,0 +1,29 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -180,19 +180,20 @@
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
+     pool = _get_pool()
+     connection = pool.get_connection()
+-    row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    if row is None:
+-        return None
+     
+     payload = _normalize_tags(tags)
+-    connection.execute(
++    cursor = connection.execute(
+         "UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?",
+         (title, body, payload, note_id),
+     )
++    
++    if cursor.rowcount == 0:
++        return None
++    
+     connection.commit()
+     
+-    updated_row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    return _to_note(updated_row)
++    row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
++    return _to_note(row)
+ 
+ 
+ def delete_note(note_id: int) -> bool:

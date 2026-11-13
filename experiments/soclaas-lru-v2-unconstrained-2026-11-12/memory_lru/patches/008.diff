@@ -1,0 +1,187 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -3,6 +3,7 @@
+ import json
+ import os
+ import sqlite3
++import threading
+ from pathlib import Path
+ 
+ from app.models import Note
+@@ -26,25 +27,80 @@
+     return Path(__file__).resolve().parent.parent / "notes.db"
+ 
+ 
+-def _connect() -> sqlite3.Connection:
+-    path = get_db_path()
+-    path.parent.mkdir(parents=True, exist_ok=True)
+-    connection = sqlite3.connect(path)
+-    connection.row_factory = sqlite3.Row
+-    connection.execute("PRAGMA foreign_keys = ON")
+-    connection.execute("PRAGMA case_sensitive_like = ON")
++class ConnectionPool:
++    """Thread-local SQLite connection pool."""
++
++    def __init__(self, db_path: Path) -> None:
++        self._db_path = db_path
++        self._local = threading.local()
++
++    def _get_connection(self) -> sqlite3.Connection:
++        conn = getattr(self._local, "connection", None)
++        if conn is not None:
++            try:
++                # Check if connection is still valid
++                conn.execute("SELECT 1")
++                return conn
++            except sqlite3.Error:
++                # Connection is broken, close it and create a new one
++                try:
++                    conn.close()
++                except sqlite3.Error:
++                    pass
++                self._local.connection = None
++                conn = None
++
++        if conn is None:
++            conn = self._create_connection()
++            self._local.connection = conn
++        return conn
++
++    def _create_connection(self) -> sqlite3.Connection:
++        path = self._db_path
++        path.parent.mkdir(parents=True, exist_ok=True)
++        connection = sqlite3.connect(path)
++        connection.row_factory = sqlite3.Row
++        connection.execute("PRAGMA foreign_keys = ON")
++        connection.execute("PRAGMA case_sensitive_like = ON")
++        for statement in SCHEMA:
++            connection.execute(statement)
++        connection.commit()
++        return connection
++
++    def get_connection(self) -> sqlite3.Connection:
++        return self._get_connection()
++
++    def close(self) -> None:
++        conn = getattr(self._local, "connection", None)
++        if conn is not None:
++            try:
++                conn.close()
++            except sqlite3.Error:
++                pass
++            self._local.connection = None
++
++
++# Module-level pool instance
++_pool: ConnectionPool | None = None
++_pool_lock = threading.Lock()
++
++
++def _get_pool() -> ConnectionPool:
++    global _pool
++    if _pool is None:
++        with _pool_lock:
++            if _pool is None:
++                _pool = ConnectionPool(get_db_path())
++    return _pool
++
++
++def initialize_db() -> None:
++    pool = _get_pool()
++    conn = pool.get_connection()
++    # Ensure schema is created
+     for statement in SCHEMA:
+-        connection.execute(statement)
+-    connection.commit()
+-    return connection
+-
+-
+-def _release(connection: sqlite3.Connection) -> None:
+-    connection.close()
+-
+-
+-def initialize_db() -> None:
+-    _release(_connect())
++        conn.execute(statement)
++    conn.commit()
+ 
+ 
+ def _normalize_tags(tags: list[str]) -> str:
+@@ -58,8 +114,10 @@
+ def _to_note(row: sqlite3.Row) -> Note:
+     return _make_note(row["id"], row["title"], row["body"], row["tags"])
+ 
++
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+-    connection = _connect()
++    pool = _get_pool()
++    connection = pool.get_connection()
+     payload = _normalize_tags(tags)
+     cursor = connection.execute(
+         "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)",
+@@ -68,14 +126,13 @@
+     note_id = cursor.lastrowid
+     connection.commit()
+     row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    _release(connection)
+     return _to_note(row)
+ 
+ 
+ def get_note(note_id: int) -> Note | None:
+-    connection = _connect()
++    pool = _get_pool()
++    connection = pool.get_connection()
+     row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    _release(connection)
+     if row is None:
+         return None
+     return _to_note(row)
+@@ -88,8 +145,10 @@
+     offset: int = 0,
+     limit: int = 20,
+ ) -> tuple[list[Note], int]:
++    pool = _get_pool()
++    connection = pool.get_connection()
++    
+     wanted = [tag for tag in tags_filter or [] if tag]
+-    connection = _connect()
+     
+     conditions = []
+     params: list[object] = []
+@@ -113,17 +172,16 @@
+     query_params = params + [limit, offset]
+     
+     rows = connection.execute(query_sql, query_params).fetchall()
+-    _release(connection)
+     
+     notes = [_to_note(row) for row in rows]
+     return notes, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
+-    connection = _connect()
++    pool = _get_pool()
++    connection = pool.get_connection()
+     row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+     if row is None:
+-        _release(connection)
+         return None
+     
+     payload = _normalize_tags(tags)
+@@ -134,14 +192,13 @@
+     connection.commit()
+     
+     updated_row = connection.execute("SELECT id, title, body, tags FROM notes WHERE id = ?", (note_id,)).fetchone()
+-    _release(connection)
+     return _to_note(updated_row)
+ 
+ 
+ def delete_note(note_id: int) -> bool:
+-    connection = _connect()
++    pool = _get_pool()
++    connection = pool.get_connection()
+     cursor = connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+     connection.commit()
+     deleted = cursor.rowcount > 0
+-    _release(connection)
+     return deleted

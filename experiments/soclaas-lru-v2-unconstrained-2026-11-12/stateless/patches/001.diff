@@ -1,0 +1,162 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -60,31 +60,35 @@
+ 
+ def create_note(title: str, body: str, tags: list[str]) -> Note:
+     connection = _connect()
+-    payload = _normalize_tags(tags)
+-    cursor = connection.execute(
+-        "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)",
+-        (title, body, payload),
+-    )
+-    note_id = cursor.lastrowid
+-    connection.commit()
+-    created = None
+-    for row in connection.execute("SELECT id, title, body, tags FROM notes").fetchall():
+-        note = _to_note(row)
+-        if note.id == note_id:
+-            created = note
+-    _release(connection)
+-    return created
++    try:
++        payload = _normalize_tags(tags)
++        cursor = connection.execute(
++            "INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)",
++            (title, body, payload),
++        )
++        note_id = cursor.lastrowid
++        connection.commit()
++        row = connection.execute(
++            "SELECT id, title, body, tags FROM notes WHERE id = ?",
++            (note_id,),
++        ).fetchone()
++        return _to_note(row)
++    finally:
++        _release(connection)
+ 
+ 
+ def get_note(note_id: int) -> Note | None:
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
+-    _release(connection)
+-    notes = [_to_note(row) for row in rows]
+-    for note in notes:
+-        if note.id == note_id:
+-            return note
+-    return None
++    try:
++        row = connection.execute(
++            "SELECT id, title, body, tags FROM notes WHERE id = ?",
++            (note_id,),
++        ).fetchone()
++        if row is None:
++            return None
++        return _to_note(row)
++    finally:
++        _release(connection)
+ 
+ 
+ def list_notes(
+@@ -96,42 +100,73 @@
+ ) -> tuple[list[Note], int]:
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
+-    _release(connection)
+-    matches = []
+-    for note in map(_to_note, rows):
+-        if search_text and search_text not in note.title and search_text not in note.body:
+-            continue
+-        if all(tag in note.tags for tag in wanted):
+-            matches.append(note)
+-    return matches[offset: offset + limit], len(matches)
++    try:
++        # Build query for matching notes
++        conditions = []
++        params: list[object] = []
++
++        if search_text:
++            conditions.append("(title LIKE ? OR body LIKE ?)")
++            params.extend([f"%{search_text}%", f"%{search_text}%"])
++
++        if wanted:
++            # SQLite JSON functions are available in 3.38+
++            # We check if json_each is available or fallback to in-memory filtering
++            # For robustness and performance, we'll use a subquery with json_each if possible,
++            # but to ensure compatibility and simplicity, we fetch limited rows and filter in memory
++            # if the tag filtering is complex. However, the plan suggests SQL filtering.
++            # Let's try to do it in SQL if possible, otherwise fallback.
++            # Given the constraint of "parameterized SQL queries", we can use json_each.
++            conditions.append("id IN (SELECT n.id FROM notes n JOIN json_each(n.tags) j WHERE j.value IN (" + ",".join(["?"] * len(wanted)) + ") GROUP BY n.id HAVING COUNT(DISTINCT j.value) = ?)")
++            params.extend(wanted)
++            params.append(len(wanted))
++
++        where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
++
++        # Count query
++        count_sql = f"SELECT COUNT(*) FROM notes{where_clause}"
++        total_row = connection.execute(count_sql, params).fetchone()
++        total = total_row[0]
++
++        # Data query
++        data_sql = f"SELECT id, title, body, tags FROM notes{where_clause} ORDER BY id ASC LIMIT ? OFFSET ?"
++        data_params = params + [limit, offset]
++        rows = connection.execute(data_sql, data_params).fetchall()
++
++        notes = [_to_note(row) for row in rows]
++        return notes, total
++    finally:
++        _release(connection)
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:
+     connection = _connect()
+-    existing = {note.id: note for note in map(_to_note, connection.execute("SELECT id, title, body, tags FROM notes"))}
+-    if note_id not in existing:
++    try:
++        payload = _normalize_tags(tags)
++        cursor = connection.execute(
++            "UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?",
++            (title, body, payload, note_id),
++        )
++        connection.commit()
++        if cursor.rowcount == 0:
++            return None
++        row = connection.execute(
++            "SELECT id, title, body, tags FROM notes WHERE id = ?",
++            (note_id,),
++        ).fetchone()
++        return _to_note(row)
++    finally:
+         _release(connection)
+-        return None
+-    payload = _normalize_tags(tags)
+-    connection.execute(
+-        "UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?",
+-        (title, body, payload, note_id),
+-    )
+-    connection.commit()
+-    updated = {note.id: note for note in map(_to_note, connection.execute("SELECT id, title, body, tags FROM notes"))}
+-    _release(connection)
+-    return updated[note_id]
+ 
+ 
+ def delete_note(note_id: int) -> bool:
+     connection = _connect()
+-    ids = [_to_note(row).id for row in connection.execute("SELECT id, title, body, tags FROM notes").fetchall()]
+-    if note_id not in ids:
++    try:
++        cursor = connection.execute(
++            "DELETE FROM notes WHERE id = ?",
++            (note_id,),
++        )
++        connection.commit()
++        return cursor.rowcount > 0
++    finally:
+         _release(connection)
+-        return False
+-    connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+-    connection.commit()
+-    connection.execute("VACUUM")
+-    _release(connection)
+-    return True

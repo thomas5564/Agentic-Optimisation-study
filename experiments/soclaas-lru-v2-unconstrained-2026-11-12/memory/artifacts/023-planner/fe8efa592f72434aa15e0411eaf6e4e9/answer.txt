@@ -1,0 +1,11 @@
+{
+  "approach": "query",
+  "change": "Refactor app/db.py to optimize the list_notes function by replacing the INSTR-based tag filtering with a normalized many-to-many note_tags table. 1) Add a new table 'note_tags' with columns (note_id INTEGER, tag TEXT) and a unique index on (note_id, tag). 2) Modify create_note to insert the note, then insert rows into note_tags for each tag. 3) Modify update_note to delete existing tags for the note_id and insert new ones. 4) Modify delete_note to delete associated note_tags. 5) Rewrite list_notes to use a JOIN between notes and note_tags for tag filtering (WHERE note_tags.tag = ?) and standard LIKE for search_text, using GROUP BY notes.id to handle duplicates from the join. This replaces the O(N*M) string scan with an O(log N) index lookup.",
+  "hypothesis": "The current profile shows list_notes is the hottest path, and the existing tag filtering uses INSTR(tags, ?) which performs a linear string scan on every row. By normalizing tags into a separate indexed table, tag lookups become index-based joins, which are significantly faster for SQLite, especially as the number of notes or tags grows. This reduces the cumulative time in list_notes by avoiding full-table string scans for tag matching.",
+  "risks": [
+    "The implementation must correctly enforce the 'ALL tags' filter logic using GROUP BY and HAVING COUNT(DISTINCT tag) = number_of_tags, which is complex and prone to logical errors if not constructed carefully.",
+    "Write operations (create, update, delete) will incur additional overhead due to maintaining the junction table, potentially offsetting read gains if the workload is write-heavy.",
+    "Schema migration requires careful handling to ensure the new table is created and populated correctly without breaking existing data or durability guarantees."
+  ],
+  "schema_version": 1
+}

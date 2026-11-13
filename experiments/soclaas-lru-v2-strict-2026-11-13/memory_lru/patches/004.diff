@@ -1,0 +1,24 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -136,12 +136,17 @@
+ 
+ def delete_note(note_id: int) -> bool:
+     connection = _connect()
+-    ids = [_to_note(row).id for row in connection.execute("SELECT id, title, body, tags FROM notes").fetchall()]
+-    if note_id not in ids:
++    row = connection.execute(
++        'SELECT id FROM notes WHERE id = ?',
++        (note_id,),
++    ).fetchone()
++    if row is None:
+         _release(connection)
+         return False
+-    connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
++    connection.execute(
++        'DELETE FROM notes WHERE id = ?',
++        (note_id,),
++    )
+     connection.commit()
+-    connection.execute("VACUUM")
+     _release(connection)
+     return True

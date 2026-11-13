@@ -1,0 +1,22 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Modify the list_notes function in app/db.py to use a single SQL query with a LEFT JOIN to note_tags and GROUP_CONCAT to retrieve tags alongside note data, eliminating the separate tag lookup query and the Python-side iteration to build the tags_map. Specifically, replace the two-query approach (one for notes, one for tags) with: SELECT n.id, n.title, n.body, GROUP_CONCAT(nt.tag, ',') as tags FROM notes n LEFT JOIN note_tags nt ON n.id = nt.note_id {where_clause} GROUP BY n.id ORDER BY n.id ASC LIMIT ? OFFSET ?; Then parse the concatenated tags string in Python. This reduces the number of SQLite executions from 2 (plus the count query) to 1 (plus the count query) per list_notes call.",
+    "hypothesis": "The profile shows list_notes is the dominant hot spot, consuming 0.113s cumulative time. A significant portion of this is spent in _get_tags_for_note and the subsequent Python loop to map tags to notes. By moving the tag aggregation into SQL using GROUP_CONCAT, we reduce the number of database round-trips and eliminate the Python-side data structure construction overhead for tags. This should reduce the cumulative time of list_notes by removing the separate tag query and the associated cursor operations and Python list/dict manipulations.",
+    "risks": [
+      "GROUP_CONCAT order is not guaranteed in SQLite without an ORDER BY in a subquery or window function, which might affect tag sorting consistency. However, since tags are sorted in Python in the current implementation, we can sort them after splitting the concatenated string, preserving the semantic requirement.",
+      "GROUP_CONCAT has a default limit of 1000 characters for the result. If a note has many tags, this could truncate the output. We should set PRAGMA group_concat_max_len to a higher value (e.g., 10000) at connection startup to mitigate this, though the current schema doesn't cap tag count.",
+      "The change modifies the query structure, which requires careful handling of the WHERE clause and parameters to ensure correctness, especially with the GROUP BY clause."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

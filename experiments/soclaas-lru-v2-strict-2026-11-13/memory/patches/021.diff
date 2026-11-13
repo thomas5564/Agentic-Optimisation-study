@@ -1,0 +1,38 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -97,12 +97,15 @@
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+     if not search_text and not wanted:
++        count_row = connection.execute('SELECT COUNT(*) FROM notes').fetchone()
++        total = count_row[0]
+         rows = connection.execute(
+-            'SELECT id, title, body, tags FROM notes ORDER BY id ASC',
++            'SELECT id, title, body, tags FROM notes ORDER BY id ASC LIMIT ? OFFSET ?',
++            (limit, offset),
+         ).fetchall()
+         _release(connection)
+         matches = [_to_note(row) for row in rows]
+-        return matches[offset : offset + limit], len(matches)
++        return matches, total
+     conditions = []
+     params: list[object] = []
+     if search_text:
+@@ -112,11 +115,14 @@
+         conditions.append('tags LIKE ?')
+         params.append(f'%{tag}%')
+     where_clause = ' AND '.join(conditions)
+-    query = f'SELECT id, title, body, tags FROM notes WHERE {where_clause} ORDER BY id ASC'
+-    rows = connection.execute(query, params).fetchall()
++    count_query = f'SELECT COUNT(*) FROM notes WHERE {where_clause}'
++    total_row = connection.execute(count_query, params).fetchone()
++    total = total_row[0]
++    query = f'SELECT id, title, body, tags FROM notes WHERE {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?'
++    rows = connection.execute(query, params + [limit, offset]).fetchall()
+     _release(connection)
+     matches = [_to_note(row) for row in rows]
+-    return matches[offset : offset + limit], len(matches)
++    return matches, total
+ 
+ 
+ def update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:

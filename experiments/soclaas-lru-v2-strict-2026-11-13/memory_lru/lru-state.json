@@ -1,0 +1,845 @@
+{
+  "capacity": 6,
+  "order": [
+    25,
+    26,
+    29,
+    27,
+    28,
+    30
+  ],
+  "schema_version": 1,
+  "steps": [
+    {
+      "evicted": [],
+      "ignored": [],
+      "iteration": 1,
+      "order_after": [
+        1
+      ],
+      "refreshed": [],
+      "shown": []
+    },
+    {
+      "evicted": [],
+      "ignored": [],
+      "iteration": 2,
+      "order_after": [
+        1,
+        2
+      ],
+      "refreshed": [
+        1
+      ],
+      "shown": [
+        1
+      ]
+    },
+    {
+      "evicted": [],
+      "ignored": [],
+      "iteration": 3,
+      "order_after": [
+        1,
+        2,
+        3
+      ],
+      "refreshed": [
+        1,
+        2
+      ],
+      "shown": [
+        1,
+        2
+      ]
+    },
+    {
+      "evicted": [],
+      "ignored": [],
+      "iteration": 4,
+      "order_after": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "refreshed": [
+        1,
+        2,
+        3
+      ],
+      "shown": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "evicted": [],
+      "ignored": [],
+      "iteration": 5,
+      "order_after": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "refreshed": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "shown": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "evicted": [],
+      "ignored": [],
+      "iteration": 6,
+      "order_after": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "refreshed": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "shown": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "evicted": [
+        1
+      ],
+      "ignored": [],
+      "iteration": 7,
+      "order_after": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "refreshed": [
+        5,
+        6
+      ],
+      "shown": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "evicted": [
+        2
+      ],
+      "ignored": [],
+      "iteration": 8,
+      "order_after": [
+        3,
+        4,
+        6,
+        7,
+        5,
+        8
+      ],
+      "refreshed": [
+        5
+      ],
+      "shown": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "evicted": [
+        3
+      ],
+      "ignored": [],
+      "iteration": 9,
+      "order_after": [
+        4,
+        6,
+        7,
+        8,
+        5,
+        9
+      ],
+      "refreshed": [
+        5
+      ],
+      "shown": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "evicted": [
+        4
+      ],
+      "ignored": [],
+      "iteration": 10,
+      "order_after": [
+        6,
+        7,
+        8,
+        9,
+        5,
+        10
+      ],
+      "refreshed": [
+        5
+      ],
+      "shown": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "evicted": [
+        5
+      ],
+      "ignored": [],
+      "iteration": 11,
+      "order_after": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "refreshed": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "shown": [
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    {
+      "evicted": [
+        6
+      ],
+      "ignored": [],
+      "iteration": 12,
+      "order_after": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "refreshed": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "shown": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "evicted": [
+        7
+      ],
+      "ignored": [],
+      "iteration": 13,
+      "order_after": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "refreshed": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "shown": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "evicted": [
+        8
+      ],
+      "ignored": [],
+      "iteration": 14,
+      "order_after": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "refreshed": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "shown": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "evicted": [
+        9
+      ],
+      "ignored": [],
+      "iteration": 15,
+      "order_after": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "refreshed": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ],
+      "shown": [
+        9,
+        10,
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "evicted": [
+        10
+      ],
+      "ignored": [],
+      "iteration": 16,
+      "order_after": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "refreshed": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "shown": [
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "evicted": [
+        11
+      ],
+      "ignored": [],
+      "iteration": 17,
+      "order_after": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "refreshed": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "shown": [
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ]
+    },
+    {
+      "evicted": [
+        12
+      ],
+      "ignored": [],
+      "iteration": 18,
+      "order_after": [
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "refreshed": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ],
+      "shown": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "evicted": [
+        13
+      ],
+      "ignored": [],
+      "iteration": 19,
+      "order_after": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "refreshed": [
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "shown": [
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ]
+    },
+    {
+      "evicted": [
+        14
+      ],
+      "ignored": [],
+      "iteration": 20,
+      "order_after": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "refreshed": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "shown": [
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    {
+      "evicted": [
+        15
+      ],
+      "ignored": [],
+      "iteration": 21,
+      "order_after": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21
+      ],
+      "refreshed": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "shown": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ]
+    },
+    {
+      "evicted": [
+        16
+      ],
+      "ignored": [],
+      "iteration": 22,
+      "order_after": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "refreshed": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21
+      ],
+      "shown": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21
+      ]
+    },
+    {
+      "evicted": [
+        17
+      ],
+      "ignored": [],
+      "iteration": 23,
+      "order_after": [
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "refreshed": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ],
+      "shown": [
+        17,
+        18,
+        19,
+        20,
+        21,
+        22
+      ]
+    },
+    {
+      "evicted": [
+        18
+      ],
+      "ignored": [],
+      "iteration": 24,
+      "order_after": [
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "refreshed": [
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "shown": [
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ]
+    },
+    {
+      "evicted": [
+        19
+      ],
+      "ignored": [],
+      "iteration": 25,
+      "order_after": [
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "refreshed": [
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ],
+      "shown": [
+        19,
+        20,
+        21,
+        22,
+        23,
+        24
+      ]
+    },
+    {
+      "evicted": [
+        20
+      ],
+      "ignored": [],
+      "iteration": 26,
+      "order_after": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "refreshed": [
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "shown": [
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ]
+    },
+    {
+      "evicted": [
+        21
+      ],
+      "ignored": [],
+      "iteration": 27,
+      "order_after": [
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ],
+      "refreshed": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "shown": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ]
+    },
+    {
+      "evicted": [
+        22
+      ],
+      "ignored": [],
+      "iteration": 28,
+      "order_after": [
+        23,
+        24,
+        25,
+        26,
+        27,
+        28
+      ],
+      "refreshed": [
+        27
+      ],
+      "shown": [
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ]
+    },
+    {
+      "evicted": [
+        23
+      ],
+      "ignored": [],
+      "iteration": 29,
+      "order_after": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29
+      ],
+      "refreshed": [
+        23,
+        24,
+        25,
+        26,
+        27,
+        28
+      ],
+      "shown": [
+        23,
+        24,
+        25,
+        26,
+        27,
+        28
+      ]
+    },
+    {
+      "evicted": [
+        24
+      ],
+      "ignored": [],
+      "iteration": 30,
+      "order_after": [
+        25,
+        26,
+        29,
+        27,
+        28,
+        30
+      ],
+      "refreshed": [
+        27,
+        28
+      ],
+      "shown": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29
+      ]
+    }
+  ]
+}

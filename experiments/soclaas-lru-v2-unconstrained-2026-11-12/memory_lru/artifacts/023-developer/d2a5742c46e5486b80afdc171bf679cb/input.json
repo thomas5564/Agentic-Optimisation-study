@@ -1,0 +1,28 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor app/db.py's list_notes function to use a single SQL query with the COUNT(*) OVER() window function to retrieve both the paginated notes and the total count in one database round-trip. Replace the current two-execute pattern (one COUNT(*) query and one SELECT ... LIMIT/OFFSET query) with: SELECT id, title, body, tags, COUNT(*) OVER() as total FROM notes WHERE {where_clause} ORDER BY id ASC LIMIT ? OFFSET ?. In Python, extract the total from the first row of the result set (handling the empty result case by defaulting to 0) and construct the Note objects from all rows. This preserves the exact API contract for GET /notes, including correct total counts for empty result sets, and maintains all filtering semantics.",
+    "hypothesis": "The profile shows list_notes is the dominant operation (600 calls) and consumes significant time in sqlite3.execute (3300 total calls, with list_notes contributing ~1200 executes). The current implementation performs two separate SQL executions per list_notes request: one for COUNT(*) and one for the paginated data. By using a SQL window function (COUNT(*) OVER()), we can retrieve both the total count and the paginated rows in a single database round-trip. This reduces the number of execute calls for list_notes by 50%, directly addressing the identified CPU hotspot in the SQLite layer. Since the workload is read-heavy and list_notes is the most frequent operation, this optimization should yield a measurable reduction in overall latency.",
+    "risks": [
+      "The previous attempts using COUNT(*) OVER() failed with 'correctness_failed'. This may be due to subtle issues in how the total is extracted from the first row when the result set is empty versus non-empty, or potential issues with the LIMIT/OFFSET interaction with the window function in specific edge cases.",
+      "The tag filtering logic uses LIKE with '%\"tag\"%' patterns. While this is preserved from the original code, any changes to the query structure must ensure that the WHERE clause construction remains identical to avoid semantic mismatches in tag matching.",
+      "If the SQLite version does not support window functions (though unlikely in modern environments), the query will fail. However, previous attempts assumed this support, so it is likely available."
+    ],
+    "schema_version": 1,
+    "used_memory": [
+      19,
+      20,
+      21,
+      22
+    ]
+  },
+  "role": "developer",
+  "schema_version": 1
+}

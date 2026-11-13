@@ -1,0 +1,2 @@
+pair_id,stateless_over_memory_speedup,stateless_over_memory_lru_speedup,memory_over_memory_lru_speedup
+0,0.917009634827852,0.9570247990056253,1.0436365798765956

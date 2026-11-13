@@ -1,0 +1,11 @@
+{
+  "approach": "computation",
+  "change": "Replace the JSON-based tag storage and filtering in `app/db.py` with a normalized relational schema using a separate `note_tags` table. Remove `_normalize_tags`, `_make_note`, and `_to_note` tag parsing logic. Update `list_notes` to join `notes` and `note_tags` for filtering, and update `create_note`/`update_note` to insert into both tables. This eliminates the O(N) JSON parsing and regex matching overhead per row during list operations.",
+  "hypothesis": "The profile shows `sqlite3.Connection.execute` consuming 86% of time, driven by `list_notes` which processes 1848 rows. The current implementation stores tags as a JSON string and uses `json_each` or Python-side parsing for filtering. This forces SQLite to parse JSON for every row in the result set and prevents index usage on tags. By normalizing tags into a separate table, we can use standard SQL joins and indexes, allowing SQLite to filter rows before fetching them, drastically reducing the number of rows processed and eliminating Python-side JSON parsing overhead for tags.",
+  "risks": [
+    "Schema migration requires updating the database structure, which may affect existing data if not handled carefully. However, since the app initializes a fresh DB per run in testing, this is low risk.",
+    "The `list_notes` query becomes more complex with joins, but this is standard SQL and should be more efficient than JSON functions.",
+    "Ensuring atomicity of note and tag inserts/updates is critical to maintain data consistency."
+  ],
+  "schema_version": 1
+}

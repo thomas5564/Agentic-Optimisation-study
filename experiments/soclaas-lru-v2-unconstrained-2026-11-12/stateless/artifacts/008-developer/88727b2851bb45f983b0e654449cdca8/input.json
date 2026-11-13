@@ -1,0 +1,22 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor the `list_notes` function in `app/db.py` to use a single SQL query that retrieves both the count and the paginated data, eliminating the redundant full-table scan. Additionally, add a composite index on `(title, body)` to optimize the `LIKE` search conditions used in the `WHERE` clause.",
+    "hypothesis": "The profile shows `list_notes` consumes 0.282s, with `db.execute` taking 0.271s. The current implementation runs two separate queries: one for `COUNT(*)` and one for the data rows. Both queries scan the table (or index) independently. By combining them into a single query (e.g., using a CTE or subquery to get the count alongside the limited rows), we reduce I/O and CPU overhead. Furthermore, the `LIKE` searches on `title` and `body` currently force full table scans because SQLite cannot efficiently use a B-tree index for `LIKE '%...%'` patterns on multiple columns. Adding a composite index on `(title, body)` allows SQLite to use an index scan for the `LIKE` conditions, significantly speeding up the filtering phase, which is the dominant cost in the profile.",
+    "risks": [
+      "SQLite's support for indexing multiple columns for `LIKE` searches is limited; it may still fall back to a full table scan if the query planner determines the index is not selective enough, though it often helps for prefix matches or when combined with other conditions.",
+      "The single-query approach using a CTE might have higher memory overhead if the result set is large, but given the `limit` of 100, this is negligible.",
+      "Adding an index increases write latency slightly for `INSERT` and `UPDATE` operations, but the profile indicates reads are the bottleneck, and the write overhead is minimal for a single table."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

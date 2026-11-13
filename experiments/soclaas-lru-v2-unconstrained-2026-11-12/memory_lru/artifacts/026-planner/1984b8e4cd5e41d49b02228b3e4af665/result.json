@@ -1,0 +1,45 @@
+{
+  "elapsed_seconds": 7.4554847499821335,
+  "error": null,
+  "exit_code": null,
+  "metadata": {
+    "model": "default",
+    "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+    "reasoning_parameter_sent": false,
+    "reported_model": "qwen3.6:35b",
+    "tools": [],
+    "transport": "chat_completions"
+  },
+  "output": {
+    "approach": "serialization",
+    "change": "Refactor app/db.py to bypass Pydantic validation during read operations. In `list_notes`, `get_note`, and `update_note`, replace `_to_note` (which calls `Note.model_validate`) with a direct dictionary construction: `row_to_dict = {k: row[k] for k in row.keys()}`. For `list_notes`, map this dict directly to the response items. In `main.py`, modify `list_notes_endpoint` to return `items` as a list of these raw dictionaries instead of calling `note.model_dump()` on Pydantic models. This eliminates the overhead of Pydantic's `model_validate` (1848 calls) and `model_dump` (1348 calls) for every note returned, reducing the dominant CPU time in the list path.",
+    "hypothesis": "The profile shows that `list_notes` is the dominant operation, consuming 0.123s cumulative time. A significant portion of this is spent in `pydantic/main.py:746(model_validate)` (0.006s cumulative for 1848 calls) and `pydantic/main.py:472(model_dump)` (0.001s cumulative for 1348 calls). By constructing plain dictionaries directly from SQLite rows and returning them, we remove the validation and serialization overhead of Pydantic for read paths. Since the API contract requires standard JSON objects with specific fields, and the data types from SQLite (int, str, list via json.loads) align with the JSON schema, this change preserves correctness while significantly reducing CPU usage in the hot path.",
+    "risks": [
+      "Pydantic validation ensures data integrity (e.g., tag sorting, stripping). Bypassing it assumes the database content is already valid. Since all writes go through Pydantic-validated paths, reads should be safe.",
+      "The `tags` field is stored as JSON in SQLite. `json.loads` is called in `_make_note`. The new code must ensure `tags` is correctly parsed into a list of strings. If `row['tags']` is already a string, it must be parsed. If it's already a list (unlikely in SQLite), it should be used. The current `_make_note` uses `json.loads(tags or '[]')`. The new code must replicate this logic precisely.",
+      "If any future code relies on Pydantic model methods on the returned objects, this change will break it. However, the endpoint returns dicts, so this is internal to the response generation."
+    ],
+    "schema_version": 1,
+    "used_memory": [
+      20,
+      21,
+      22,
+      23,
+      24,
+      25
+    ]
+  },
+  "schema_version": 1,
+  "status": "ok",
+  "usage": {
+    "input_tokens": 15971,
+    "output_tokens": 612,
+    "provider_usage": {
+      "completion_tokens": 612,
+      "prompt_tokens": 15971,
+      "prompt_tokens_details": null,
+      "total_tokens": 16583
+    },
+    "total_tokens": 16583
+  }
+}

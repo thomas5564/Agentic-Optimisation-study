@@ -1,0 +1,12 @@
+{
+  "approach": "query",
+  "change": "def get_note(note_id: int) -> Note | None:    connection = _connect()    row = connection.execute(        'SELECT id, title, body, tags FROM notes WHERE id = ?',        (note_id,),    ).fetchone()    _release(connection)    if row is None:        return None    return _to_note(row)",
+  "hypothesis": "The current get_note implementation fetches all notes from the database and iterates through them in Python to find the matching ID. This results in O(N) database reads and O(N) Python object construction/validation for every single note retrieval, regardless of the total number of notes. By changing the SQL query to filter by ID directly (WHERE id = ?), we reduce the database work to a single row lookup (O(1) with primary key index) and eliminate the overhead of constructing and validating Note objects for all other rows. This should significantly reduce latency for get_note, which is a frequent operation.",
+  "risks": [
+    "None. The API contract requires returning the specific note by ID or None if not found. The optimized query does exactly this.",
+    "The change is strictly within the allowed scope (modifying only get_note).",
+    "No impact on other operations or persistence semantics."
+  ]
+,
+  "schema_version": 1
+}

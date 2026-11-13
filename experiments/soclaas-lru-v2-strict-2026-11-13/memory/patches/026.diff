@@ -1,0 +1,11 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -113,7 +113,7 @@
+         params.extend([f'%{search_text}%', f'%{search_text}%'])
+     for tag in wanted:
+         conditions.append('tags LIKE ?')
+-        params.append(f'%{tag}%')
++        params.append(f'[{tag}]')
+     where_clause = ' AND '.join(conditions)
+     count_query = f'SELECT COUNT(*) FROM notes WHERE {where_clause}'
+     total_row = connection.execute(count_query, params).fetchone()

@@ -1,0 +1,22 @@
+{
+  "decision": null,
+  "evidence": {},
+  "memory": null,
+  "memory_count": 0,
+  "memory_hash": null,
+  "objective": "Reduce median-of-repetition mean request latency while preserving the complete notes API contract and durability.",
+  "patch": null,
+  "plan": {
+    "approach": "query",
+    "change": "Refactor the `list_notes` function in `app/db.py` to fetch tags using a single JOIN query instead of separate queries per note or a separate IN query followed by Python-side grouping. Specifically, replace the two-query pattern (one for notes, one for tags via `IN` clause) with a single SQL query: `SELECT n.id, n.title, n.body, nt.tag FROM notes n LEFT JOIN note_tags nt ON n.id = nt.note_id WHERE ... ORDER BY n.id ASC LIMIT ? OFFSET ?`. Then, in Python, iterate through the result set once, grouping tags by note ID into a dictionary, and constructing the `Note` objects. This reduces the number of SQLite cursor executions and Python object allocations significantly.",
+    "hypothesis": "The current `list_notes` implementation performs two database round-trips: one for the note metadata and one for all associated tags. While the second query uses an `IN` clause, it still requires fetching all tag rows and then grouping them in Python. By using a `LEFT JOIN`, we retrieve all necessary data in a single pass. This reduces the overhead of cursor creation, result fetching, and Python-side list/dict operations. The profile shows `list_notes` is the hottest function, and reducing the number of SQL executions and Python iterations should lower cumulative time.",
+    "risks": [
+      "If the number of tags per note is very large, the JOIN might produce a large result set, but given the constraints (tags are few per note), this is unlikely to be an issue.",
+      "The `ORDER BY` in the JOIN query must match the original behavior (order by note ID). The original query orders by note ID, so this is preserved.",
+      "Handling `None` tags (if a note has no tags) requires careful Python logic to ensure empty lists are assigned, which the `LEFT JOIN` naturally supports."
+    ],
+    "schema_version": 1
+  },
+  "role": "developer",
+  "schema_version": 1
+}

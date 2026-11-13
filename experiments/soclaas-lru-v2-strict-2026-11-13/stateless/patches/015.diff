@@ -1,0 +1,49 @@
+--- a/app/db.py
++++ b/app/db.py
+@@ -92,27 +92,30 @@
+ ) -> tuple[list[Note], int]:
+     wanted = [tag for tag in tags_filter or [] if tag]
+     connection = _connect()
+-    rows = connection.execute("SELECT id, title, body, tags FROM notes ORDER BY id ASC").fetchall()
++    conditions = []
++    params: list[object] = []
++
++    if search_text:
++        conditions.append('title LIKE ? OR body LIKE ?')
++        params.extend([f'%{search_text}%', f'%{search_text}%'])
++
++    if wanted:
++        conditions.append('id IN (SELECT je.value FROM json_each(tags) je WHERE je.value IN (' + ','.join('?' for _ in wanted) + '))')
++        params.extend(wanted)
++
++    where_clause = ''
++    if conditions:
++        where_clause = 'WHERE ' + ' AND '.join(conditions)
++
++    query = f'SELECT id, title, body, tags FROM notes {where_clause} ORDER BY id ASC'
++    rows = connection.execute(query, params).fetchall()
+     _release(connection)
++
+     matches = []
+     for row in rows:
+-        if search_text:
+-            title = row['title']
+-            body = row['body']
+-            if search_text not in title and search_text not in body:
+-                continue
+-        if wanted:
+-            tags_json = row['tags']
+-            if not tags_json:
+-                continue
+-            try:
+-                tags = json.loads(tags_json)
+-            except Exception:
+-                continue
+-            if not all(tag in tags for tag in wanted):
+-                continue
+         note = _make_note(row['id'], row['title'], row['body'], row['tags'])
+         matches.append(note)
++
+     return matches[offset: offset + limit], len(matches)
+ 
+ 

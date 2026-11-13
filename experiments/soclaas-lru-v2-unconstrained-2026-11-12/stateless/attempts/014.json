@@ -1,0 +1,213 @@
+{
+  "attempt_id": "05860e39c6f148b6bd91ec4848f5abfa:014",
+  "audit": {
+    "interpretation": "The plan proposes optimizing the `list_notes` function in `app/db.py` by replacing two separate SQL queries (one for counting, one for data) with a single query using the `COUNT(*) OVER()` window function. The objective is to reduce median request latency by halving SQLite execution overhead for this endpoint. The patch implements this change, correctly extracting the total count from the first row of the result set. Validation indicates `correct: false` with status `correctness_failed`, and the decision is `accepted: false` for the same reason. This suggests the implementation fails to meet functional correctness requirements, likely due to issues with the complex tag filtering logic combined with the window function, or incorrect handling of the `total` value when the result set is empty or filtered. The hypothesis that this reduces latency is plausible, but the correctness failure overrides performance benefits. The API contract requires `total` to reflect all matching notes before pagination, which the window function approach supports, but the specific failure mode is not detailed in the provided evidence.",
+    "limitations": [
+      "Validation status is 'correctness_failed' but specific error details or test cases are not provided.",
+      "No performance measurements or latency scores are included to verify the latency reduction hypothesis.",
+      "The exact cause of the correctness failure (e.g., empty result handling, tag logic interaction) is unknown.",
+      "Schema version and plan details are present, but runtime behavior evidence is missing."
+    ],
+    "schema_version": 1
+  },
+  "audit_status": "passed",
+  "candidate_hash": "bfb89f0b9b92588990b1808708ff5771a9c4bd98a0b085a8299d44d80d15d608",
+  "candidate_measurement": null,
+  "condition": "stateless",
+  "config_hash": "17f599e552387d944b08765b19adeadb0140dceb2ff7225e60d1955764d01a00",
+  "decision": {
+    "accepted": false,
+    "reason": "correctness_failed",
+    "relative_improvement": null
+  },
+  "iteration": 14,
+  "memory": {
+    "approach": "query",
+    "attempted_change": "Modify the `list_notes` function in `/workspace/app/db.py` to use a single SQL query that retrieves both the count and the paginated data, eliminating the separate `COUNT(*)` query. Replace the current two-query approach (one for total count, one for data) with a single query using a window function (`COUNT(*) OVER()`) to get the total alongside the limited rows. This reduces the number of SQLite executions from 2 to 1 for the list endpoint.",
+    "audit_status": "passed",
+    "candidate_hash": "bfb89f0b9b92588990b1808708ff5771a9c4bd98a0b085a8299d44d80d15d608",
+    "facts": {
+      "acceptance": {
+        "accepted": false,
+        "reason": "correctness_failed",
+        "relative_improvement": null
+      },
+      "after_score_ms": null,
+      "before_score_ms": null,
+      "candidate_counts": null,
+      "correctness": {
+        "correct": false,
+        "status": "correctness_failed"
+      },
+      "status": "correctness_failed"
+    },
+    "hypothesis": "The profile shows `list_notes` is the dominant hot spot, consuming 0.280s cumulative time, with `execute` called 2000 times (likely 1000 requests * 2 queries each). By reducing the number of SQL executions per `list_notes` call from 2 to 1, we halve the SQLite execution overhead for this endpoint. Since the data retrieval is the primary cost, removing the redundant count query should significantly reduce latency without changing the result semantics.",
+    "interpretation": "The plan proposes optimizing the `list_notes` function in `app/db.py` by replacing two separate SQL queries (one for counting, one for data) with a single query using the `COUNT(*) OVER()` window function. The objective is to reduce median request latency by halving SQLite execution overhead for this endpoint. The patch implements this change, correctly extracting the total count from the first row of the result set. Validation indicates `correct: false` with status `correctness_failed`, and the decision is `accepted: false` for the same reason. This suggests the implementation fails to meet functional correctness requirements, likely due to issues with the complex tag filtering logic combined with the window function, or incorrect handling of the `total` value when the result set is empty or filtered. The hypothesis that this reduces latency is plausible, but the correctness failure overrides performance benefits. The API contract requires `total` to reflect all matching notes before pagination, which the window function approach supports, but the specific failure mode is not detailed in the provided evidence.",
+    "iteration": 14,
+    "limitations": [
+      "Validation status is 'correctness_failed' but specific error details or test cases are not provided.",
+      "No performance measurements or latency scores are included to verify the latency reduction hypothesis.",
+      "The exact cause of the correctness failure (e.g., empty result handling, tag logic interaction) is unknown.",
+      "Schema version and plan details are present, but runtime behavior evidence is missing."
+    ],
+    "parent_hash": "d80350fc219fcb842ddd3d1cf3b628d68b86671be0d2af1b838fc43146ea25c2",
+    "schema_version": 1
+  },
+  "parent_hash": "d80350fc219fcb842ddd3d1cf3b628d68b86671be0d2af1b838fc43146ea25c2",
+  "parent_measurement": null,
+  "patch": [
+    {
+      "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nimport threading\nfrom pathlib import Path\n\nfrom app.models import Note\n\nSCHEMA = (\n    \"\"\"\n    CREATE TABLE IF NOT EXISTS notes (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        title TEXT NOT NULL,\n        body TEXT NOT NULL,\n        tags TEXT NOT NULL DEFAULT '[]'\n    )\n    \"\"\",\n)\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\nclass _DB:\n    \"\"\"Thread-local SQLite connection manager.\n\n    Uses a single persistent connection per thread to avoid the overhead of\n    opening/closing connections for every request. This is safe for the default\n    single-threaded uvicorn worker. A lock is used to serialize writes to ensure\n    durability and prevent SQLite busy errors during concurrent access within\n    the same thread (though unlikely in single-threaded mode, it's good practice\n    for the commit/rollback cycle).\n    \"\"\"\n\n    def __init__(self) -> None:\n        self._local = threading.local()\n        self._lock = threading.Lock()\n\n    def _get_connection(self) -> sqlite3.Connection:\n        if not hasattr(self._local, \"connection\") or self._local.connection is None:\n            path = get_db_path()\n            path.parent.mkdir(parents=True, exist_ok=True)\n            conn = sqlite3.connect(path, timeout=30)\n            conn.row_factory = sqlite3.Row\n            conn.execute(\"PRAGMA foreign_keys = ON\")\n            conn.execute(\"PRAGMA journal_mode = WAL\")\n            conn.execute(\"PRAGMA case_sensitive_like = ON\")\n            for statement in SCHEMA:\n                conn.execute(statement)\n            conn.commit()\n            self._local.connection = conn\n        return self._local.connection\n\n    def execute(self, sql: str, params: tuple = ()) -> sqlite3.Cursor:\n        conn = self._get_connection()\n        with self._lock:\n            return conn.execute(sql, params)\n\n    def commit(self) -> None:\n        conn = self._get_connection()\n        with self._lock:\n            conn.commit()\n\n    def close(self) -> None:\n        conn = getattr(self._local, \"connection\", None)\n        if conn:\n            conn.close()\n            self._local.connection = None\n\n\n# Global singleton instance\ndb = _DB()\n\n\ndef initialize_db() -> None:\n    \"\"\"Initialize the database schema. Called at startup.\"\"\"\n    db.execute(\"SELECT 1\")  # Ensure connection is established and schema is ready\n\n\ndef _normalize_tags(tags: list[str]) -> str:\n    return json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n\n\ndef _make_note(note_id: int, title: str, body: str, tags: str) -> Note:\n    return Note.model_validate({\"id\": note_id, \"title\": title, \"body\": body, \"tags\": json.loads(tags or \"[]\")})\n\n\ndef _to_note(row: sqlite3.Row) -> Note:\n    return _make_note(row[\"id\"], row[\"title\"], row[\"body\"], row[\"tags\"])\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    payload = _normalize_tags(tags)\n    cursor = db.execute(\n        \"INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)\",\n        (title, body, payload),\n    )\n    note_id = cursor.lastrowid\n    db.commit()\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    return _to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    if row is None:\n        return None\n    return _to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    wanted = [tag for tag in tags_filter or [] if tag]\n\n    # Build query for matching notes\n    conditions = []\n    params: list[object] = []\n\n    if search_text:\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n\n    if wanted:\n        # Use json_each for robust tag filtering\n        # We need to ensure the note has ALL the wanted tags\n        conditions.append(\"id IN (SELECT n.id FROM notes n JOIN json_each(n.tags) j WHERE j.value IN (\" + \",\".join([\"?\"] * len(wanted)) + \") GROUP BY n.id HAVING COUNT(DISTINCT j.value) = ?)\")\n        params.extend(wanted)\n        params.append(len(wanted))\n\n    where_clause = \" WHERE \" + \" AND \".join(conditions) if conditions else \"\"\n\n    # Single query using window function to get both total count and paginated data\n    data_sql = f\"\"\"\n        SELECT id, title, body, tags, COUNT(*) OVER() as total\n        FROM notes{where_clause}\n        ORDER BY id ASC\n        LIMIT ? OFFSET ?\n    \"\"\"\n    data_params = params + [limit, offset]\n    rows = db.execute(data_sql, data_params).fetchall()\n\n    notes = []\n    total = 0\n    for i, row in enumerate(rows):\n        if i == 0:\n            total = row[\"total\"]\n        notes.append(_to_note(row))\n\n    return notes, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    payload = _normalize_tags(tags)\n    cursor = db.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?\",\n        (title, body, payload, note_id),\n    )\n    db.commit()\n    if cursor.rowcount == 0:\n        return None\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    return _to_note(row)\n\n\ndef delete_note(note_id: int) -> bool:\n    cursor = db.execute(\n        \"DELETE FROM notes WHERE id = ?\",\n        (note_id,),\n    )\n    db.commit()\n    return cursor.rowcount > 0\n",
+      "path": "app/db.py"
+    }
+  ],
+  "plan": {
+    "approach": "query",
+    "change": "Modify the `list_notes` function in `/workspace/app/db.py` to use a single SQL query that retrieves both the count and the paginated data, eliminating the separate `COUNT(*)` query. Replace the current two-query approach (one for total count, one for data) with a single query using a window function (`COUNT(*) OVER()`) to get the total alongside the limited rows. This reduces the number of SQLite executions from 2 to 1 for the list endpoint.",
+    "hypothesis": "The profile shows `list_notes` is the dominant hot spot, consuming 0.280s cumulative time, with `execute` called 2000 times (likely 1000 requests * 2 queries each). By reducing the number of SQL executions per `list_notes` call from 2 to 1, we halve the SQLite execution overhead for this endpoint. Since the data retrieval is the primary cost, removing the redundant count query should significantly reduce latency without changing the result semantics.",
+    "risks": [
+      "The window function approach requires SQLite 3.25.0+, which is standard in modern environments but should be verified.",
+      "The `total` value returned by the window function is per-row, so we must extract it from the first row of the result set and ignore it for subsequent rows to maintain the correct API response structure.",
+      "If the query becomes too complex or the dataset is extremely large, the window function might have different performance characteristics than a separate count, though for typical note sizes it should be faster or neutral."
+    ],
+    "schema_version": 1
+  },
+  "retained_hash": "d80350fc219fcb842ddd3d1cf3b628d68b86671be0d2af1b838fc43146ea25c2",
+  "retained_score_ms": 0.6287446508235917,
+  "roles": {
+    "auditor": {
+      "elapsed_seconds": 5.6388763330178335,
+      "error": null,
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "qwen3.6:35b",
+        "tools": [],
+        "transport": "chat_completions"
+      },
+      "output": {
+        "interpretation": "The plan proposes optimizing the `list_notes` function in `app/db.py` by replacing two separate SQL queries (one for counting, one for data) with a single query using the `COUNT(*) OVER()` window function. The objective is to reduce median request latency by halving SQLite execution overhead for this endpoint. The patch implements this change, correctly extracting the total count from the first row of the result set. Validation indicates `correct: false` with status `correctness_failed`, and the decision is `accepted: false` for the same reason. This suggests the implementation fails to meet functional correctness requirements, likely due to issues with the complex tag filtering logic combined with the window function, or incorrect handling of the `total` value when the result set is empty or filtered. The hypothesis that this reduces latency is plausible, but the correctness failure overrides performance benefits. The API contract requires `total` to reflect all matching notes before pagination, which the window function approach supports, but the specific failure mode is not detailed in the provided evidence.",
+        "limitations": [
+          "Validation status is 'correctness_failed' but specific error details or test cases are not provided.",
+          "No performance measurements or latency scores are included to verify the latency reduction hypothesis.",
+          "The exact cause of the correctness failure (e.g., empty result handling, tag logic interaction) is unknown.",
+          "Schema version and plan details are present, but runtime behavior evidence is missing."
+        ],
+        "schema_version": 1
+      },
+      "schema_version": 1,
+      "status": "ok",
+      "usage": {
+        "input_tokens": 10338,
+        "output_tokens": 319,
+        "provider_usage": {
+          "completion_tokens": 319,
+          "prompt_tokens": 10338,
+          "prompt_tokens_details": null,
+          "total_tokens": 10657
+        },
+        "total_tokens": 10657
+      }
+    },
+    "developer": {
+      "elapsed_seconds": 21.782887208042666,
+      "error": null,
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "qwen3.6:35b",
+        "tools": [],
+        "transport": "chat_completions"
+      },
+      "output": {
+        "edits": [
+          {
+            "content": "from __future__ import annotations\n\nimport json\nimport os\nimport sqlite3\nimport threading\nfrom pathlib import Path\n\nfrom app.models import Note\n\nSCHEMA = (\n    \"\"\"\n    CREATE TABLE IF NOT EXISTS notes (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        title TEXT NOT NULL,\n        body TEXT NOT NULL,\n        tags TEXT NOT NULL DEFAULT '[]'\n    )\n    \"\"\",\n)\n\n\ndef get_db_path() -> Path:\n    configured = os.getenv(\"NOTES_DB_PATH\")\n    if configured:\n        return Path(configured)\n    return Path(__file__).resolve().parent.parent / \"notes.db\"\n\n\nclass _DB:\n    \"\"\"Thread-local SQLite connection manager.\n\n    Uses a single persistent connection per thread to avoid the overhead of\n    opening/closing connections for every request. This is safe for the default\n    single-threaded uvicorn worker. A lock is used to serialize writes to ensure\n    durability and prevent SQLite busy errors during concurrent access within\n    the same thread (though unlikely in single-threaded mode, it's good practice\n    for the commit/rollback cycle).\n    \"\"\"\n\n    def __init__(self) -> None:\n        self._local = threading.local()\n        self._lock = threading.Lock()\n\n    def _get_connection(self) -> sqlite3.Connection:\n        if not hasattr(self._local, \"connection\") or self._local.connection is None:\n            path = get_db_path()\n            path.parent.mkdir(parents=True, exist_ok=True)\n            conn = sqlite3.connect(path, timeout=30)\n            conn.row_factory = sqlite3.Row\n            conn.execute(\"PRAGMA foreign_keys = ON\")\n            conn.execute(\"PRAGMA journal_mode = WAL\")\n            conn.execute(\"PRAGMA case_sensitive_like = ON\")\n            for statement in SCHEMA:\n                conn.execute(statement)\n            conn.commit()\n            self._local.connection = conn\n        return self._local.connection\n\n    def execute(self, sql: str, params: tuple = ()) -> sqlite3.Cursor:\n        conn = self._get_connection()\n        with self._lock:\n            return conn.execute(sql, params)\n\n    def commit(self) -> None:\n        conn = self._get_connection()\n        with self._lock:\n            conn.commit()\n\n    def close(self) -> None:\n        conn = getattr(self._local, \"connection\", None)\n        if conn:\n            conn.close()\n            self._local.connection = None\n\n\n# Global singleton instance\ndb = _DB()\n\n\ndef initialize_db() -> None:\n    \"\"\"Initialize the database schema. Called at startup.\"\"\"\n    db.execute(\"SELECT 1\")  # Ensure connection is established and schema is ready\n\n\ndef _normalize_tags(tags: list[str]) -> str:\n    return json.dumps(sorted({tag.strip() for tag in tags if tag and tag.strip()}))\n\n\ndef _make_note(note_id: int, title: str, body: str, tags: str) -> Note:\n    return Note.model_validate({\"id\": note_id, \"title\": title, \"body\": body, \"tags\": json.loads(tags or \"[]\")})\n\n\ndef _to_note(row: sqlite3.Row) -> Note:\n    return _make_note(row[\"id\"], row[\"title\"], row[\"body\"], row[\"tags\"])\n\n\ndef create_note(title: str, body: str, tags: list[str]) -> Note:\n    payload = _normalize_tags(tags)\n    cursor = db.execute(\n        \"INSERT INTO notes (title, body, tags) VALUES (?, ?, ?)\",\n        (title, body, payload),\n    )\n    note_id = cursor.lastrowid\n    db.commit()\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    return _to_note(row)\n\n\ndef get_note(note_id: int) -> Note | None:\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    if row is None:\n        return None\n    return _to_note(row)\n\n\ndef list_notes(\n    *,\n    search_text: str | None = None,\n    tags_filter: list[str] | None = None,\n    offset: int = 0,\n    limit: int = 20,\n) -> tuple[list[Note], int]:\n    wanted = [tag for tag in tags_filter or [] if tag]\n\n    # Build query for matching notes\n    conditions = []\n    params: list[object] = []\n\n    if search_text:\n        conditions.append(\"(title LIKE ? OR body LIKE ?)\")\n        params.extend([f\"%{search_text}%\", f\"%{search_text}%\"])\n\n    if wanted:\n        # Use json_each for robust tag filtering\n        # We need to ensure the note has ALL the wanted tags\n        conditions.append(\"id IN (SELECT n.id FROM notes n JOIN json_each(n.tags) j WHERE j.value IN (\" + \",\".join([\"?\"] * len(wanted)) + \") GROUP BY n.id HAVING COUNT(DISTINCT j.value) = ?)\")\n        params.extend(wanted)\n        params.append(len(wanted))\n\n    where_clause = \" WHERE \" + \" AND \".join(conditions) if conditions else \"\"\n\n    # Single query using window function to get both total count and paginated data\n    data_sql = f\"\"\"\n        SELECT id, title, body, tags, COUNT(*) OVER() as total\n        FROM notes{where_clause}\n        ORDER BY id ASC\n        LIMIT ? OFFSET ?\n    \"\"\"\n    data_params = params + [limit, offset]\n    rows = db.execute(data_sql, data_params).fetchall()\n\n    notes = []\n    total = 0\n    for i, row in enumerate(rows):\n        if i == 0:\n            total = row[\"total\"]\n        notes.append(_to_note(row))\n\n    return notes, total\n\n\ndef update_note(note_id: int, title: str, body: str, tags: list[str]) -> Note | None:\n    payload = _normalize_tags(tags)\n    cursor = db.execute(\n        \"UPDATE notes SET title = ?, body = ?, tags = ? WHERE id = ?\",\n        (title, body, payload, note_id),\n    )\n    db.commit()\n    if cursor.rowcount == 0:\n        return None\n    row = db.execute(\n        \"SELECT id, title, body, tags FROM notes WHERE id = ?\",\n        (note_id,),\n    ).fetchone()\n    return _to_note(row)\n\n\ndef delete_note(note_id: int) -> bool:\n    cursor = db.execute(\n        \"DELETE FROM notes WHERE id = ?\",\n        (note_id,),\n    )\n    db.commit()\n    return cursor.rowcount > 0\n",
+            "path": "app/db.py"
+          }
+        ],
+        "schema_version": 1,
+        "summary": "Optimized list_notes to use a single SQL query with COUNT(*) OVER() window function, reducing SQLite executions from 2 to 1 per call."
+      },
+      "schema_version": 1,
+      "status": "ok",
+      "usage": {
+        "input_tokens": 8715,
+        "output_tokens": 1696,
+        "provider_usage": {
+          "completion_tokens": 1696,
+          "prompt_tokens": 8715,
+          "prompt_tokens_details": null,
+          "total_tokens": 10411
+        },
+        "total_tokens": 10411
+      }
+    },
+    "planner": {
+      "elapsed_seconds": 6.284528375021182,
+      "error": null,
+      "exit_code": null,
+      "metadata": {
+        "model": "default",
+        "provider_base_url": "https://soclaas-api.comp.nus.edu.sg/v1",
+        "reasoning_parameter_sent": false,
+        "reported_model": "qwen3.6:35b",
+        "tools": [],
+        "transport": "chat_completions"
+      },
+      "output": {
+        "approach": "query",
+        "change": "Modify the `list_notes` function in `/workspace/app/db.py` to use a single SQL query that retrieves both the count and the paginated data, eliminating the separate `COUNT(*)` query. Replace the current two-query approach (one for total count, one for data) with a single query using a window function (`COUNT(*) OVER()`) to get the total alongside the limited rows. This reduces the number of SQLite executions from 2 to 1 for the list endpoint.",
+        "hypothesis": "The profile shows `list_notes` is the dominant hot spot, consuming 0.280s cumulative time, with `execute` called 2000 times (likely 1000 requests * 2 queries each). By reducing the number of SQL executions per `list_notes` call from 2 to 1, we halve the SQLite execution overhead for this endpoint. Since the data retrieval is the primary cost, removing the redundant count query should significantly reduce latency without changing the result semantics.",
+        "risks": [
+          "The window function approach requires SQLite 3.25.0+, which is standard in modern environments but should be verified.",
+          "The `total` value returned by the window function is per-row, so we must extract it from the first row of the result set and ignore it for subsequent rows to maintain the correct API response structure.",
+          "If the query becomes too complex or the dataset is extremely large, the window function might have different performance characteristics than a separate count, though for typical note sizes it should be faster or neutral."
+        ],
+        "schema_version": 1
+      },
+      "schema_version": 1,
+      "status": "ok",
+      "usage": {
+        "input_tokens": 10550,
+        "output_tokens": 359,
+        "provider_usage": {
+          "completion_tokens": 359,
+          "prompt_tokens": 10550,
+          "prompt_tokens_details": null,
+          "total_tokens": 10909
+        },
+        "total_tokens": 10909
+      }
+    }
+  },
+  "run_id": "05860e39c6f148b6bd91ec4848f5abfa",
+  "schema_version": 1,
+  "status": "correctness_failed",
+  "synthetic": false,
+  "validation": {
+    "artifacts": "/Users/thomaschoo/comp690-runs/lru-v2-full/stateless/artifacts/014-validation/4c53301df8d44b66acdd4ec348dc7e3c",
+    "correct": false,
+    "environment": {
+      "dependencies": {
+        "PyYAML": "6.0.3",
+        "fastapi": "0.143.0",
+        "httpx": "0.28.1",
+        "pydantic": "2.14.0",
+        "pytest": "8.4.2",
+        "starlette": "1.7.0",
+        "uvicorn": "0.54.0"
+      },
+      "machine": "aarch64",
+      "platform": "Linux-7.0.14-linuxkit-aarch64-with-glibc2.36",
+      "python": "3.13.16",
+      "sqlite": "3.40.1"
+    },
+    "exit_code": 1,
+    "status": "correctness_failed"
+  }
+}
