@@ -1,0 +1,93 @@
+note: Running TeX ...
+warning: final-project-report.tex:14: Underfull \hbox (badness 1424) in paragraph at lines 13--14
+warning: final-project-report.tex:20: Underfull \hbox (badness 1502) in paragraph at lines 17--20
+warning: final-project-report.tex:33: Underfull \hbox (badness 1400) in paragraph at lines 27--33
+warning: final-project-report.tex:33: Underfull \hbox (badness 10000) in paragraph at lines 27--33
+warning: final-project-report.tex:33: Underfull \hbox (badness 10000) in paragraph at lines 27--33
+warning: final-project-report.tex:33: Underfull \hbox (badness 3826) in paragraph at lines 27--33
+warning: final-project-report.tex:50: Underfull \hbox (badness 3250) in paragraph at lines 45--50
+warning: final-project-report.tex:133: Underfull \hbox (badness 1852) in paragraph at lines 132--133
+warning: final-project-report.tex:152: Underfull \hbox (badness 2302) in paragraph at lines 150--152
+warning: final-project-report.tex:155: Underfull \hbox (badness 1062) in paragraph at lines 153--155
+warning: final-project-report.tex:155: Underfull \hbox (badness 1052) in paragraph at lines 153--155
+warning: final-project-report.tex:186: Underfull \hbox (badness 1394) in paragraph at lines 179--186
+warning: final-project-report.tex:203: Underfull \hbox (badness 1546) in paragraph at lines 199--203
+warning: final-project-report.tex:250: Underfull \hbox (badness 1178) in paragraph at lines 240--250
+warning: final-project-report.tex:250: Underfull \hbox (badness 3612) in paragraph at lines 240--250
+warning: final-project-report.tex:250: Underfull \hbox (badness 1199) in paragraph at lines 240--250
+warning: final-project-report.tex:250: Underfull \hbox (badness 1082) in paragraph at lines 240--250
+warning: final-project-report.tex:267: Underfull \hbox (badness 1708) in paragraph at lines 260--267
+warning: final-project-report.tex:267: Underfull \hbox (badness 1237) in paragraph at lines 260--267
+warning: final-project-report.tex:267: Underfull \hbox (badness 3769) in paragraph at lines 260--267
+warning: final-project-report.tex:293: Underfull \hbox (badness 1331) in paragraph at lines 290--293
+warning: final-project-report.tex:334: Underfull \hbox (badness 1931) in paragraph at lines 333--334
+warning: final-project-report.tex:334: Underfull \hbox (badness 7595) in paragraph at lines 333--334
+warning: final-project-report.tex:340: Underfull \hbox (badness 1014) in paragraph at lines 339--340
+warning: final-project-report.tex:340: Underfull \hbox (badness 1107) in paragraph at lines 339--340
+note: Running BibTeX on final-project-report.aux ...
+note: Rerunning TeX because bibtex was run ...
+warning: final-project-report.tex:14: Underfull \hbox (badness 1424) in paragraph at lines 13--14
+warning: final-project-report.tex:20: Underfull \hbox (badness 1502) in paragraph at lines 17--20
+warning: final-project-report.tex:33: Underfull \hbox (badness 1400) in paragraph at lines 27--33
+warning: final-project-report.tex:33: Underfull \hbox (badness 10000) in paragraph at lines 27--33
+warning: final-project-report.tex:33: Underfull \hbox (badness 10000) in paragraph at lines 27--33
+warning: final-project-report.tex:33: Underfull \hbox (badness 3826) in paragraph at lines 27--33
+warning: final-project-report.tex:50: Underfull \hbox (badness 3250) in paragraph at lines 45--50
+warning: final-project-report.tex:133: Underfull \hbox (badness 1852) in paragraph at lines 132--133
+warning: final-project-report.tex:152: Underfull \hbox (badness 2302) in paragraph at lines 150--152
+warning: final-project-report.tex:155: Underfull \hbox (badness 1062) in paragraph at lines 153--155
+warning: final-project-report.tex:155: Underfull \hbox (badness 1052) in paragraph at lines 153--155
+warning: final-project-report.tex:186: Underfull \hbox (badness 1394) in paragraph at lines 179--186
+warning: final-project-report.tex:203: Underfull \hbox (badness 1546) in paragraph at lines 199--203
+warning: final-project-report.tex:250: Underfull \hbox (badness 1178) in paragraph at lines 240--250
+warning: final-project-report.tex:250: Underfull \hbox (badness 3612) in paragraph at lines 240--250
+warning: final-project-report.tex:250: Underfull \hbox (badness 1199) in paragraph at lines 240--250
+warning: final-project-report.tex:250: Underfull \hbox (badness 1082) in paragraph at lines 240--250
+warning: final-project-report.tex:267: Underfull \hbox (badness 1708) in paragraph at lines 260--267
+warning: final-project-report.tex:267: Underfull \hbox (badness 1237) in paragraph at lines 260--267
+warning: final-project-report.tex:267: Underfull \hbox (badness 3769) in paragraph at lines 260--267
+warning: final-project-report.bbl:11: Underfull \hbox (badness 3302) in paragraph at lines 6--11
+warning: final-project-report.bbl:11: Underfull \hbox (badness 2310) in paragraph at lines 6--11
+warning: final-project-report.bbl:11: Underfull \hbox (badness 2865) in paragraph at lines 6--11
+warning: final-project-report.bbl:19: Underfull \hbox (badness 3118) in paragraph at lines 13--19
+warning: final-project-report.tex:293: Underfull \hbox (badness 1331) in paragraph at lines 290--293
+warning: final-project-report.tex:334: Underfull \hbox (badness 1931) in paragraph at lines 333--334
+warning: final-project-report.tex:334: Underfull \hbox (badness 7595) in paragraph at lines 333--334
+warning: final-project-report.tex:340: Underfull \hbox (badness 1014) in paragraph at lines 339--340
+warning: final-project-report.tex:340: Underfull \hbox (badness 1107) in paragraph at lines 339--340
+note: Rerunning TeX because "final-project-report.aux" changed ...
+warning: final-project-report.tex:14: Underfull \hbox (badness 1424) in paragraph at lines 13--14
+warning: final-project-report.tex:20: Underfull \hbox (badness 1502) in paragraph at lines 17--20
+warning: final-project-report.tex:33: Underfull \hbox (badness 1400) in paragraph at lines 27--33
+warning: final-project-report.tex:33: Underfull \hbox (badness 10000) in paragraph at lines 27--33
+warning: final-project-report.tex:33: Underfull \hbox (badness 10000) in paragraph at lines 27--33
+warning: final-project-report.tex:33: Underfull \hbox (badness 3826) in paragraph at lines 27--33
+warning: final-project-report.tex:50: Underfull \hbox (badness 3250) in paragraph at lines 45--50
+warning: final-project-report.tex:133: Underfull \hbox (badness 1852) in paragraph at lines 132--133
+warning: final-project-report.tex:152: Underfull \hbox (badness 2302) in paragraph at lines 150--152
+warning: final-project-report.tex:155: Underfull \hbox (badness 1062) in paragraph at lines 153--155
+warning: final-project-report.tex:155: Underfull \hbox (badness 1052) in paragraph at lines 153--155
+warning: final-project-report.tex:186: Underfull \hbox (badness 1394) in paragraph at lines 179--186
+warning: final-project-report.tex:203: Underfull \hbox (badness 1546) in paragraph at lines 199--203
+warning: final-project-report.tex:250: Underfull \hbox (badness 1178) in paragraph at lines 240--250
+warning: final-project-report.tex:250: Underfull \hbox (badness 3612) in paragraph at lines 240--250
+warning: final-project-report.tex:250: Underfull \hbox (badness 1199) in paragraph at lines 240--250
+warning: final-project-report.tex:250: Underfull \hbox (badness 1082) in paragraph at lines 240--250
+warning: final-project-report.tex:267: Underfull \hbox (badness 1708) in paragraph at lines 260--267
+warning: final-project-report.tex:267: Underfull \hbox (badness 1237) in paragraph at lines 260--267
+warning: final-project-report.tex:267: Underfull \hbox (badness 3769) in paragraph at lines 260--267
+warning: final-project-report.bbl:11: Underfull \hbox (badness 3302) in paragraph at lines 6--11
+warning: final-project-report.bbl:11: Underfull \hbox (badness 2310) in paragraph at lines 6--11
+warning: final-project-report.bbl:11: Underfull \hbox (badness 2865) in paragraph at lines 6--11
+warning: final-project-report.bbl:19: Underfull \hbox (badness 3118) in paragraph at lines 13--19
+warning: final-project-report.tex:293: Underfull \hbox (badness 1331) in paragraph at lines 290--293
+warning: final-project-report.tex:334: Underfull \hbox (badness 1931) in paragraph at lines 333--334
+warning: final-project-report.tex:334: Underfull \hbox (badness 7595) in paragraph at lines 333--334
+warning: final-project-report.tex:340: Underfull \hbox (badness 1014) in paragraph at lines 339--340
+warning: final-project-report.tex:340: Underfull \hbox (badness 1107) in paragraph at lines 339--340
+warning: warnings were issued by the TeX engine; use --print and/or --keep-logs for details.
+note: Running xdvipdfmx ...
+note: Writing `output/report/final-project-report.pdf` (45.2421875 KiB)
+note: Writing `output/report/final-project-report.log` (18.521484375 KiB)
+note: Writing `output/report/final-project-report.blg` (212 B)
+note: Skipped writing 3 intermediate files (use --keep-intermediates to keep them)
